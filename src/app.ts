@@ -2,25 +2,25 @@ import express from "express";
 import passport from "passport";
 
 // Controllers (route handlers)
-import * as homeController from "./controllers/home";
-import * as apiController from "./controllers/api";
+import * as homeController from "@controllers/home";
+import * as apiController from "@controllers/api";
 
 // API keys and Passport configuration
-import * as passportConfig from "./config/passport";
+import * as passportConfig from "@config/passport";
 
 // Create Express server
 const app = express();
 
 // middleware initialization step
-require('./starter/plugins')(app);
+require('@starter/plugins')(app);
 
 // database initialization
-require('./starter/dbInit')(app);
+require('@starter/dbInit')(app);
 
 /**
  * Primary app routes.
  */
-require('./starter/initRoutes')(app);
+require('@starter/initRoutes')(app);
 /**
  * API examples routes.
  */
