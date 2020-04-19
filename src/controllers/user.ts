@@ -7,7 +7,7 @@ import { Request, Response, NextFunction } from "express";
 import { IVerifyOptions } from "passport-local";
 import { WriteError } from "mongodb";
 import { check, sanitize, validationResult } from "express-validator";
-import "@config/passport";
+import "../config/passport";
 
 /**
  * GET /login
@@ -15,7 +15,7 @@ import "@config/passport";
  */
 export const getLogin = (req: Request, res: Response) => {
     if (req.user) {
-        return res.redirect("/");
+        return res.send("/");
     }
     res.render("account/login", {
         title: "Login"
@@ -36,19 +36,19 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.redirect("/login");
+        return res.send("/login");
     }
 
     passport.authenticate("local", (err: Error, user: UserDocument, info: IVerifyOptions) => {
         if (err) { return next(err); }
         if (!user) {
             req.flash("errors", {msg: info.message});
-            return res.redirect("/login");
+            return res.send("/login");
         }
         req.logIn(user, (err) => {
             if (err) { return next(err); }
             req.flash("success", { msg: "Success! You are logged in." });
-            res.redirect(req.session.returnTo || "/");
+            res.send(req.session.returnTo || "/");
         });
     })(req, res, next);
 };
@@ -59,7 +59,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  */
 export const logout = (req: Request, res: Response) => {
     req.logout();
-    res.redirect("/");
+    res.send("/");
 };
 
 /**
@@ -68,7 +68,7 @@ export const logout = (req: Request, res: Response) => {
  */
 export const getSignup = (req: Request, res: Response) => {
     if (req.user) {
-        return res.redirect("/");
+        return res.send("/");
     }
     res.render("account/signup", {
         title: "Create Account"
@@ -90,7 +90,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.redirect("/signup");
+        return res.send("/signup");
     }
 
     const user = new User({
@@ -102,7 +102,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         if (err) { return next(err); }
         if (existingUser) {
             req.flash("errors", { msg: "Account with that email address already exists." });
-            return res.redirect("/signup");
+            return res.send("/signup");
         }
         user.save((err) => {
             if (err) { return next(err); }
@@ -110,7 +110,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
                 if (err) {
                     return next(err);
                 }
-                res.redirect("/");
+                res.send("/");
             });
         });
     });
@@ -139,7 +139,7 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.redirect("/account");
+        return res.send("/account");
     }
 
     const user = req.user as UserDocument;
@@ -154,12 +154,12 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
             if (err) {
                 if (err.code === 11000) {
                     req.flash("errors", { msg: "The email address you have entered is already associated with an account." });
-                    return res.redirect("/account");
+                    return res.send("/account");
                 }
                 return next(err);
             }
             req.flash("success", { msg: "Profile information has been updated." });
-            res.redirect("/account");
+            res.send("/account");
         });
     });
 };
@@ -176,7 +176,7 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.redirect("/account");
+        return res.send("/account");
     }
 
     const user = req.user as UserDocument;
@@ -186,7 +186,7 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
         user.save((err: WriteError) => {
             if (err) { return next(err); }
             req.flash("success", { msg: "Password has been changed." });
-            res.redirect("/account");
+            res.send("/account");
         });
     });
 };
@@ -201,7 +201,7 @@ export const postDeleteAccount = (req: Request, res: Response, next: NextFunctio
         if (err) { return next(err); }
         req.logout();
         req.flash("info", { msg: "Your account has been deleted." });
-        res.redirect("/");
+        res.send("/");
     });
 };
 
@@ -219,7 +219,7 @@ export const getOauthUnlink = (req: Request, res: Response, next: NextFunction) 
         user.save((err: WriteError) => {
             if (err) { return next(err); }
             req.flash("info", { msg: `${provider} account has been unlinked.` });
-            res.redirect("/account");
+            res.send("/account");
         });
     });
 };
@@ -230,7 +230,7 @@ export const getOauthUnlink = (req: Request, res: Response, next: NextFunction) 
  */
 export const getReset = (req: Request, res: Response, next: NextFunction) => {
     if (req.isAuthenticated()) {
-        return res.redirect("/");
+        return res.send("/");
     }
     User
         .findOne({ passwordResetToken: req.params.token })
@@ -239,7 +239,7 @@ export const getReset = (req: Request, res: Response, next: NextFunction) => {
             if (err) { return next(err); }
             if (!user) {
                 req.flash("errors", { msg: "Password reset token is invalid or has expired." });
-                return res.redirect("/forgot");
+                return res.send("/forgot");
             }
             res.render("account/reset", {
                 title: "Password Reset"
@@ -259,7 +259,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.redirect("back");
+        return res.send("back");
     }
 
     async.waterfall([
@@ -271,7 +271,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
                     if (err) { return next(err); }
                     if (!user) {
                         req.flash("errors", { msg: "Password reset token is invalid or has expired." });
-                        return res.redirect("back");
+                        return res.send("back");
                     }
                     user.password = req.body.password;
                     user.passwordResetToken = undefined;
@@ -305,7 +305,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
         }
     ], (err) => {
         if (err) { return next(err); }
-        res.redirect("/");
+        res.send("/");
     });
 };
 
@@ -315,7 +315,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
  */
 export const getForgot = (req: Request, res: Response) => {
     if (req.isAuthenticated()) {
-        return res.redirect("/");
+        return res.send("/");
     }
     res.render("account/forgot", {
         title: "Forgot Password"
@@ -335,7 +335,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.redirect("/forgot");
+        return res.send("/forgot");
     }
 
     async.waterfall([
@@ -350,7 +350,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                 if (err) { return done(err); }
                 if (!user) {
                     req.flash("errors", { msg: "Account with that email address does not exist." });
-                    return res.redirect("/forgot");
+                    return res.send("/forgot");
                 }
                 user.passwordResetToken = token;
                 user.passwordResetExpires = Date.now() + 3600000; // 1 hour
@@ -383,6 +383,6 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
         }
     ], (err) => {
         if (err) { return next(err); }
-        res.redirect("/forgot");
+        res.send("/forgot");
     });
 };

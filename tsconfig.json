@@ -10,9 +10,6 @@
         "outDir": "dist",
         "baseUrl": ".",
         "paths": {
-            "@controllers/*": ["src/controllers/*"],
-            "@config/*": ["src/config/*"],
-            "@starter/*": ["src/starter/*"],
             "*": [
                 "node_modules/*",
                 "src/types/*"

@@ -2,13 +2,14 @@ import express from "express";
 import passport from "passport";
 
 // Controllers (route handlers)
-import * as homeController from "@controllers/home";
-import * as apiController from "@controllers/api";
+import * as homeController from "./controllers/home";
+import * as apiController from "./controllers/api";
 
-import * as passportConfig from "@config/passport";
-import initRoutes from "@starter/initRoutes";
-import dbInit from "@starter/dbInit";
-import pluginStarter from "@starter/plugins"
+import * as passportConfig from "./config/passport";
+import initRoutes from "./starter/initRoutes";
+import dbInit from "./starter/dbInit";
+import pluginStarter from "./starter/plugins";
+import path from "path";
 
 const app = express();
 
@@ -26,7 +27,7 @@ app.get("/api/facebook", passportConfig.isAuthenticated, passportConfig.isAuthor
  */
 app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email", "public_profile"] }));
 app.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/login" }), (req, res) => {
-    res.redirect(req.session.returnTo || "/");
+    res.send(req.session.returnTo || "/");
 });
 
 export default app;
