@@ -8,16 +8,17 @@ services:
           - "27017"
         volumes:
           - 'mongodb_data:/bitnami'
+        ports: 
+          - "27019:27017"
     
-
-    webapp:
-        container_name: mywebapp
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile-example
-        ports:
-            - "5182:3000"
+    # webapp:
+    #     container_name: mywebapp
+    #     restart: always
+    #     build:
+    #         context: .
+    #         dockerfile: Dockerfile-example
+    #     ports:
+    #         - "5182:3000"
 volumes:
     mongodb_data:
         driver: local
