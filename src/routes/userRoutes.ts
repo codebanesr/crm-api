@@ -4,11 +4,11 @@ import * as passportConfig from "../config/passport";
 
 const router = express.Router();
 
-router.get("/account", passportConfig.isAuthenticated, userController.getAccount);
-router.post("/account/profile", passportConfig.isAuthenticated, userController.postUpdateProfile);
-router.post("/account/password", passportConfig.isAuthenticated, userController.postUpdatePassword);
-router.post("/account/delete", passportConfig.isAuthenticated, userController.postDeleteAccount);
-router.get("/account/unlink/:provider", passportConfig.isAuthenticated, userController.getOauthUnlink);
+router.get("/account", passportConfig.authenticateJWT, userController.getAccount);
+router.post("/account/profile", passportConfig.authenticateJWT, userController.postUpdateProfile);
+router.post("/account/password", passportConfig.authenticateJWT, userController.postUpdatePassword);
+router.post("/account/delete", passportConfig.authenticateJWT, userController.postDeleteAccount);
+router.get("/account/unlink/:provider", passportConfig.authenticateJWT, userController.getOauthUnlink);
 
 
 export default router;

@@ -8,6 +8,9 @@ import { IVerifyOptions } from "passport-local";
 import { WriteError } from "mongodb";
 import { check, sanitize, validationResult } from "express-validator";
 import "../config/passport";
+import * as jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../util/secrets";
+
 
 /**
  * GET /login
@@ -102,12 +105,8 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         }
         user.save((err) => {
             if (err) { return next(err); }
-            req.logIn(user, (err) => {
-                if (err) {
-                    return next(err);
-                }
-                res.status(200).send("/");
-            });
+            const token = jwt.sign({ username: req.body.username, scope : req.body.scope }, JWT_SECRET);
+            res.status(200).send({ token: token });
         });
     });
 };

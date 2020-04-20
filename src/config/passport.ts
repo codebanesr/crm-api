@@ -1,13 +1,17 @@
 import passport from "passport";
 import passportLocal from "passport-local";
 import _ from "lodash";
-
-// import { User, UserType } from '../models/User';
 import { User, UserDocument } from "../models/User";
 import { Request, Response, NextFunction } from "express";
 
-const LocalStrategy = passportLocal.Strategy;
+// import passportApiKey from "passport-headerapikey";
+import passportJwt from "passport-jwt";
+import { JWT_SECRET } from "../util/secrets";
+import * as jwt from "jsonwebtoken";
 
+const LocalStrategy = passportLocal.Strategy;
+const JwtStrategy = passportJwt.Strategy;
+const ExtractJwt = passportJwt.ExtractJwt;
 passport.serializeUser<any, any>((user, done) => {
     done(undefined, user.id);
 });
@@ -39,42 +43,66 @@ passport.use(new LocalStrategy({ usernameField: "email" }, (email, password, don
 }));
 
 
-/**
- * OAuth Strategy Overview
- *
- * - User is already logged in.
- *   - Check if there is an existing account with a provider id.
- *     - If there is, return an error message. (Account merging not supported)
- *     - Else link new OAuth account with currently logged-in user.
- * - User is not logged in.
- *   - Check if it's a returning user.
- *     - If returning user, sign in and we are done.
- *     - Else check if there is an existing account with user's email.
- *       - If there is, return an error message.
- *       - Else create a new account.
- */
+passport.use(
+  new JwtStrategy(
+    {
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: JWT_SECRET,
+    },
+    function (jwtToken, done) {
+      User.findOne({ email: jwtToken.email }, function (err, user) {
+        if (err) {
+          return done(err, false);
+        }
+        if (user) {
+          return done(undefined, user, jwtToken);
+        } else {
+          return done(undefined, false);
+        }
+      });
+    }
+  )
+);
 
 
 /**
  * Login Required middleware.
  */
-export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-    res.status(200).send("/login");
+export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate("jwt", function (err, user, info) {
+        if (err) {
+          console.log(err);
+          return res.status(401).json({ status: "error", code: "unauthorized" });
+        }
+        if (!user) {
+            return res.status(401).json({ status: "error", code: "unauthorized" });
+        } else {
+            req.isAuthenticated = () => true;
+            return next();
+        }
+      })(req, res, next);
 };
 
 /**
  * Authorization Required middleware.
  */
-export const isAuthorized = (req: Request, res: Response, next: NextFunction) => {
-    const provider = req.path.split("/").slice(-1)[0];
-
-    const user = req.user as UserDocument;
-    if (_.find(user.tokens, { kind: provider })) {
-        next();
-    } else {
-        res.status(200).send(`/auth/${provider}`);
-    }
+export const authorizeJWT = (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate("jwt", function (err, user, jwtToken) {
+        if (err) {
+            console.log(err);
+            return res.status(401).json({ status: "error", code: "unauthorized" });
+        }
+        if (!user) {
+            return res.status(401).json({ status: "error", code: "unauthorized" });
+        } else {
+            const scope = req.baseUrl.split("/").slice(-1)[0];
+            const authScope = jwtToken.scope;
+            if (authScope && authScope.indexOf(scope) > -1) {
+                return next();
+            }
+            else {
+                return res.status(401).json({ status: "error", code: "unauthorized" });
+            }
+        }
+    })(req, res, next);
 };
