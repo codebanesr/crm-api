@@ -62,7 +62,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
     if (req.isAuthenticated()) {
         return next();
     }
-    res.send("/login");
+    res.status(200).send("/login");
 };
 
 /**
@@ -75,6 +75,6 @@ export const isAuthorized = (req: Request, res: Response, next: NextFunction) =>
     if (_.find(user.tokens, { kind: provider })) {
         next();
     } else {
-        res.send(`/auth/${provider}`);
+        res.status(200).send(`/auth/${provider}`);
     }
 };

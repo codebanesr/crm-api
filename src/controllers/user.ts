@@ -15,11 +15,9 @@ import "../config/passport";
  */
 export const getLogin = (req: Request, res: Response) => {
     if (req.user) {
-        return res.send("/");
+        return res.status(200).send("/");
     }
-    res.render("account/login", {
-        title: "Login"
-    });
+    res.send("account/login");
 };
 
 /**
@@ -36,19 +34,19 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.send("/login");
+        return res.status(200).send("/login");
     }
 
     passport.authenticate("local", (err: Error, user: UserDocument, info: IVerifyOptions) => {
         if (err) { return next(err); }
         if (!user) {
             req.flash("errors", {msg: info.message});
-            return res.send("/login");
+            return res.status(200).send("/login");
         }
         req.logIn(user, (err) => {
             if (err) { return next(err); }
             req.flash("success", { msg: "Success! You are logged in." });
-            res.send(req.session.returnTo || "/");
+            res.status(200).send(req.session.returnTo || "/");
         });
     })(req, res, next);
 };
@@ -59,7 +57,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  */
 export const logout = (req: Request, res: Response) => {
     req.logout();
-    res.send("/");
+    res.status(200).send("/");
 };
 
 /**
@@ -68,11 +66,9 @@ export const logout = (req: Request, res: Response) => {
  */
 export const getSignup = (req: Request, res: Response) => {
     if (req.user) {
-        return res.send("/");
+        return res.status(200).send("/");
     }
-    res.render("account/signup", {
-        title: "Create Account"
-    });
+    res.send("account/signup");
 };
 
 /**
@@ -90,7 +86,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.send("/signup");
+        return res.status(200).send("/signup");
     }
 
     const user = new User({
@@ -102,7 +98,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         if (err) { return next(err); }
         if (existingUser) {
             req.flash("errors", { msg: "Account with that email address already exists." });
-            return res.send("/signup");
+            return res.status(200).send("/signup");
         }
         user.save((err) => {
             if (err) { return next(err); }
@@ -110,7 +106,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
                 if (err) {
                     return next(err);
                 }
-                res.send("/");
+                res.status(200).send("/");
             });
         });
     });
@@ -121,9 +117,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  * Profile page.
  */
 export const getAccount = (req: Request, res: Response) => {
-    res.render("account/profile", {
-        title: "Account Management"
-    });
+    res.send("account/profile");
 };
 
 /**
@@ -139,7 +133,7 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.send("/account");
+        return res.status(200).send("/account");
     }
 
     const user = req.user as UserDocument;
@@ -154,12 +148,12 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
             if (err) {
                 if (err.code === 11000) {
                     req.flash("errors", { msg: "The email address you have entered is already associated with an account." });
-                    return res.send("/account");
+                    return res.status(200).send("/account");
                 }
                 return next(err);
             }
             req.flash("success", { msg: "Profile information has been updated." });
-            res.send("/account");
+            res.status(200).send("/account");
         });
     });
 };
@@ -176,7 +170,7 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.send("/account");
+        return res.status(200).send("/account");
     }
 
     const user = req.user as UserDocument;
@@ -186,7 +180,7 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
         user.save((err: WriteError) => {
             if (err) { return next(err); }
             req.flash("success", { msg: "Password has been changed." });
-            res.send("/account");
+            res.status(200).send("/account");
         });
     });
 };
@@ -201,7 +195,7 @@ export const postDeleteAccount = (req: Request, res: Response, next: NextFunctio
         if (err) { return next(err); }
         req.logout();
         req.flash("info", { msg: "Your account has been deleted." });
-        res.send("/");
+        res.status(200).send("/");
     });
 };
 
@@ -219,7 +213,7 @@ export const getOauthUnlink = (req: Request, res: Response, next: NextFunction) 
         user.save((err: WriteError) => {
             if (err) { return next(err); }
             req.flash("info", { msg: `${provider} account has been unlinked.` });
-            res.send("/account");
+            res.status(200).send("/account");
         });
     });
 };
@@ -230,7 +224,7 @@ export const getOauthUnlink = (req: Request, res: Response, next: NextFunction) 
  */
 export const getReset = (req: Request, res: Response, next: NextFunction) => {
     if (req.isAuthenticated()) {
-        return res.send("/");
+        return res.status(200).send("/");
     }
     User
         .findOne({ passwordResetToken: req.params.token })
@@ -239,11 +233,9 @@ export const getReset = (req: Request, res: Response, next: NextFunction) => {
             if (err) { return next(err); }
             if (!user) {
                 req.flash("errors", { msg: "Password reset token is invalid or has expired." });
-                return res.send("/forgot");
+                return res.status(200).send("/forgot");
             }
-            res.render("account/reset", {
-                title: "Password Reset"
-            });
+            res.send("account/reset");
         });
 };
 
@@ -259,7 +251,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.send("back");
+        return res.status(200).send("back");
     }
 
     async.waterfall([
@@ -271,7 +263,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
                     if (err) { return next(err); }
                     if (!user) {
                         req.flash("errors", { msg: "Password reset token is invalid or has expired." });
-                        return res.send("back");
+                        return res.status(200).send("back");
                     }
                     user.password = req.body.password;
                     user.passwordResetToken = undefined;
@@ -305,7 +297,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
         }
     ], (err) => {
         if (err) { return next(err); }
-        res.send("/");
+        res.status(200).send("/");
     });
 };
 
@@ -315,11 +307,9 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
  */
 export const getForgot = (req: Request, res: Response) => {
     if (req.isAuthenticated()) {
-        return res.send("/");
+        return res.status(200).send("/");
     }
-    res.render("account/forgot", {
-        title: "Forgot Password"
-    });
+    res.send("account/forgot");
 };
 
 /**
@@ -335,7 +325,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
 
     if (!errors.isEmpty()) {
         req.flash("errors", errors.array());
-        return res.send("/forgot");
+        return res.status(200).send("/forgot");
     }
 
     async.waterfall([
@@ -350,7 +340,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                 if (err) { return done(err); }
                 if (!user) {
                     req.flash("errors", { msg: "Account with that email address does not exist." });
-                    return res.send("/forgot");
+                    return res.status(200).send("/forgot");
                 }
                 user.passwordResetToken = token;
                 user.passwordResetExpires = Date.now() + 3600000; // 1 hour
@@ -383,6 +373,6 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
         }
     ], (err) => {
         if (err) { return next(err); }
-        res.send("/forgot");
+        res.status(200).send("/forgot");
     });
 };
