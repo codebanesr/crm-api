@@ -12,5 +12,4 @@ router.post("/reset/:token", userController.postReset);
 router.get("/signup", userController.getSignup);
 router.post("/signup", userController.postSignup);
 
-
 export default router;

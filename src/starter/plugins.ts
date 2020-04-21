@@ -9,7 +9,6 @@ import * as core from "express-serve-static-core";
 import session from "express-session";
 import mongo from "connect-mongo";
 import passport from "passport";
-
 const MongoStore = mongo(session);
 
 export default (app: core.Express) => {
@@ -17,6 +16,7 @@ export default (app: core.Express) => {
     app.set("port", process.env.PORT || 3000);
     app.use(compression());
     app.use(bodyParser.json());
+
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(session({
         resave: true,
