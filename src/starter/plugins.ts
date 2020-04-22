@@ -51,9 +51,7 @@ export default (app: core.Express) => {
         }
         next();
     });
-    
-    app.use(
-        express.static(path.join(__dirname, "public"), { maxAge: 31557600000 })
-    );
+    app.use(express.static(path.join(__dirname, "uploads"), { maxAge: 31557600000 }));
+    app.use(express.static(path.join(__dirname, "public"), { maxAge: 31557600000 }));
 };
 
