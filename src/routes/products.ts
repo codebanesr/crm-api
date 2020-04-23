@@ -1,13 +1,13 @@
-import express from "express"
+import express from "express";
 const router = express.Router();
-import { upload } from '../util/multerOpts';
+import { upload } from "../util/multerOpts";
 
 
-import Product from '../models/product'
+import Product from "../models/product";
 
 router.get("/", );
 
-router.post("/", upload.single('productImage'), );
+router.post("/", upload.single("productImage"), );
 
 router.get("/:productId", );
 

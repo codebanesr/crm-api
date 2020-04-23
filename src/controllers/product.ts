@@ -1,5 +1,5 @@
 /** https://www.youtube.com/watch?v=srPXMt1Q0nY&t=477s */ 
-import Product from '../models/product';
+import Product from "../models/product";
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
 
@@ -37,7 +37,7 @@ export const findAll = (req: Request, res: Response, next: NextFunction) => {
                 error: err
             });
         });
-}
+};
 
 
 
@@ -51,7 +51,7 @@ export const insertOne = () => {
         });
         product
             .save()
-            .then(result => {
+            .then((result: any) => {
                 console.log(result);
                 res.status(201).json({
                     message: "Created product successfully",
@@ -60,7 +60,7 @@ export const insertOne = () => {
                         price: result.price,
                         _id: result._id,
                         request: {
-                            type: 'GET',
+                            type: "GET",
                             url: "http://localhost:3000/products/" + result._id
                         }
                     }
@@ -72,14 +72,14 @@ export const insertOne = () => {
                     error: err
                 });
             });
-    }
-}
+    };
+};
 
 
 export const findOneById = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.productId;
     Product.findById(id)
-        .select('name price _id productImage')
+        .select("name price _id productImage")
         .exec()
         .then(doc => {
             console.log("From database", doc);
@@ -87,8 +87,8 @@ export const findOneById = (req: Request, res: Response, next: NextFunction) => 
                 res.status(200).json({
                     product: doc,
                     request: {
-                        type: 'GET',
-                        url: 'http://localhost:3000/products'
+                        type: "GET",
+                        url: "http://localhost:3000/products"
                     }
                 });
             } else {
@@ -101,23 +101,24 @@ export const findOneById = (req: Request, res: Response, next: NextFunction) => 
             console.log(err);
             res.status(500).json({ error: err });
         });
-}
+};
 
 
 export const patch = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.productId;
-    const updateOps = {};
+    const updateOps: {[index: string]: any} = {};
     for (const ops of req.body) {
-        updateOps[ops.propName] = ops.value;
+        const propName = ops.propName;
+        updateOps[propName] = ops.value;
     }
     Product.update({ _id: id }, { $set: updateOps })
         .exec()
         .then(result => {
             res.status(200).json({
-                message: 'Product updated',
+                message: "Product updated",
                 request: {
-                    type: 'GET',
-                    url: 'http://localhost:3000/products/' + id
+                    type: "GET",
+                    url: "http://localhost:3000/products/" + id
                 }
             });
         })
@@ -127,7 +128,7 @@ export const patch = (req: Request, res: Response, next: NextFunction) => {
                 error: err
             });
         });
-}
+};
 
 export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.productId;
@@ -135,11 +136,11 @@ export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
         .exec()
         .then(result => {
             res.status(200).json({
-                message: 'Product deleted',
+                message: "Product deleted",
                 request: {
-                    type: 'POST',
-                    url: 'http://localhost:3000/products',
-                    body: { name: 'String', price: 'Number' }
+                    type: "POST",
+                    url: "http://localhost:3000/products",
+                    body: { name: "String", price: "Number" }
                 }
             });
         })
@@ -149,4 +150,4 @@ export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
                 error: err
             });
         });
-}
+};
