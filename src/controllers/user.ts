@@ -105,7 +105,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         }
         user.save((err) => {
             if (err) { return next(err); }
-            const token = jwt.sign({ username: req.body.username, scope : req.body.scope }, JWT_SECRET);
+            const token = jwt.sign({ email: req.body.email}, JWT_SECRET);
             res.status(200).send({ token: token });
         });
     });
