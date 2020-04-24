@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { noteSchema } from "./shared";
 
 const leadSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -15,7 +16,7 @@ const leadSchema = new mongoose.Schema({
     ticketId: String,
     expiresOn: Date,
     changeHistory: Array,
-    notes: Array,
+    notes: [noteSchema],
     followUpDate: Date,
     status: String,   //lead status, like created, interacted, closed, cancelled etc
     generatorId: String,
