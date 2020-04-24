@@ -1,7 +1,7 @@
 import { Request } from "express";
+import fs from "fs";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
 // import os from "os";
 
 // const UPLOAD_DIR = path.join(os.homedir(), "uploads");

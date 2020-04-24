@@ -1,7 +1,7 @@
 import express from "express";
-const router = express.Router();
-import { upload } from "../util/multerOpts";
 import * as productController from "../controllers/product";
+import { upload } from "../util/multerOpts";
+const router = express.Router();
 
 router.get("/", productController.findAll);
 

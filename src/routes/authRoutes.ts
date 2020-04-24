@@ -1,6 +1,6 @@
 import express from "express";
-const router = express.Router();
 import * as userController from "../controllers/user";
+const router = express.Router();
 
 router.get("/login", userController.getLogin);
 router.post("/login", userController.postLogin);

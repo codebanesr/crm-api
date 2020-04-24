@@ -1,8 +1,8 @@
 
 import bluebird from "bluebird";
-import { MONGODB_URI } from "../util/secrets";
-import mongoose from "mongoose";
 import * as core from "express-serve-static-core";
+import mongoose from "mongoose";
+import { MONGODB_URI } from "../util/secrets";
 
 export default (app: core.Express) => {
     // Connect to MongoDB

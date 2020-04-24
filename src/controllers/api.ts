@@ -1,7 +1,7 @@
 "use strict";
 
+import { NextFunction, Request, Response } from "express";
 import graph from "fbgraph";
-import { Response, Request, NextFunction } from "express";
 import { UserDocument } from "../models/User";
 
 

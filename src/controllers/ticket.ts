@@ -1,12 +1,12 @@
 /** https://www.youtube.com/watch?v=srPXMt1Q0nY&t=477s */ 
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
-import Product from "../models/product";
-import { caMeta } from "../renames/caMeta";
+import Ticket from "../models/ticket";
+import { ticketMeta } from "../renames/ticket";
 import parseExcel from "../util/parseExcel";
 
 export const findAll = (req: Request, res: Response, next: NextFunction) => {
-    Product.find()
+    Ticket.find()
         .select("name price _id productImage")
         .exec()
         .then(docs => {
@@ -20,7 +20,7 @@ export const findAll = (req: Request, res: Response, next: NextFunction) => {
                         _id: doc._id,
                         request: {
                             type: "GET",
-                            url: "http://localhost:3000/product/" + doc._id
+                            url: "http://localhost:3000/ticket/" + doc._id
                         }
                     };
                 })
@@ -45,26 +45,26 @@ export const findAll = (req: Request, res: Response, next: NextFunction) => {
 
 export const insertOne = (req: Request, res: Response, next: NextFunction) => {
     console.log("printing ", req.body);
-    const product = new Product({
+    const ticket = new Ticket({
         _id: new mongoose.Types.ObjectId(),
         name: req.body.name,
         price: req.body.price,
         productImage: req.file.path
     });
 
-    parseExcel(req.file.path, caMeta());
-    product
+    parseExcel(req.file.path, ticketMeta());
+    ticket
         .save()
         .then((result: any) => {
             res.status(201).json({
-                message: "Created product successfully",
+                message: "Created ticket successfully",
                 createdProduct: {
                     name: result.name,
                     price: result.price,
                     _id: result._id,
                     request: {
                         type: "GET",
-                        url: "http://localhost:3000/product/" + result._id
+                        url: "http://localhost:3000/ticket/" + result._id
                     }
                 }
             });
@@ -79,17 +79,17 @@ export const insertOne = (req: Request, res: Response, next: NextFunction) => {
 
 export const findOneById = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.productId;
-    Product.findById(id)
+    Ticket.findById(id)
         .select("name price _id productImage")
         .exec()
         .then(doc => {
             console.log("From database", doc);
             if (doc) {
                 res.status(200).json({
-                    product: doc,
+                    ticket: doc,
                     request: {
                         type: "GET",
-                        url: "http://localhost:3000/product"
+                        url: "http://localhost:3000/ticket"
                     }
                 });
             } else {
@@ -112,14 +112,14 @@ export const patch = (req: Request, res: Response, next: NextFunction) => {
         const propName = ops.propName;
         updateOps[propName] = ops.value;
     }
-    Product.update({ _id: id }, { $set: updateOps })
+    Ticket.update({ _id: id }, { $set: updateOps })
         .exec()
         .then(result => {
             res.status(200).json({
-                message: "Product updated",
+                message: "Ticket updated",
                 request: {
                     type: "GET",
-                    url: "http://localhost:3000/product/" + id
+                    url: "http://localhost:3000/ticket/" + id
                 }
             });
         })
@@ -133,14 +133,14 @@ export const patch = (req: Request, res: Response, next: NextFunction) => {
 
 export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.productId;
-    Product.remove({ _id: id })
+    Ticket.remove({ _id: id })
         .exec()
         .then(result => {
             res.status(200).json({
-                message: "Product deleted",
+                message: "Ticket deleted",
                 request: {
                     type: "POST",
-                    url: "http://localhost:3000/product",
+                    url: "http://localhost:3000/ticket",
                     body: { name: "String", price: "Number" }
                 }
             });

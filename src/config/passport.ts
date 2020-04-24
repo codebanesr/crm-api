@@ -1,13 +1,11 @@
+import { NextFunction, Request, Response } from "express";
 import passport from "passport";
-import passportLocal from "passport-local";
-import _ from "lodash";
-import { User, UserDocument } from "../models/User";
-import { Request, Response, NextFunction } from "express";
-
 // import passportApiKey from "passport-headerapikey";
 import passportJwt from "passport-jwt";
+import passportLocal from "passport-local";
+import { User } from "../models/User";
 import { JWT_SECRET } from "../util/secrets";
-import * as jwt from "jsonwebtoken";
+
 
 const LocalStrategy = passportLocal.Strategy;
 const JwtStrategy = passportJwt.Strategy;

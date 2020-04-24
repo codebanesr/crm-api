@@ -1,14 +1,14 @@
-import compression from "compression";  // compresses requests
 import bodyParser from "body-parser";
-import lusca from "lusca";
-import flash from "express-flash";
-import path from "path";
-import { MONGODB_URI, SESSION_SECRET } from "../util/secrets";
+import compression from "compression"; // compresses requests
+import mongo from "connect-mongo";
 import express from "express";
+import flash from "express-flash";
 import * as core from "express-serve-static-core";
 import session from "express-session";
-import mongo from "connect-mongo";
+import lusca from "lusca";
 import passport from "passport";
+import path from "path";
+import { MONGODB_URI, SESSION_SECRET } from "../util/secrets";
 const MongoStore = mongo(session);
 
 export default (app: core.Express) => {
