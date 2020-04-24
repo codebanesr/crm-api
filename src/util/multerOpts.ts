@@ -1,5 +1,7 @@
 import { Request } from "express";
 import multer from "multer";
+import os from "os";
+import path from "path"
 
 
 /** @Todo try creating a folder in users home directory like $HOME/uploads and store files there 
@@ -10,7 +12,7 @@ import multer from "multer";
  */
 export const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './uploads/');
+        cb(null, path.join(os.homedir(), "rhb_public"));
     },
     filename: function (req, file, cb) {
         cb(null, new Date().toISOString() + file.originalname);
@@ -32,5 +34,5 @@ export const upload = multer({
     limits: {
         fileSize: 1024 * 1024 * 5
     },
-    fileFilter: fileFilter
+    // fileFilter: fileFilter
 });

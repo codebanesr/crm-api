@@ -41,40 +41,39 @@ export const findAll = (req: Request, res: Response, next: NextFunction) => {
 
 
 
-export const insertOne = () => {
-    (req: Request, res: Response, next: NextFunction) => {
-        const product = new Product({
-            _id: new mongoose.Types.ObjectId(),
-            name: req.body.name,
-            price: req.body.price,
-            productImage: req.file.path
-        });
-        product
-            .save()
-            .then((result: any) => {
-                console.log(result);
-                res.status(201).json({
-                    message: "Created product successfully",
-                    createdProduct: {
-                        name: result.name,
-                        price: result.price,
-                        _id: result._id,
-                        request: {
-                            type: "GET",
-                            url: "http://localhost:3000/products/" + result._id
-                        }
-                    }
-                });
-            })
-            .catch(err => {
-                console.log(err);
-                res.status(500).json({
-                    error: err
-                });
-            });
-    };
-};
+export const insertOne = (req: Request, res: Response, next: NextFunction) => {
+    console.log("printing ", req.body)
+    const product = new Product({
+        _id: new mongoose.Types.ObjectId(),
+        name: req.body.name,
+        price: req.body.price,
+        productImage: req.file.path
+    });
 
+    product
+        .save()
+        .then((result: any) => {
+            console.log(result);
+            res.status(201).json({
+                message: "Created product successfully",
+                createdProduct: {
+                    name: result.name,
+                    price: result.price,
+                    _id: result._id,
+                    request: {
+                        type: "GET",
+                        url: "http://localhost:3000/products/" + result._id
+                    }
+                }
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                error: err
+            });
+        });
+};
 
 export const findOneById = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.productId;
