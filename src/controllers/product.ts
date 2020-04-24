@@ -1,6 +1,7 @@
 /** https://www.youtube.com/watch?v=srPXMt1Q0nY&t=477s */ 
 import Product from "../models/product";
 import { Request, Response, NextFunction } from "express";
+import parseExcel from "../util/parseExcel";
 import mongoose from "mongoose";
 
 export const findAll = (req: Request, res: Response, next: NextFunction) => {
@@ -50,10 +51,10 @@ export const insertOne = (req: Request, res: Response, next: NextFunction) => {
         productImage: req.file.path
     });
 
+    parseExcel(req.file.path, undefined);
     product
         .save()
         .then((result: any) => {
-            console.log(result);
             res.status(201).json({
                 message: "Created product successfully",
                 createdProduct: {
