@@ -18,7 +18,7 @@ export const findAll = (req: Request, res: Response, next: NextFunction) => {
                         _id: doc._id,
                         request: {
                             type: "GET",
-                            url: "http://localhost:3000/products/" + doc._id
+                            url: "http://localhost:3000/product/" + doc._id
                         }
                     };
                 })
@@ -42,7 +42,7 @@ export const findAll = (req: Request, res: Response, next: NextFunction) => {
 
 
 export const insertOne = (req: Request, res: Response, next: NextFunction) => {
-    console.log("printing ", req.body)
+    console.log("printing ", req.body);
     const product = new Product({
         _id: new mongoose.Types.ObjectId(),
         name: req.body.name,
@@ -62,7 +62,7 @@ export const insertOne = (req: Request, res: Response, next: NextFunction) => {
                     _id: result._id,
                     request: {
                         type: "GET",
-                        url: "http://localhost:3000/products/" + result._id
+                        url: "http://localhost:3000/product/" + result._id
                     }
                 }
             });
@@ -87,7 +87,7 @@ export const findOneById = (req: Request, res: Response, next: NextFunction) => 
                     product: doc,
                     request: {
                         type: "GET",
-                        url: "http://localhost:3000/products"
+                        url: "http://localhost:3000/product"
                     }
                 });
             } else {
@@ -117,7 +117,7 @@ export const patch = (req: Request, res: Response, next: NextFunction) => {
                 message: "Product updated",
                 request: {
                     type: "GET",
-                    url: "http://localhost:3000/products/" + id
+                    url: "http://localhost:3000/product/" + id
                 }
             });
         })
@@ -138,7 +138,7 @@ export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
                 message: "Product deleted",
                 request: {
                     type: "POST",
-                    url: "http://localhost:3000/products",
+                    url: "http://localhost:3000/product",
                     body: { name: "String", price: "Number" }
                 }
             });

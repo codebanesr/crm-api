@@ -1,18 +1,19 @@
 import { Request } from "express";
 import multer from "multer";
-import os from "os";
-import path from "path"
+import path from "path";
+import fs from "fs";
+// import os from "os";
 
+// const UPLOAD_DIR = path.join(os.homedir(), "uploads");
+const PUBLIC_UPLOADS_DIR = path.join(__dirname, "../uploads");
 
-/** @Todo try creating a folder in users home directory like $HOME/uploads and store files there 
- * unless you want to serve all these files publically which we are doing, what i dont know is where
- * is this folder going to be created, which is how does path resolution take place. Does it take
- * this directory to resolve relative routes or does it take the directory in which this code gets 
- * executed
- */
 export const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, path.join(os.homedir(), "rhb_public"));
+        if(!fs.existsSync(PUBLIC_UPLOADS_DIR)) {
+            console.log("creating upload folder recursively and making it public")
+            fs.mkdirSync(PUBLIC_UPLOADS_DIR, { recursive: true, mode: 0o777 });
+        }
+        cb(null, PUBLIC_UPLOADS_DIR);
     },
     filename: function (req, file, cb) {
         cb(null, new Date().toISOString() + file.originalname);
@@ -22,7 +23,7 @@ export const storage = multer.diskStorage({
 /** @Todo define strict typings for file and cb */
 export const fileFilter = (req: Request, file: any, cb: any) => {
     // reject a file
-    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
         cb(null, true);
     } else {
         cb(null, false);
@@ -36,3 +37,13 @@ export const upload = multer({
     },
     // fileFilter: fileFilter
 });
+
+
+/** Can be used for if we dont want to push values to a different plugggable directory */
+// (function makedir() {
+//     console.log("makerid function called! checking for existence of upload folder")
+//     if(!fs.existsSync(UPLOAD_DIR)) {
+//         console.log("creating upload folder recursively and making it public")
+//         fs.mkdirSync(UPLOAD_DIR, { recursive: true, mode: 0o777 });
+//     }
+// })();

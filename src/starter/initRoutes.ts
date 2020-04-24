@@ -10,5 +10,5 @@ export default (app: core.Express) => {
     app.use("/auth", authRoutes);
     app.use("/user", userRoutes);
     app.use("/contact", contactRoutes);
-    app.use("/product", productRoutes)
+    app.use("/product", productRoutes);
 };
