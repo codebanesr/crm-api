@@ -6,12 +6,13 @@ import path from "path";
 
 // const UPLOAD_DIR = path.join(os.homedir(), "uploads");
 export const PUBLIC_UPLOADS_DIR = path.join(__dirname, "../uploads");
+const PUBLIC_PERMISSION = 0o777;
 
 export const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         if(!fs.existsSync(PUBLIC_UPLOADS_DIR)) {
             console.log("creating upload folder recursively and making it public");
-            fs.mkdirSync(PUBLIC_UPLOADS_DIR, { recursive: true, mode: 0o777 });
+            fs.mkdirSync(PUBLIC_UPLOADS_DIR, { recursive: true, mode: PUBLIC_PERMISSION });
         }
         cb(null, PUBLIC_UPLOADS_DIR);
     },

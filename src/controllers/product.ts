@@ -152,3 +152,6 @@ export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
             });
         });
 };
+
+
+
