@@ -1,0 +1,3 @@
+# .dockerignore
+# don't copy files in node_modules folder
+node_modules
