@@ -237,7 +237,7 @@ export const getReset = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * POST /reset/:token
+ * POST /auth/reset/:token
  * Process the reset password request.
  */
 export const postReset = async (req: Request, res: Response, next: NextFunction) => {
@@ -356,17 +356,19 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
             });
             const mailOptions = {
                 to: user.email,
-                from: "hackathon@starter.com",
-                subject: "Reset your password on Hackathon Starter",
+                from: "shanur.rahman@gamechangesns.com",
+                subject: "Reset your password on Molecule",
                 text: `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
           Please click on the following link, or paste this into your browser to complete the process:\n\n
-          http://${req.headers.host}/reset/${token}\n\n
+          http://${req.headers.host}/auth/reset/${token}\n\n
           If you did not request this, please ignore this email and your password will remain unchanged.\n`
             };
             transporter.sendMail(mailOptions, (err) => {
                 req.flash("info", { msg: `An e-mail has been sent to ${user.email} with further instructions.` });
                 done(err);
             });
+
+
         }
     ], (err) => {
         if (err) { return next(err); }
