@@ -171,7 +171,6 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
         return res.status(200).send("/account");
     }
 
-    logger.info(req.user);
     const user = req.user as UserDocument;
     User.findById(user.id, (err, user: UserDocument) => {
         if (err) { return next(err); }

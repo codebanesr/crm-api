@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from "express";
 import Customer from "../models/customer";
 import AdminAction from "../models/AdminAction";
 import parseExcel from "../util/parseExcel";
-import logger from "../util/logger";
 import mongoose from "mongoose";
 
 export const findAll = (req: Request, res: Response, next: NextFunction) => {
@@ -39,7 +38,7 @@ export const findAll = (req: Request, res: Response, next: NextFunction) => {
 
 
 export const insertMany = async(req: Request, res: Response, next: NextFunction) => {
-    const userid = (req.user as any).id;
+    const userid = (req.user as Express.User & {id: string}).id;
     const jsonRes = parseExcel(req.file.path);
 
     const lead = new AdminAction({

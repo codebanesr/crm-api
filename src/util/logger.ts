@@ -4,10 +4,10 @@ const consoleOpts = {
     handleExceptions: true,
     level: process.env.NODE_ENV === "production" ? "error" : "debug",
     format: format.combine(
-        // format.json(),
+        format.json(),
         format.colorize({ all: true }),
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        // format.padLevels()
+        format.padLevels()
     )
 }
 

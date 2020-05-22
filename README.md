@@ -1,5 +1,5 @@
 ### Shared Api's Here
-https://www.getpostman.com/collections/889ece73ddc4f3a6f7a6
+https://www.getpostman.com/collections/7e57a66958594d2e3bd3
 
 ### Reference 
 Code scaffolding documentation [here](https://github.com/microsoft/TypeScript-Node-Starter)
