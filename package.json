@@ -6,10 +6,12 @@
         "type": "git",
         "url": "https://github.com/Microsoft/TypeScript-Node-Starter"
     },
-    "author": "Bowden Kelly",
+    "author": "Shanur Rahman",
     "license": "MIT",
     "scripts": {
         "start": "npm run serve",
+        "start:prod": "ts-node src/server.ts",
+        "start:dev": "ts-node-dev src/server.ts",
         "build": "npm run build-sass && npm run build-ts && npm run lint && npm run copy-static-assets",
         "serve": "node dist/server.js",
         "watch-node": "nodemon dist/server.js",

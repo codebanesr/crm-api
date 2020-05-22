@@ -46,11 +46,9 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
             req.flash("errors", {msg: info.message});
             return res.status(200).send("/login");
         }
-        req.logIn(user, (err) => {
-            if (err) { return next(err); }
-            req.flash("success", { msg: "Success! You are logged in." });
-            res.status(200).send(req.session.returnTo || "/");
-        });
+        // if there is a valid user, send jwt back
+        const token = jwt.sign({ email: req.body.email}, JWT_SECRET);
+        res.status(200).send({ token: token });           
     })(req, res, next);
 };
 
