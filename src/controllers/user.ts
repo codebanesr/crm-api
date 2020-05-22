@@ -10,6 +10,7 @@ import { check, sanitize, validationResult } from "express-validator";
 import "../config/passport";
 import * as jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../util/secrets";
+import logger from "../util/logger";
 
 
 /**
@@ -43,7 +44,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
     passport.authenticate("local", (err: Error, user: UserDocument, info: IVerifyOptions) => {
         if (err) { return next(err); }
         if (!user) {
-            req.flash("errors", {msg: info.message});
+            logger.warn("User not found");
             return res.status(200).send("/login");
         }
         // if there is a valid user, send jwt back
@@ -98,7 +99,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
     User.findOne({ email: req.body.email }, (err, existingUser) => {
         if (err) { return next(err); }
         if (existingUser) {
-            req.flash("errors", { msg: "Account with that email address already exists." });
+            logger.warn("Account with that email address already exists.");
             return res.status(200).send("/signup");
         }
         user.save((err) => {
@@ -170,6 +171,7 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
         return res.status(200).send("/account");
     }
 
+    logger.info(req.user);
     const user = req.user as UserDocument;
     User.findById(user.id, (err, user: UserDocument) => {
         if (err) { return next(err); }

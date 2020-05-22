@@ -1,12 +1,13 @@
 /** https://www.youtube.com/watch?v=srPXMt1Q0nY&t=477s */ 
 import { NextFunction, Request, Response } from "express";
-import mongoose from "mongoose";
-import Product from "../models/product";
-import { caMeta } from "../renames/caMeta";
+import Customer from "../models/customer";
+import AdminAction from "../models/AdminAction";
 import parseExcel from "../util/parseExcel";
+import logger from "../util/logger";
+import mongoose from "mongoose";
 
 export const findAll = (req: Request, res: Response, next: NextFunction) => {
-    Product.find()
+    Customer.find()
         .select("name price _id productImage")
         .exec()
         .then(docs => {
@@ -25,13 +26,7 @@ export const findAll = (req: Request, res: Response, next: NextFunction) => {
                     };
                 })
             };
-            //   if (docs.length >= 0) {
             res.status(200).json(response);
-            //   } else {
-            //       res.status(404).json({
-            //           message: 'No entries found'
-            //       });
-            //   }
         })
         .catch(err => {
             console.log(err);
@@ -43,43 +38,29 @@ export const findAll = (req: Request, res: Response, next: NextFunction) => {
 
 
 
-export const insertOne = (req: Request, res: Response, next: NextFunction) => {
-    console.log("printing ", req.body);
-    const product = new Product({
-        _id: new mongoose.Types.ObjectId(),
-        name: req.body.name,
-        price: req.body.price,
-        productImage: req.file.path
+export const insertMany = async(req: Request, res: Response, next: NextFunction) => {
+    const userid = (req.user as any).id;
+    const jsonRes = parseExcel(req.file.path);
+
+    const lead = new AdminAction({
+        userid: mongoose.Types.ObjectId(userid),
+        actionType: "upload",
+        filePath: req.file.path,
+        savedOn: "disk",
+        fileType: "customerBulk"
     });
 
-    parseExcel(req.file.path, caMeta());
-    product
-        .save()
-        .then((result: any) => {
-            res.status(201).json({
-                message: "Created product successfully",
-                createdProduct: {
-                    name: result.name,
-                    price: result.price,
-                    _id: result._id,
-                    request: {
-                        type: "GET",
-                        url: "http://localhost:3000/product/" + result._id
-                    }
-                }
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
+    try {
+        const result = await lead.save();
+        res.status(200).json({success: true, filePath: req.file.path, message: "successfully parsed file"});
+    }catch(e) {
+        res.status(500).json({success: false, message: "An Error Occured while parsing the file"});
+    }
 };
 
 export const findOneById = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.productId;
-    Product.findById(id)
+    Customer.findById(id)
         .select("name price _id productImage")
         .exec()
         .then(doc => {
@@ -112,11 +93,11 @@ export const patch = (req: Request, res: Response, next: NextFunction) => {
         const propName = ops.propName;
         updateOps[propName] = ops.value;
     }
-    Product.update({ _id: id }, { $set: updateOps })
+    Customer.update({ _id: id }, { $set: updateOps })
         .exec()
         .then(result => {
             res.status(200).json({
-                message: "Product updated",
+                message: "Customer updated",
                 request: {
                     type: "GET",
                     url: "http://localhost:3000/product/" + id
@@ -133,11 +114,11 @@ export const patch = (req: Request, res: Response, next: NextFunction) => {
 
 export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.productId;
-    Product.remove({ _id: id })
+    Customer.remove({ _id: id })
         .exec()
         .then(result => {
             res.status(200).json({
-                message: "Product deleted",
+                message: "Customer deleted",
                 request: {
                     type: "POST",
                     url: "http://localhost:3000/product",
@@ -152,6 +133,5 @@ export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
             });
         });
 };
-
 
 
