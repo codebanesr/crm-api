@@ -75,6 +75,7 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
         if (!user) {
             return res.status(401).json({ status: "error", code: "unauthorized" });
         } else {
+            req.user = user;
             req.isAuthenticated = () => true;
             return next();
         }
