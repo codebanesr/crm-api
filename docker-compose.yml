@@ -1,24 +1,23 @@
-version: '3.1'
+version: "3.1"
 
 services:
-    mongodb:
-        container_name: mymongo
-        image: 'bitnami/mongodb:4.0'
-        expose: 
-          - "27017"
-        volumes:
-          - 'mongodb_data:/bitnami'
-        ports: 
-          - "27019:27017"
-    
-    # webapp:
-    #     container_name: mywebapp
-    #     restart: always
-    #     build:
-    #         context: .
-    #         dockerfile: Dockerfile-example
-    #     ports:
-    #         - "5182:3000"
+  mongodb:
+    container_name: mymongo
+    image: "bitnami/mongodb:4.0"
+    expose:
+      - "27017"
+    volumes:
+      - "mongodb_data:/bitnami"
+    ports:
+      - "27019:27017"
+  # webapp:
+  #     container_name: mywebapp
+  #     restart: always
+  #     build:
+  #         context: .
+  #         dockerfile: Dockerfile-example
+  #     ports:
+  #         - "5182:3000"
 volumes:
-    mongodb_data:
-        driver: local
+  mongodb_data:
+    driver: local

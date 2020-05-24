@@ -2,57 +2,43 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import Lead from "../models/lead";
-import { leadMeta } from "../renames/lead";
-import parseExcel from "../util/parseExcel";
 
-export const findAll = (req: Request, res: Response, next: NextFunction) => {
-    Lead.find()
-        .select("name price _id productImage")
-        .exec()
-        .then(docs => {
-            const response = {
-                count: docs.length,
-                products: docs.map((doc: any) => {
-                    return {
-                        name: doc.name,
-                        price: doc.price,
-                        productImage: doc.productImage,
-                        _id: doc._id,
-                        request: {
-                            type: "GET",
-                            url: "http://localhost:3000/lead/" + doc._id
-                        }
-                    };
-                })
-            };
-            //   if (docs.length >= 0) {
-            res.status(200).json(response);
-            //   } else {
-            //       res.status(404).json({
-            //           message: 'No entries found'
-            //       });
-            //   }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
+export const findAll = async(req: Request, res: Response, next: NextFunction) => {
+    const { page, perPage, sortBy='createdAt' } = req.query;
+
+    const limit = Number(perPage);
+    const skip = Number((page-1)*limit);
+    const leads = await Lead.aggregate([
+        {$match: {}},
+        {$sort: {[sortBy]: 1}},
+        {$skip: skip},
+        {$limit: limit}
+    ]);
+    res.status(200).json(leads);
 };
 
 
-
 export const insertOne = (req: Request, res: Response, next: NextFunction) => {
-    console.log("printing ", req.body);
     const lead = new Lead({
         _id: new mongoose.Types.ObjectId(),
-        name: req.body.name,
-        price: req.body.price,
-        productImage: req.file.path
+        createdBy: mongoose.Types.ObjectId((req.user as any).id),
+        handler: mongoose.Types.ObjectId((req.user as any).id),
+        amount: req.body.amount,
+        customer: {
+            name: req.body.nickname,
+            phoneNumber: req.body.phoneNumber,
+            phoneNumberPrefix: req.body.phoneNumberPrefix,
+            email: req.body.email,
+        },
+        expiresOn: req.body.followUp,
+        notes: [
+            {content: `Lead Created by ${(req.user as any).email} for ${req.body.nickname} (${req.body.email})`, timestamp: new Date()}
+        ],
+        followUpDate: req.body.followUp,
+        status: req.body.status,
+        source: "web", 
     });
 
-    parseExcel(req.file.path, leadMeta());
     lead
         .save()
         .then((result: any) => {
@@ -77,31 +63,11 @@ export const insertOne = (req: Request, res: Response, next: NextFunction) => {
         });
 };
 
-export const findOneById = (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.productId;
-    Lead.findById(id)
-        .select("name price _id productImage")
-        .exec()
-        .then(doc => {
-            console.log("From database", doc);
-            if (doc) {
-                res.status(200).json({
-                    lead: doc,
-                    request: {
-                        type: "GET",
-                        url: "http://localhost:3000/lead"
-                    }
-                });
-            } else {
-                res
-                    .status(404)
-                    .json({ message: "No valid entry found for provided ID" });
-            }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({ error: err });
-        });
+export const findOneById = async(req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.leadId;
+    const lead = await Lead.findById(id);
+
+    res.status(200).send(lead);
 };
 
 

@@ -2,133 +2,65 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import Ticket from "../models/ticket";
-import { ticketMeta } from "../renames/ticket";
-import parseExcel from "../util/parseExcel";
 
-export const findAll = (req: Request, res: Response, next: NextFunction) => {
-    Ticket.find()
-        .select("name price _id productImage")
-        .exec()
-        .then(docs => {
-            const response = {
-                count: docs.length,
-                products: docs.map((doc: any) => {
-                    return {
-                        name: doc.name,
-                        price: doc.price,
-                        productImage: doc.productImage,
-                        _id: doc._id,
-                        request: {
-                            type: "GET",
-                            url: "http://localhost:3000/ticket/" + doc._id
-                        }
-                    };
-                })
-            };
-            //   if (docs.length >= 0) {
-            res.status(200).json(response);
-            //   } else {
-            //       res.status(404).json({
-            //           message: 'No entries found'
-            //       });
-            //   }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
+export const findAll = async(req: Request, res: Response, next: NextFunction) => {
+    const { page, perPage, sortBy='createdAt' } = req.query;
+
+    const limit = Number(perPage);
+    const skip = Number((page-1)*limit);
+    const result = await Ticket.aggregate([
+        {$match: {}},
+        {$sort: {[sortBy]: 1}},
+        {$skip: skip},
+        {$limit: limit}
+    ]);
+    res.status(200).json(result);
 };
 
-
-
-export const insertOne = (req: Request, res: Response, next: NextFunction) => {
-    console.log("printing ", req.body);
-    const ticket = new Ticket({
-        _id: new mongoose.Types.ObjectId(),
-        name: req.body.name,
-        price: req.body.price,
-        productImage: req.file.path
-    });
-
-    parseExcel(req.file.path, ticketMeta());
-    ticket
-        .save()
-        .then((result: any) => {
-            res.status(201).json({
-                message: "Created ticket successfully",
-                createdProduct: {
-                    name: result.name,
-                    price: result.price,
-                    _id: result._id,
-                    request: {
-                        type: "GET",
-                        url: "http://localhost:3000/ticket/" + result._id
-                    }
-                }
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
-};
-
-export const findOneById = (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.productId;
-    Ticket.findById(id)
-        .select("name price _id productImage")
-        .exec()
-        .then(doc => {
-            console.log("From database", doc);
-            if (doc) {
-                res.status(200).json({
-                    ticket: doc,
-                    request: {
-                        type: "GET",
-                        url: "http://localhost:3000/ticket"
-                    }
-                });
-            } else {
-                res
-                    .status(404)
-                    .json({ message: "No valid entry found for provided ID" });
-            }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({ error: err });
-        });
-};
-
-
-export const patch = (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.productId;
-    const updateOps: {[index: string]: any} = {};
-    for (const ops of req.body) {
-        const propName = ops.propName;
-        updateOps[propName] = ops.value;
+const createTicketFromForm = (req: Request) => {
+    return {
+        "leadId": req.body.leadId,
+        "createdBy": (req.user as any).id,
+        "changeHistory": {changeType: "Created", by: (req.user as any).id, to: ""},
+        "customer": {
+            "email": req.body.email,
+            "phoneNumberPrefix": req.body.phoneNumberPrefix,
+            "phoneNumber": req.body.phoneNumber,
+            "name": req.body.nickname,
+        },
+        "assignedTo": req.body.assignedTo,
+        "followUp": req.body.followUp,
+        "agree": req.body.agree,
+        "status": req.body.status
     }
-    Ticket.update({ _id: id }, { $set: updateOps })
-        .exec()
-        .then(result => {
-            res.status(200).json({
-                message: "Ticket updated",
-                request: {
-                    type: "GET",
-                    url: "http://localhost:3000/ticket/" + id
-                }
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
+}
+
+export const insertOne = async(req: Request, res: Response, next: NextFunction) => {
+    console.log("printing ", req.body);
+    let ticketObj = createTicketFromForm(req);
+    const ticket = new Ticket({
+        ...ticketObj,
+        _id: new mongoose.Types.ObjectId()
+    })
+
+    const result = await ticket.save();
+
+    return res.status(200).json(result);
+};
+
+export const findOneById = async(req: Request, res: Response, next: NextFunction) => {
+    const id = mongoose.Types.ObjectId(req.params.ticketId);
+    const result = await Ticket.findById(id);
+    return res.status(200).json(result);
+};
+
+
+export const put = async(req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.ticketId;
+    const ticket = createTicketFromForm(req);
+    const result = await Ticket.update({ _id: id }, { $set: ticket });
+
+    return res.status(200).json(result);
 };
 
 export const deleteOne = (req: Request, res: Response, next: NextFunction) => {

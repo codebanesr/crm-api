@@ -1,0 +1,107 @@
+# cat .env # This will populate all env variables to be used in docker-compose
+# docker-compose up -d --build #starts the entire stack in detached mode with hot reloading
+# follow docker logs for socketapp with `docker logs -f socketapp`
+version: "3.7"
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.redirect.priority=4"
+      - "traefik.http.routers.redirect.entrypoints=web"
+      - "traefik.http.routers.redirect.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.redirect.middlewares=redirect-to-https"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myhttpchallenge.acme.email=shanur.cse.nitap@gmail.com"
+      - "--certificatesresolvers.myhttpchallenge.acme.storage=/acme.json"
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./acme.json:/acme.json
+    networks:
+      - ${GC_REALTIME_NETWORK}
+    ports:
+      - 80:80
+      - 443:443
+      - 9090:8080
+    depends_on:
+      - gc_nats_streamer
+      - realtime
+
+  gc_nats_streamer:
+    image: "nats-streaming"
+    container_name: ${NATS_CONTAINER_NAME}
+    command:
+      - "--cluster"
+      - ${NATS_CLUSTER}
+      - "--cluster_id"
+      - ${NATS_CLUSTER_ID}
+      - "--clustered"
+      - "--cluster_bootstrap"
+      - "--cluster_log_path"
+      - ${CLUSTER_LOG_PATH}
+      - "--cluster_node_id"
+      - ${NATS_CLUSTER_NODE_ID}
+      - "--cluster_raft_logging"
+      - "--debug"
+      - "--dir"
+      - ${MSG_DIR}
+      - "--http_port"
+      - "${NATS_HTTP_PORT}"
+      - "--port"
+      - "${NATS_PORT}"
+      - "--store"
+      - file
+      - "--stan_debug"
+      - "--hb_interval"
+      - ${HB_INTERVAL}
+      - "--hb_fail_count"
+      - ${HB_FAIL_COUNT}
+      - "--hb_timeout"
+      - ${HB_TIMEOUT}
+    ports:
+      - "${NATS_PUBLIC_PORT}:${NATS_PORT}"
+      - "${NATS_PUBLIC_HTTP_PORT}:${NATS_HTTP_PORT}"
+    volumes:
+      # - "${pwd}/nats-streaming-1:/data"
+      - "/Users/gamechange/Documents/nats-streaming-1:/data"
+    restart: unless-stopped
+    networks:
+      - ${GC_REALTIME_NETWORK}
+
+  realtime:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.priority=3"
+      - "traefik.http.routers.api.rule=Host(`realtime.localhost`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myhttpchallenge"
+      - "traefik.port=6001"
+
+    volumes:
+      - ".:/code/"
+
+    restart: always
+    ports:
+      - "${SOCKET_PORT}:${SOCKET_PORT}"
+    container_name: ${SOCKET_CONTAINER_NAME}
+    networks:
+      - ${GC_REALTIME_NETWORK}
+    depends_on:
+      - gc_nats_streamer
+
+networks:
+  gc_realtime:
+    name: ${GC_REALTIME_NETWORK}
