@@ -2,6 +2,7 @@
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import Ticket from "../models/ticket";
+import logger from "../util/logger";
 
 export const findAll = async(req: Request, res: Response, next: NextFunction) => {
     const { page, perPage, sortBy='createdAt' } = req.query;
@@ -49,9 +50,13 @@ export const insertOne = async(req: Request, res: Response, next: NextFunction) 
 };
 
 export const findOneById = async(req: Request, res: Response, next: NextFunction) => {
-    const id = mongoose.Types.ObjectId(req.params.ticketId);
-    const result = await Ticket.findById(id);
-    return res.status(200).json(result);
+    try{
+        const id = mongoose.Types.ObjectId(req.params.ticketId);
+        const result = await Ticket.findById(id);
+        return res.status(200).json(result);
+    }catch(error) {
+        return res.status(500).send(`An error occured, ${error.message}`)
+    }
 };
 
 
@@ -62,6 +67,32 @@ export const put = async(req: Request, res: Response, next: NextFunction) => {
 
     return res.status(200).json(result);
 };
+
+
+
+export const suggestTickets = async(req: Request, res: Response, next: NextFunction) => {
+    const { leadId } = req.params;
+
+    const query = [
+        {
+            $match: {
+                leadId: {$regex: `^${leadId}`}
+            }
+        },
+        { $project : { leadId : 1} },
+        { $limit: 10 }
+    ];
+
+    const result = await Ticket.aggregate(query);
+
+    return res.status(200).json(result);
+}
+
+
+export const findByLeadId = async(req: Request, res: Response, next: NextFunction) => {
+    const lead = await Ticket.findOne({leadId: req.params.leadId}, {});
+    return res.status(200).json(lead);
+}
 
 export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.productId;

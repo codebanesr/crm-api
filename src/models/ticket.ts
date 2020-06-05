@@ -20,7 +20,7 @@ const ticketSchema = new mongoose.Schema({
     expiresOn: Date,
     changeHistory: {changeType: String, by: String,to: String},
     notes: String,
-    followUpDate: Date,
+    followUp: Date,
     status: String,   //lead status, like created, interacted, closed, cancelled etc
     source: String,  // excel uploads, web form etc
     isDeleted: { type: Boolean, default: false } // we will never delete it just mark it deleted and will fetch the values from a view which will already have these filters applied

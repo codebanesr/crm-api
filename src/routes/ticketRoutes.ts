@@ -13,6 +13,11 @@ router.put("/:ticketId", passportConfig.authenticateJWT, ticketController.put);
 router.delete("/:ticketId", ticketController.deleteOne);
 
 
+router.get("/suggest/:leadId", ticketController.suggestTickets);
+
+router.get("/lead/:leadId", ticketController.findByLeadId);
+
+
 /** client should send the file in multi part form data and the name of the file dom element should be file 
  * there should only be one file being sent, otherwise multer will send back an error to the client..
  */
