@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import Ticket from "../models/ticket";
 import logger from "../util/logger";
+import Lead from "../models/lead";
 
 export const findAll = async(req: Request, res: Response, next: NextFunction) => {
     const { page, perPage, sortBy='createdAt' } = req.query;
@@ -18,29 +19,12 @@ export const findAll = async(req: Request, res: Response, next: NextFunction) =>
     res.status(200).json(result);
 };
 
-const createTicketFromForm = (req: Request) => {
-    return {
-        "leadId": req.body.leadId,
-        "createdBy": (req.user as any).id,
-        "changeHistory": {changeType: "Created", by: (req.user as any).id, to: ""},
-        "customer": {
-            "email": req.body.email,
-            "phoneNumberPrefix": req.body.phoneNumberPrefix,
-            "phoneNumber": req.body.phoneNumber,
-            "name": req.body.nickname,
-        },
-        "assignedTo": req.body.assignedTo,
-        "followUp": req.body.followUp,
-        "agree": req.body.agree,
-        "status": req.body.status
-    }
-}
-
 export const insertOne = async(req: Request, res: Response, next: NextFunction) => {
-    console.log("printing ", req.body);
-    let ticketObj = createTicketFromForm(req);
+    const { body } = req;
+
+    console.log(body);
     const ticket = new Ticket({
-        ...ticketObj,
+        ...body,
         _id: new mongoose.Types.ObjectId()
     })
 
@@ -62,28 +46,28 @@ export const findOneById = async(req: Request, res: Response, next: NextFunction
 
 export const put = async(req: Request, res: Response, next: NextFunction) => {
     const id = req.params.ticketId;
-    const ticket = createTicketFromForm(req);
-    const result = await Ticket.update({ _id: id }, { $set: ticket });
+    const { body } = req;
+    const result = await Ticket.update({ _id: id }, { $set: body });
 
     return res.status(200).json(result);
 };
 
 
 
-export const suggestTickets = async(req: Request, res: Response, next: NextFunction) => {
+export const suggestLeads = async(req: Request, res: Response, next: NextFunction) => {
     const { leadId } = req.params;
 
     const query = [
         {
             $match: {
-                leadId: {$regex: `^${leadId}`}
+                _id: {$regex: `^${leadId}`}
             }
         },
         { $project : { leadId : 1} },
         { $limit: 10 }
     ];
 
-    const result = await Ticket.aggregate(query);
+    const result = await Lead.aggregate(query);
 
     return res.status(200).json(result);
 }

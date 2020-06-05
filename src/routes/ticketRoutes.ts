@@ -13,7 +13,7 @@ router.put("/:ticketId", passportConfig.authenticateJWT, ticketController.put);
 router.delete("/:ticketId", ticketController.deleteOne);
 
 
-router.get("/suggest/:leadId", ticketController.suggestTickets);
+router.get("/suggest/:leadId", ticketController.suggestLeads);
 
 router.get("/lead/:leadId", ticketController.findByLeadId);
 
