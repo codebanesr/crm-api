@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 const ticketSchema = new mongoose.Schema({
-    leadId:  String,
-    email:  String,
+    leadId:  {type: String, required: [true, 'leadId is a must']},
+    email:  {type: String, required: [true, 'Email is required!']},
     assignedTo: String,
     nickname: String,
     phoneNumberPrefix: Date,

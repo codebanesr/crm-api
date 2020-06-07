@@ -11,6 +11,9 @@ import "../config/passport";
 import * as jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../util/secrets";
 import logger from "../util/logger";
+import parseExcel from "../util/parseExcel";
+import AdminAction from "../models/AdminAction";
+import mongoose from "mongoose";
 
 
 /**
@@ -376,3 +379,57 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
         res.status(200).send("/forgot");
     });
 };
+
+
+
+export const insertMany = async(req: Request, res: Response, next: NextFunction) => {
+    const userid = (req.user as Express.User & {id: string}).id;
+    const jsonRes = parseExcel(req.file.path);
+    
+    const adminActions = new AdminAction({
+        userid: mongoose.Types.ObjectId(userid),
+        actionType: "upload",
+        filePath: req.file.path,
+        savedOn: "disk",
+        fileType: "agentBulk"
+    });
+
+
+    await saveUsers(jsonRes); //this will send uploaded path to the worker, or aws s3 location
+    try {
+        const result = await adminActions.save();
+        res.status(200).json({success: true, filePath: req.file.path, message: "successfully parsed file"});
+    }catch(e) {
+        res.status(500).json({success: false, message: "An Error Occured while parsing the file"});
+    }
+};
+
+
+
+// cannot do bulk upload here, need to generate passwords one by one and also cannot skip validation
+const saveUsers = async(users: any[]) => {
+    const erroredUsers: any = []
+    for(let u of users) {
+        User.findOne({ email: u.email }, (err, existingUser) => {
+            if (err) { 
+                let errorMessage = err.message;
+                erroredUsers.push({...u, errorMessage});
+             }
+            if (existingUser) {
+                let errorMessage = "Account with that email address already exists."
+                erroredUsers.push({...existingUser, errorMessage});
+            }
+
+            const user = new User(u);
+            user.save((err) => {
+                if (err) { 
+                    console.log(err);
+                    let errorMessage = err.message;
+                    erroredUsers.push({...u, errorMessage});
+                }
+            });
+        });
+    }
+
+    console.log(erroredUsers);
+}

@@ -1,6 +1,7 @@
 import express from "express";
 import * as passportConfig from "../config/passport";
 import * as userController from "../controllers/user";
+import { upload } from "../util/multerOpts";
 
 const router = express.Router();
 
@@ -9,6 +10,6 @@ router.post("/updateProfile", passportConfig.authenticateJWT, userController.pos
 router.post("/updatePassword", passportConfig.authenticateJWT, userController.postUpdatePassword);
 router.post("/deleteAccount", passportConfig.authenticateJWT, userController.postDeleteAccount);
 router.get("/account/unlink/:provider", passportConfig.authenticateJWT, userController.getOauthUnlink);
-
+router.post("/many", passportConfig.authenticateJWT, upload.single("file"), userController.insertMany);
 
 export default router;

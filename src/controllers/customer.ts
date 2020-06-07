@@ -6,6 +6,7 @@ import parseExcel from "../util/parseExcel";
 import mongoose from "mongoose";
 import Lead from "../models/lead";
 import Ticket from "../models/ticket";
+import ticketValidator from '../validator/ticket';
 
 export const findAll = (req: Request, res: Response, next: NextFunction) => {
     Customer.find()
@@ -137,40 +138,89 @@ export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
 
 
 
-/** This function should call a worker that will handle uploads, everything below this is to be pushed to worker */
-const handleBulkUploads = ( jsonRes: any, category: string ) => {
-    switch(category) {
-        case "customer":
-            break;
-        case "lead":
-            saveLeads(jsonRes);
-            break;
-        case "ticket":
-            saveTickets(jsonRes);
-            break;
-        default:
-            console.log("The query param doesnot match a valid value");
+/** This function should call a worker that will handle uploads, everything below this is to be pushed to worker 
+ * similarly the validator folder also goes inside the worker ..., file upload also happens in aws, then we send the url 
+ * to worker, the worker will then pick it up and execute
+*/
+const handleBulkUploads = (jsonRes: any, category: string) => {
+    try {
+        switch (category) {
+            case "customer":
+                break;
+            case "lead":
+                saveLeads(jsonRes);
+                break;
+            case "ticket":
+                saveTickets(jsonRes);
+                break;
+            default:
+                console.log("The query param doesnot match a valid value");
+        }
+    } catch (e) {
+        console.log(e);
     }
 }
 
 /** Findone and update implementation */
 const saveLeads = async(leads: any[]) => {
-    for(let lead of leads) {
-        const l = new Lead(lead);
-        const result = await l.save();
-
-
-        console.log(result);
+    let bulk = Lead.collection.initializeUnorderedBulkOp();
+    let c = 0;
+    for(let l of leads) {
+        c++;
+        bulk
+            .find({_id: l._id})
+            .upsert()
+            .updateOne(l);
+        if(c%1000 === 0){
+            bulk.execute((err, res)=>{
+                console.log("Finished iteration ", c%1000);
+                bulk = Lead.collection.initializeUnorderedBulkOp();
+            })
+        }
     }
+    if(c % 1000 !==0 )
+        bulk.execute((err, res)=>{
+            console.log("Finished iteration ", c%1000, err, res);
+        })
 }
 
 
 const saveTickets = async(tickets: any[]) => {
-    for(let ticket of tickets) {
-        const t = new Ticket(ticket);
-        const result = await t.save();
+    validateTickets(tickets);
+    const defaults = {createdAt:Date.now(), updatedAt: Date.now()};
+    let bulk = Ticket.collection.initializeUnorderedBulkOp();
+    let c = 0;
+    for(let t of tickets) {
+        c++;
+        bulk
+            .find({leadId: t.leadId})
+            .upsert()
+            .updateOne({
+                ...t,
+                ...defaults
+            });
+        if(c%1000 === 0){
+            bulk.execute((err, res)=>{
+                console.log("Finished iteration ", c%1000, err, res);
+                bulk = Lead.collection.initializeUnorderedBulkOp();
+            })
+        }
+    }
+    if(c % 1000 !==0 )
+        bulk.execute((err, res)=>{
+            console.log("Finished iteration ", c%1000, err, JSON.stringify(res));
+        })
+}
 
 
-        console.log(result);
+const validateTickets = (data: any) => {
+    const { valid, validate } = ticketValidator(data);
+    if (!valid) {
+        validate.errors.forEach(error =>{
+            const {message, data, dataPath} = error;
+            console.log(message, data, dataPath);
+        })
+    }else{
+        console.log("no errors")
     }
 }

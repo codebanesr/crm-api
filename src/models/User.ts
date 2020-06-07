@@ -40,6 +40,8 @@ const userSchema = new mongoose.Schema({
     twitter: String,
     google: String,
     tokens: Array,
+    roleType: { type: String, required: true },
+    userGroups: Array,
 
     profile: {
         name: String,
