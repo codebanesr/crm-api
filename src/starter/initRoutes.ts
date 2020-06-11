@@ -5,6 +5,7 @@ import customerRoutes from "../routes/customerRoutes";
 import userRoutes from "../routes/userRoutes";
 import leadRoutes from "../routes/leadRoutes";
 import ticketRoutes from "../routes/ticketRoutes";
+import campaignRoutes from "../routes/campaignRoutes";
 
 
 export default (app: core.Express) => {
@@ -14,4 +15,5 @@ export default (app: core.Express) => {
     app.use("/customer", customerRoutes);
     app.use("/lead", leadRoutes);
     app.use("/ticket", ticketRoutes);
+    app.use("/campaign", campaignRoutes);
 };

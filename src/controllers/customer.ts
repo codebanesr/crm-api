@@ -7,35 +7,20 @@ import mongoose from "mongoose";
 import Lead from "../models/lead";
 import Ticket from "../models/ticket";
 import ticketValidator from '../validator/ticket';
+import Campaign from "../models/Campaign";
 
-export const findAll = (req: Request, res: Response, next: NextFunction) => {
-    Customer.find()
-        .select("name price _id productImage")
-        .exec()
-        .then(docs => {
-            const response = {
-                count: docs.length,
-                products: docs.map((doc: any) => {
-                    return {
-                        name: doc.name,
-                        price: doc.price,
-                        productImage: doc.productImage,
-                        _id: doc._id,
-                        request: {
-                            type: "GET",
-                            url: "http://localhost:3000/product/" + doc._id
-                        }
-                    };
-                })
-            };
-            res.status(200).json(response);
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
+export const findAll = async(req: Request, res: Response, next: NextFunction) => {
+    const { page, perPage, sortBy='createdAt' } = req.query;
+
+    const limit = Number(perPage);
+    const skip = Number((page-1)*limit);
+    const result = await Customer.aggregate([
+        {$match: {}},
+        {$sort: {[sortBy]: 1}},
+        {$skip: skip},
+        {$limit: limit}
+    ]);
+    res.status(200).json(result);
 };
 
 export const insertMany = async(req: Request, res: Response, next: NextFunction) => {
@@ -48,7 +33,7 @@ export const insertMany = async(req: Request, res: Response, next: NextFunction)
         actionType: "upload",
         filePath: req.file.path,
         savedOn: "disk",
-        fileType: "customerBulk"
+        fileType: category
     });
 
     try {
@@ -146,12 +131,17 @@ const handleBulkUploads = (jsonRes: any, category: string) => {
     try {
         switch (category) {
             case "customer":
+                saveCustomers(jsonRes);
                 break;
             case "lead":
                 saveLeads(jsonRes);
                 break;
             case "ticket":
                 saveTickets(jsonRes);
+                break;
+
+            case "campaign":
+                saveCampaign(jsonRes);
                 break;
             default:
                 console.log("The query param doesnot match a valid value");
@@ -223,4 +213,55 @@ const validateTickets = (data: any) => {
     }else{
         console.log("no errors")
     }
+}
+
+
+
+
+/** Findone and update implementation */
+const saveCustomers = async(customers: any[]) => {
+    let bulk = Customer.collection.initializeUnorderedBulkOp();
+    let c = 0;
+    for(let cu of customers) {
+        c++;
+        bulk
+            .find({_id: cu._id})
+            .upsert()
+            .updateOne(cu);
+        if(c%1000 === 0){
+            bulk.execute((err, res)=>{
+                console.log("Finished iteration ", c%1000);
+                bulk = Customer.collection.initializeUnorderedBulkOp();
+            })
+        }
+    }
+    if(c % 1000 !==0 )
+        bulk.execute((err, res)=>{
+            console.log("Finished iteration ", c%1000, err, res);
+        })
+}
+
+
+
+/** Findone and update implementation */
+const saveCampaign = async(campaigns: any[]) => {
+    let bulk = Campaign.collection.initializeUnorderedBulkOp();
+    let c = 0;
+    for(let ca of campaigns) {
+        c++;
+        bulk
+            .find({handler: ca.handler})
+            .upsert()
+            .updateOne(ca);
+        if(c%1000 === 0){
+            bulk.execute((err, res)=>{
+                console.log("Finished iteration ", c%1000);
+                bulk = Campaign.collection.initializeUnorderedBulkOp();
+            })
+        }
+    }
+    if(c % 1000 !==0 )
+        bulk.execute((err, res)=>{
+            console.log("Finished iteration ", c%1000, err, res);
+        })
 }
