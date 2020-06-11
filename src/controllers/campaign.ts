@@ -3,16 +3,35 @@ import { NextFunction, Request, Response } from "express";
 import Campaign from "../models/Campaign";
 
 export const findAll = async (req: Request, res: Response, next: NextFunction) => {
-    const { page = 1, perPage = 20, filters, sortBy = 'handler' } = req.query;
+    const { page = 1, perPage = 20, filters={}, sortBy = 'handler' } = req.body;
 
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
-    const result = await Campaign.aggregate([
-        { $match: {} },
+
+    const { handlerEmail, campaigns = [] } = filters;
+
+
+    let matchQ = {"$and": []};
+    if(handlerEmail) {
+        matchQ.$and.push({handler:handlerEmail});
+    }
+
+    if(campaigns && campaigns.length > 0) {
+        matchQ.$and.push({ type: { $in: campaigns } });
+    }
+
+    const fq = [
+        { $match: matchQ },
         { $sort: { [sortBy]: 1 } },
         { $skip: skip },
         { $limit: limit }
-    ]);
+    ];
+
+    if(fq[0]["$match"]["$and"].length === 0) {
+        delete fq[0]["$match"]["$and"]
+    }
+    console.log(JSON.stringify(fq));
+    const result = await Campaign.aggregate(fq);
     res.status(200).json(result);
 };
 
@@ -111,4 +130,8 @@ export const getHandlerEmailHints = async(req: Request, res: Response, next: Nex
     return res.status(200).send(result.map(r=>r.handler));
 }
 
+export const getCampaignTypes = async(req: Request, res: Response, next: NextFunction) => {
+    const result = await Campaign.find().distinct('type');
 
+    return res.status(200).send(result);
+}
