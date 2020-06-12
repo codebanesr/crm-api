@@ -379,9 +379,11 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
         res.status(200).send("/forgot");
     });
 };
+export const getAll = async(req: Request, res: Response, next: NextFunction) => {
+    const users = await User.find({}, {email: 1, roleType: 1});
 
-
-
+    return res.status(200).send(users);
+}
 export const insertMany = async(req: Request, res: Response, next: NextFunction) => {
     const userid = (req.user as Express.User & {id: string}).id;
     const jsonRes = parseExcel(req.file.path);
