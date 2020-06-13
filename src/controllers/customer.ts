@@ -6,8 +6,9 @@ import parseExcel from "../util/parseExcel";
 import mongoose from "mongoose";
 import Lead from "../models/lead";
 import Ticket from "../models/ticket";
-import ticketValidator from '../validator/ticket';
 import Campaign from "../models/Campaign";
+import XLSX from "xlsx";
+import * as fs from "fs";
 
 export const findAll = async(req: Request, res: Response, next: NextFunction) => {
     const { page, perPage, sortBy='createdAt' } = req.query;
@@ -176,45 +177,32 @@ const saveLeads = async(leads: any[]) => {
 
 
 const saveTickets = async(tickets: any[]) => {
-    validateTickets(tickets);
-    const defaults = {createdAt:Date.now(), updatedAt: Date.now()};
-    let bulk = Ticket.collection.initializeUnorderedBulkOp();
-    let c = 0;
+    const created = [];
+    const updated = [];
+    const error = []
+    
     for(let t of tickets) {
-        c++;
-        bulk
-            .find({leadId: t.leadId})
-            .upsert()
-            .updateOne({
-                ...t,
-                ...defaults
-            });
-        if(c%1000 === 0){
-            bulk.execute((err, res)=>{
-                console.log("Finished iteration ", c%1000, err, res);
-                bulk = Lead.collection.initializeUnorderedBulkOp();
-            })
+        const { lastErrorObject, value } = await Ticket.findOneAndUpdate({ leadId: t.leadId }, t, { new: true, upsert: true, rawResult: true }).lean().exec();
+        if(lastErrorObject.updatedExisting === true) {
+            updated.push(value);
+        }else if(lastErrorObject.upserted) {
+            created.push(value);
+        }else{
+            error.push(value)
         }
     }
-    if(c % 1000 !==0 )
-        bulk.execute((err, res)=>{
-            console.log("Finished iteration ", c%1000, err, JSON.stringify(res));
-        })
+
+    // createExcel files and update them to aws and then store the urls in database with AdminActions
+    const created_ws = XLSX.utils.json_to_sheet(created);
+    const updated_ws = XLSX.utils.json_to_sheet(updated);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, updated_ws, "tickets updated");
+    XLSX.utils.book_append_sheet(wb, created_ws, "tickets created");
+
+    XLSX.writeFile(wb, "sheetjs.xlsx");
+    console.log("created: ",created.length, "updated: ",updated.length, "error:", error.length);
 }
-
-
-const validateTickets = (data: any) => {
-    const { valid, validate } = ticketValidator(data);
-    if (!valid) {
-        validate.errors.forEach(error =>{
-            const {message, data, dataPath} = error;
-            console.log(message, data, dataPath);
-        })
-    }else{
-        console.log("no errors")
-    }
-}
-
 
 
 

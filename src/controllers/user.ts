@@ -16,6 +16,9 @@ import AdminAction from "../models/AdminAction";
 import mongoose from "mongoose";
 
 
+import { getPermissionsArray } from "../controllers/role";
+
+
 /**
  * GET /login
  * Login page.
@@ -44,15 +47,15 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
         return res.status(200).send("/login");
     }
 
-    passport.authenticate("local", (err: Error, user: UserDocument, info: IVerifyOptions) => {
+    passport.authenticate("local", async(err: Error, user: UserDocument, info: IVerifyOptions) => {
         if (err) { return next(err); }
         if (!user) {
             logger.warn("User not found");
             return res.status(200).send("/login");
         }
-        // if there is a valid user, send jwt back
-        const token = jwt.sign({ email: req.body.email}, JWT_SECRET);
-        res.status(200).send({ token: token });           
+        const permissions = await getPermissionsArray(user.roleType);
+        const token = jwt.sign({ email: req.body.email, permissions}, JWT_SECRET);
+        res.status(200).send({ token: token, permissions });           
     })(req, res, next);
 };
 

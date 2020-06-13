@@ -12,9 +12,8 @@ export const findAll = async(req: Request, res: Response, next: NextFunction) =>
 
 
 export const createOrUpdate = async(req: Request, res: Response, next: NextFunction) => {
-    const { role } = req.body;
-
-    const result = await Role.updateOne({value: role.value}, role, {upsert: true}).lean().exec();
+    const { role: {_id, ...others} } = req.body;
+    const result = await Role.updateOne({value: others.value}, others, {upsert: true}).lean().exec();
 
     return res.status(200).send(result);
 }
@@ -99,4 +98,13 @@ export const getAllPermissions = async(req: Request, res: Response, next:NextFun
 
 
     return res.status(200).send(response);
+}
+
+export const getPermissionsArray = async(roleType: string) => {
+    console.log(roleType);
+    const result = await Role.findOne({value: roleType}, {permissions: 1}).lean().exec();
+    const permissions = result.permissions.map((permission: any)=>permission.value);
+
+
+    return permissions;
 }

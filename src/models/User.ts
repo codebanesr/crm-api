@@ -7,6 +7,7 @@ export type UserDocument = mongoose.Document & {
     password: string;
     passwordResetToken: string;
     passwordResetExpires: Date;
+    roleType: string;
 
     facebook: string;
     tokens: AuthToken[];
