@@ -14,6 +14,7 @@ import logger from "../util/logger";
 import parseExcel from "../util/parseExcel";
 import AdminAction from "../models/AdminAction";
 import mongoose from "mongoose";
+import * as fs from "fs";
 
 
 import { getPermissionsArray } from "../controllers/role";
@@ -437,4 +438,11 @@ const saveUsers = async(users: any[]) => {
     }
 
     console.log(erroredUsers);
+}
+
+
+export const getLatestUploadedFiles = async(req: Request, res: Response, next: NextFunction) => {
+    const { fileType } = req.query;
+    const qRes = AdminAction.find({fileType: fileType }, {filePath: 1}).sort({_id: -1}).limit(5) as any;
+    return res.status(200).json({filePath: qRes});
 }

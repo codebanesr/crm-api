@@ -4,7 +4,9 @@ import * as passportConfig from "../config/passport";
 
 const router = express.Router();
 
-router.get("/", leadController.findAll);
+router.post("/", leadController.findAll);
+
+router.get("/getAllLeadColumns", leadController.getAllLeadColumns);
 
 router.get("/:leadId", leadController.findOneById);
 

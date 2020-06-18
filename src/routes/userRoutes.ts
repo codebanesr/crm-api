@@ -11,6 +11,7 @@ router.post("/updatePassword", passportConfig.authenticateJWT, userController.po
 router.post("/deleteAccount", passportConfig.authenticateJWT, userController.postDeleteAccount);
 router.get("/account/unlink/:provider", passportConfig.authenticateJWT, userController.getOauthUnlink);
 router.post("/many", passportConfig.authenticateJWT, upload.single("file"), userController.insertMany);
+router.get("/latestUploadedFile", userController.getLatestUploadedFiles);
 
 
 export default router;

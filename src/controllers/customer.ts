@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import Lead from "../models/lead";
 import Ticket from "../models/ticket";
 import Campaign from "../models/Campaign";
+import CampaignConfig from "../models/CampaignConfig";
 import XLSX from "xlsx";
 import * as fs from "fs";
 
@@ -25,10 +26,10 @@ export const findAll = async(req: Request, res: Response, next: NextFunction) =>
 };
 
 export const insertMany = async(req: Request, res: Response, next: NextFunction) => {
-    const { type: category } = req.query;
+    const { type: category, ...others } = req.query;
     const userid = (req.user as Express.User & {id: string}).id;
     const jsonRes = parseExcel(req.file.path);
-    handleBulkUploads(jsonRes, category);
+    handleBulkUploads(jsonRes, category, others);
     const adminActions = new AdminAction({
         userid: mongoose.Types.ObjectId(userid),
         actionType: "upload",
@@ -128,7 +129,7 @@ export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
  * similarly the validator folder also goes inside the worker ..., file upload also happens in aws, then we send the url 
  * to worker, the worker will then pick it up and execute
 */
-const handleBulkUploads = (jsonRes: any, category: string) => {
+const handleBulkUploads = (jsonRes: any, category: string, others: any) => {
     try {
         switch (category) {
             case "customer":
@@ -144,8 +145,11 @@ const handleBulkUploads = (jsonRes: any, category: string) => {
             case "campaign":
                 saveCampaign(jsonRes);
                 break;
+            case "campaignSchema":
+                saveCampaignSchema(jsonRes, others);
+                break;
             default:
-                console.log("The query param doesnot match a valid value");
+                console.log("The query param doesnot match a valid value", category);
         }
     } catch (e) {
         console.log(e);
@@ -252,4 +256,37 @@ const saveCampaign = async(campaigns: any[]) => {
         bulk.execute((err, res)=>{
             console.log("Finished iteration ", c%1000, err, res);
         })
+}
+
+
+const saveCampaignSchema = async(ccJSON: any[], others: any) => {
+    const created = [];
+    const updated = [];
+    const error = []
+    
+    for(let cc of ccJSON) {
+        const { lastErrorObject, value } = await CampaignConfig.findOneAndUpdate(
+            { name: others.schemaName, internalField: cc.internalField }, 
+            cc, 
+            { new: true, upsert: true, rawResult: true }
+        ).lean().exec();
+        if(lastErrorObject.updatedExisting === true) {
+            updated.push(value);
+        }else if(lastErrorObject.upserted) {
+            created.push(value);
+        }else{
+            error.push(value)
+        }
+    }
+
+    // createExcel files and update them to aws and then store the urls in database with AdminActions
+    const created_ws = XLSX.utils.json_to_sheet(created);
+    const updated_ws = XLSX.utils.json_to_sheet(updated);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, updated_ws, "tickets updated");
+    XLSX.utils.book_append_sheet(wb, created_ws, "tickets created");
+
+    XLSX.writeFile(wb, "sheetjs.xlsx");
+    console.log("created: ",created.length, "updated: ",updated.length, "error:", error.length);
 }

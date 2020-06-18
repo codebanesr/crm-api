@@ -82,15 +82,25 @@ const saveAgents = async (agents: any[]) => {
 // }
 
 export const listActions = async (
-  req: Request,
+  req: Request & {user: {id: string}},
   res: Response,
   next: NextFunction
 ) => {
-  const { skip, sortBy = "handler" } = req.query;
+  const { skip, fileType, sortBy = "handler", me } = req.query;
 
   const userid = req.user.id;
+  const matchQ = {} as any;
+  if(fileType) {
+    matchQ.fileType = fileType;
+  }
+
+  if(me) {
+    matchQ.userid = new mongoose.Types.ObjectId(req.user.id);
+  }
+
 
   const fq = [
+    {$match: matchQ},
     {
       $lookup: {
         from: "users",
@@ -118,6 +128,7 @@ export const listActions = async (
     },
   ];
 
+  console.log(fq)
   const result = await AdminAction.aggregate(fq);
   res.status(200).json(result);
 };
