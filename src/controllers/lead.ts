@@ -4,10 +4,16 @@ import { createAlarm } from "./alarm";
 import CampaignConfig from "../models/CampaignConfig";
 
 export const findAll = async(req: Request, res: Response, next: NextFunction) => {
-    const { page, perPage, sortBy='createdAt', showCols } = req.body;
+    const { page, perPage, sortBy='createdAt', showCols, searchTerm } = req.body;
     const limit = Number(perPage);
     const skip = Number((+page-1)*limit);
 
+    const matchQ = {} as any;
+    const textQ = { $text: { $search: searchTerm } };
+    if(searchTerm) {
+        matchQ["$and"] = []
+        matchQ["$and"].push(textQ);
+    }
 
     let flds; 
     if(showCols) {
@@ -24,7 +30,7 @@ export const findAll = async(req: Request, res: Response, next: NextFunction) =>
     projectQ._id = 0;
 
     const fq = [
-        {$match: {}},
+        {$match: matchQ},
         {
             $project: projectQ
         },
@@ -34,7 +40,7 @@ export const findAll = async(req: Request, res: Response, next: NextFunction) =>
     ];
 
     const leads = await Lead.aggregate(fq);
-    console.log(fq);
+    console.log(JSON.stringify(fq));
     res.status(200).json(leads);
 };
 

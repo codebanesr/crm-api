@@ -9,7 +9,8 @@ import Ticket from "../models/ticket";
 import Campaign from "../models/Campaign";
 import CampaignConfig from "../models/CampaignConfig";
 import XLSX from "xlsx";
-import * as fs from "fs";
+import { keyBy } from 'lodash';
+import { IConfig } from "src/util/renameJson";
 
 export const findAll = async(req: Request, res: Response, next: NextFunction) => {
     const { page, perPage, sortBy='createdAt' } = req.query;
@@ -28,8 +29,7 @@ export const findAll = async(req: Request, res: Response, next: NextFunction) =>
 export const insertMany = async(req: Request, res: Response, next: NextFunction) => {
     const { type: category, ...others } = req.query;
     const userid = (req.user as Express.User & {id: string}).id;
-    const jsonRes = parseExcel(req.file.path);
-    handleBulkUploads(jsonRes, category, others);
+    handleBulkUploads(req.file.path, category, others);
     const adminActions = new AdminAction({
         userid: mongoose.Types.ObjectId(userid),
         actionType: "upload",
@@ -129,23 +129,30 @@ export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
  * similarly the validator folder also goes inside the worker ..., file upload also happens in aws, then we send the url 
  * to worker, the worker will then pick it up and execute
 */
-const handleBulkUploads = (jsonRes: any, category: string, others: any) => {
+const handleBulkUploads = async(filePath: any, category: string, others: any) => {
+    let jsonRes;
     try {
         switch (category) {
             case "customer":
+                jsonRes = parseExcel(filePath);
                 saveCustomers(jsonRes);
                 break;
             case "lead":
+                const ccnfg = await CampaignConfig.find({name: "core"}, {readableField: 1, internalField: 1, _id: 0}).lean().exec() as IConfig;
+                jsonRes = parseExcel(filePath, ccnfg);
                 saveLeads(jsonRes);
                 break;
             case "ticket":
+                jsonRes = parseExcel(filePath);
                 saveTickets(jsonRes);
                 break;
 
             case "campaign":
+                jsonRes = parseExcel(filePath);
                 saveCampaign(jsonRes);
                 break;
             case "campaignSchema":
+                jsonRes = parseExcel(filePath);
                 saveCampaignSchema(jsonRes, others);
                 break;
             default:

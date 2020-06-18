@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import XLSX from "xlsx";
-import { renameJson } from "./renameJson";
+import { renameJson, IConfig } from "./renameJson";
 
 
 /**
@@ -9,7 +9,7 @@ import { renameJson } from "./renameJson";
  * @param renameDict Dictionary of (<oldName>, <newName>);; where excels header names are renamed from oldName, newName
  * the excel sheet should have <oldName> in the header 
  */
-const parseExcel = (filePath: string, renameDict?: any) => {
+const parseExcel = (filePath: string, renameDict?: IConfig[]) => {
     const workbook = XLSX.readFile(filePath);
     const sheet_name_list = workbook.SheetNames;
     const data: any = [];
