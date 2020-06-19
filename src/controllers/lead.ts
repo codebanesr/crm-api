@@ -2,17 +2,26 @@ import { NextFunction, Request, Response } from "express";
 import Lead from "../models/lead";
 import { createAlarm } from "./alarm";
 import CampaignConfig from "../models/CampaignConfig";
+import * as userController from "../controllers/user";
+import { UserDocument } from "../models/User";
 
-export const findAll = async(req: Request, res: Response, next: NextFunction) => {
+export const findAll = async(req: Request & { user: UserDocument}, res: Response, next: NextFunction) => {
     const { page, perPage, sortBy='createdAt', showCols, searchTerm } = req.body;
     const limit = Number(perPage);
     const skip = Number((+page-1)*limit);
 
-    const matchQ = {} as any;
-    const textQ = { $text: { $search: searchTerm } };
+    let subordinateEmails;
+
+    subordinateEmails = await userController.getSubordinates(req.user);
+
+    const matchQ: any = { 
+        $and: [
+            { email: { $in: subordinateEmails } }
+        ] 
+    };
+
     if(searchTerm) {
-        matchQ["$and"] = []
-        matchQ["$and"].push(textQ);
+        matchQ["$and"].push({ $text: { $search: searchTerm } });
     }
 
     let flds; 

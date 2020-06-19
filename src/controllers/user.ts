@@ -384,7 +384,17 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
     });
 };
 export const getAll = async(req: Request, res: Response, next: NextFunction) => {
-    const users = await User.find({}, {email: 1, roleType: 1});
+    const subordinates = await getSubordinates(req.user as any);
+    const users = await User.aggregate([
+        {$match: {email: {$in: subordinates}}},
+        {$lookup: {
+               from: "users",
+               localField: "email",
+               foreignField: "manages",
+               as: "managedBy"
+             }},
+        {$unwind: "$managedBy"}
+    ])
 
     return res.status(200).send(users);
 }
@@ -401,7 +411,7 @@ export const insertMany = async(req: Request, res: Response, next: NextFunction)
     });
 
 
-    await saveUsers(jsonRes); //this will send uploaded path to the worker, or aws s3 location
+    await addNewUsers(jsonRes); //this will send uploaded path to the worker, or aws s3 location
     try {
         const result = await adminActions.save();
         res.status(200).json({success: true, filePath: req.file.path, message: "successfully parsed file"});
@@ -410,17 +420,47 @@ export const insertMany = async(req: Request, res: Response, next: NextFunction)
     }
 };
 
+export const getLatestUploadedFiles = async(req: Request, res: Response, next: NextFunction) => {
+    const { fileType } = req.query;
+    const qRes = AdminAction.find({fileType: fileType }, {filePath: 1}).sort({_id: -1}).limit(5) as any;
+    return res.status(200).json({filePath: qRes});
+}
+
+const parseManages = (user: any) => {
+    if(!user.manages) return []
+    const manages = user.manages.replace(/\s/g, "").split(",")
+    return manages;
+}
+
+
+const assignHierarchyWeight = (u: UserDocument) => {
+    switch(u.roleType.trim().toLocaleLowerCase()){
+        case 'seniorManager':
+            return 60;
+        case 'manager':
+            return 40;
+        case 'frontline':
+            return 20;
+        default:
+            return 0;
+    }
+}
 
 
 // cannot do bulk upload here, need to generate passwords one by one and also cannot skip validation
-const saveUsers = async(users: any[]) => {
+const addNewUsers = async(users: UserDocument[]) => {
     const erroredUsers: any = []
     for(let u of users) {
+        /** check all users in the manages section exist, even if they dont it won't cause any trouble though */ 
+        u.manages = parseManages(u);
+        u.hierarchyWeight = assignHierarchyWeight(u);
+        u.email = u.email.toLocaleLowerCase()
+
         User.findOne({ email: u.email }, (err, existingUser) => {
             if (err) { 
                 let errorMessage = err.message;
                 erroredUsers.push({...u, errorMessage});
-             }
+            }
             if (existingUser) {
                 let errorMessage = "Account with that email address already exists."
                 erroredUsers.push({...existingUser, errorMessage});
@@ -441,8 +481,49 @@ const saveUsers = async(users: any[]) => {
 }
 
 
-export const getLatestUploadedFiles = async(req: Request, res: Response, next: NextFunction) => {
-    const { fileType } = req.query;
-    const qRes = AdminAction.find({fileType: fileType }, {filePath: 1}).sort({_id: -1}).limit(5) as any;
-    return res.status(200).json({filePath: qRes});
+export const assignManager = async(req: Request, res: Response, next: NextFunction) => {
+    const { newManager, user } = req.body;
+
+    const managedBy = user.managedBy.email;
+    await User.findOneAndUpdate({email: managedBy}, { $pullAll: { manages: [user.email] } })
+
+    await User.findOneAndUpdate({email: newManager.email}, { $addToSet: { manages: user.email} })
+    
+    return res.status(200).json({success: "success"});
+}
+
+
+
+/** returns subordinates if exists else returns the same id that was passed, in case of manager or sm it will return email ids of all
+ * subordinates, in case of frontline it will return the email of the frontline itself
+ */
+export const getSubordinates = async(user: UserDocument) : Promise<string[]> => {
+    if(user.roleType !== 'manager' && user.roleType!== 'seniorManager') {
+        return [user.email];
+    }
+    const result: any = await User.aggregate([
+        {$match: {email: user.email}}, 
+        { $graphLookup: {
+          from: "users",
+          startWith: "$manages",
+          connectFromField: "manages",
+          connectToField: "email",
+          as: "subordinates"
+        },
+      },{$project: {"subordinates": "$subordinates.email"}}
+    ]);
+
+    return result[0].subordinates; 
+}
+
+
+export const managersForReassignment = async(req: Request, res: Response, next: NextFunction) => {
+
+    const users = await User.aggregate([
+        {$match: {roleType: {$ne: "frontline"}}},
+        {$project: {email: 1, roleType: 1, nickname: 1}}
+    ])
+
+
+    return res.status(200).json(users);
 }

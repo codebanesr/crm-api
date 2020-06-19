@@ -9,8 +9,7 @@ import Ticket from "../models/ticket";
 import Campaign from "../models/Campaign";
 import CampaignConfig from "../models/CampaignConfig";
 import XLSX from "xlsx";
-import { keyBy } from 'lodash';
-import { IConfig } from "src/util/renameJson";
+import { IConfig } from "../util/renameJson";
 
 export const findAll = async(req: Request, res: Response, next: NextFunction) => {
     const { page, perPage, sortBy='createdAt' } = req.query;
@@ -138,7 +137,7 @@ const handleBulkUploads = async(filePath: any, category: string, others: any) =>
                 saveCustomers(jsonRes);
                 break;
             case "lead":
-                const ccnfg = await CampaignConfig.find({name: "core"}, {readableField: 1, internalField: 1, _id: 0}).lean().exec() as IConfig;
+                const ccnfg = await CampaignConfig.find({name: "core"}, {readableField: 1, internalField: 1, _id: 0}).lean().exec() as IConfig[];
                 jsonRes = parseExcel(filePath, ccnfg);
                 saveLeads(jsonRes);
                 break;
