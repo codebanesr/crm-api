@@ -164,25 +164,35 @@ const handleBulkUploads = async(filePath: any, category: string, others: any) =>
 
 /** Findone and update implementation */
 const saveLeads = async(leads: any[]) => {
-    let bulk = Lead.collection.initializeUnorderedBulkOp();
-    let c = 0;
-    for(let l of leads) {
-        c++;
-        bulk
-            .find({_id: l._id})
-            .upsert()
-            .updateOne(l);
-        if(c%1000 === 0){
-            bulk.execute((err, res)=>{
-                console.log("Finished iteration ", c%1000);
-                bulk = Lead.collection.initializeUnorderedBulkOp();
-            })
+    const created = [];
+    const updated = [];
+    const error = []
+    
+    for(let cc of leads) {
+        const { lastErrorObject, value } = await CampaignConfig.findOneAndUpdate(
+            { name: others.schemaName, internalField: cc.internalField }, 
+            cc, 
+            { new: true, upsert: true, rawResult: true }
+        ).lean().exec();
+        if(lastErrorObject.updatedExisting === true) {
+            updated.push(value);
+        }else if(lastErrorObject.upserted) {
+            created.push(value);
+        }else{
+            error.push(value)
         }
     }
-    if(c % 1000 !==0 )
-        bulk.execute((err, res)=>{
-            console.log("Finished iteration ", c%1000, err, res);
-        })
+
+    // createExcel files and update them to aws and then store the urls in database with AdminActions
+    const created_ws = XLSX.utils.json_to_sheet(created);
+    const updated_ws = XLSX.utils.json_to_sheet(updated);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, updated_ws, "tickets updated");
+    XLSX.utils.book_append_sheet(wb, created_ws, "tickets created");
+
+    XLSX.writeFile(wb, "sheetjs.xlsx");
+    console.log("created: ",created.length, "updated: ",updated.length, "error:", error.length);
 }
 
 

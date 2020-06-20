@@ -8,27 +8,30 @@ const leadSchema = new mongoose.Schema({
   email: {
     type: String, required: true
   },
-  nickname: {
-    type: String
-  },
-  phoneNumberPrefix: {
-    type: Date
-  },
-  phoneNumber: {
-    type: String
-  },
-  amount: {
-    type: Number
-  },
-  followUp: {
-    type: Date
-  },
-  agree: {
-    type: Boolean
-  },
-  status: {
-    type: String
-  }
+  title: String,
+  firstName: String,
+  lastName: String,
+  source: String,
+  followUp: Date,
+  lastVisited: Date,
+  remarks: String,
+  customerEmail: String,
+  mobileNumber: String,
+  address: String,
+  companyName: String,
+  product: String,
+  geoLocation: String,
+  bucket: String,
+  agencyLocation: String,
+  operationalArea: String,
+  circle: String,
+  district: String,
+  pincode: String,
+  workPhone: String,
+  homePhone: String,
+  state: String,
+  city: String,
+  leadStatus: String
 }, {
   timestamps: true,
   autoIndex: true

@@ -16,7 +16,7 @@ export const findAll = async(req: Request & { user: UserDocument}, res: Response
 
     const matchQ: any = { 
         $and: [
-            { email: { $in: subordinateEmails } }
+            { email: { $in: [...subordinateEmails, req.user.email] } }
         ] 
     };
 
