@@ -4,6 +4,10 @@ import { createAlarm } from "./alarm";
 import CampaignConfig from "../models/CampaignConfig";
 import * as userController from "../controllers/user";
 import { UserDocument } from "../models/User";
+import { sendEmail } from "../util/sendMail";
+import {isArray} from 'lodash';
+
+
 
 export const findAll = async(req: Request & { user: UserDocument}, res: Response, next: NextFunction) => {
     const { page, perPage, sortBy='createdAt', showCols, searchTerm } = req.body;
@@ -136,3 +140,22 @@ export const deleteOne = async(req: any, res: Response, next: NextFunction) => {
 
     res.status(200).json(result);
 };
+
+
+
+// { 
+//     filename: 'text3.txt',
+//     path: '/path/to/file.txt'
+// }
+export const sendBulkEmails = (req: Request, res: Response, next: NextFunction) => {
+    let { emails, subject, text, attachments } = req.body;
+    emails = isArray(emails) ?  emails: [emails];
+    emails = emails.join(",");
+    try {
+        sendEmail(emails, subject, text, attachments);
+        res.status(200).send({success: true});
+    }catch(e) {
+        res.status(400).send({error: e.message});
+        console.log(e);
+    }
+}
