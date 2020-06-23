@@ -5,24 +5,22 @@ import CampaignConfig from "../models/CampaignConfig";
 import * as userController from "../controllers/user";
 import { UserDocument } from "../models/User";
 import { sendEmail } from "../util/sendMail";
-import {isArray} from 'lodash';
+import {isArray} from "lodash";
 
 
 
 export const findAll = async(req: Request & { user: UserDocument}, res: Response, next: NextFunction) => {
-    const { page, perPage, sortBy='createdAt', showCols, searchTerm } = req.body;
+    const { page, perPage, sortBy="createdAt", showCols, searchTerm, unassigned } = req.body;
     const limit = Number(perPage);
     const skip = Number((+page-1)*limit);
 
-    let subordinateEmails;
-
-    subordinateEmails = await userController.getSubordinates(req.user);
-
-    const matchQ: any = { 
-        $and: [
-            { email: { $in: [...subordinateEmails, req.user.email] } }
-        ] 
-    };
+    const matchQ = { $and: [] } as any;
+    if(!unassigned) {
+        const subordinateEmails = await userController.getSubordinates(req.user);
+        matchQ.$and.push({ email: { $in: [...subordinateEmails, req.user.email] } });
+    }else{
+        matchQ.$and.push({$exists: {$email: false}});
+    }
 
     if(searchTerm) {
         matchQ["$and"].push({ $text: { $search: searchTerm } });
@@ -32,12 +30,12 @@ export const findAll = async(req: Request & { user: UserDocument}, res: Response
     if(showCols) {
         flds = showCols;
     }else{
-        flds = (await CampaignConfig.find({name: "core"}, {internalField: 1, _id: 0})).map((config: any)=>config.internalField)
+        flds = (await CampaignConfig.find({name: "core"}, {internalField: 1, _id: 0})).map((config: any)=>config.internalField);
     }
     
-    let projectQ = { } as any;
+    const projectQ = { } as any;
     flds.forEach((fld: string)=>{
-        projectQ[fld] = { "$ifNull" : [`$${fld}`, "---"]}
+        projectQ[fld] = { "$ifNull" : [`$${fld}`, "---"]};
     });
 
     projectQ._id = 0;
@@ -62,18 +60,21 @@ export const getAllLeadColumns = async(req: Request, res: Response, next: NextFu
     const { campaignType } = req.query;
     let matchQ = {} as any;
     if(!campaignType) {
-        matchQ = {name: "core"}
+        matchQ = {name: "core"};
     }
     const paths = await CampaignConfig.aggregate([
         { $match: matchQ }
     ]);
 
     return res.status(200).send({paths: paths});
-}
+};
 
 
 export const insertOne = async(req: any, res: Response, next: NextFunction) => {
     const { body } = req;
+    // assiging it to the user that created the lead by default
+    body.email = req.user.email;
+
     const lead = new Lead(body);
     const result = await lead.save();
 
@@ -126,7 +127,7 @@ export const patch = (req: Request, res: Response, next: NextFunction) => {
 
 export const deleteOne = async(req: any, res: Response, next: NextFunction) => {
     const id = req.params.leadId;
-    const result = await Lead.remove({ _id: id }).lean().exec()
+    const result = await Lead.remove({ _id: id }).lean().exec();
     await createAlarm(
         {
             module: "LEAD",
@@ -158,4 +159,4 @@ export const sendBulkEmails = (req: Request, res: Response, next: NextFunction) 
         res.status(400).send({error: e.message});
         console.log(e);
     }
-}
+};

@@ -4,8 +4,13 @@ import * as passportConfig from "../config/passport";
 
 const router = express.Router();
 
-router.post("/", passportConfig.authenticateJWT, leadController.findAll);
-router.post("/", passportConfig.authenticateJWT, leadController.sendBulkEmails)
+router.post("/findAll", passportConfig.authenticateJWT, leadController.findAll);
+/** client should send the file in multi part form data and the name of the file dom element should be file 
+ * there should only be one file being sent, otherwise multer will send back an error to the client..
+ */
+router.post("/", passportConfig.authenticateJWT, leadController.insertOne);
+
+router.post("/bulkEmail", passportConfig.authenticateJWT, leadController.sendBulkEmails);
 
 router.get("/getAllLeadColumns", leadController.getAllLeadColumns);
 
@@ -14,11 +19,5 @@ router.get("/:leadId", leadController.findOneById);
 router.patch("/:leadId", leadController.patch);
 
 router.delete("/:leadId", leadController.deleteOne);
-
-
-/** client should send the file in multi part form data and the name of the file dom element should be file 
- * there should only be one file being sent, otherwise multer will send back an error to the client..
- */
-router.post("/", passportConfig.authenticateJWT, leadController.insertOne);
 
 export default router;
