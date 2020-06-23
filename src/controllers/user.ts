@@ -543,7 +543,7 @@ export const getSubordinates = async (user: UserDocument): Promise<string[]> => 
     if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
         return [user.email];
     }
-    const result: any = await User.aggregate([
+    const fq: any = [
         { $match: { email: user.email } },
         {
             $graphLookup: {
@@ -553,20 +553,23 @@ export const getSubordinates = async (user: UserDocument): Promise<string[]> => 
                 connectToField: "email",
                 as: "subordinates"
             },
-        }, { $project: { "subordinates": "$subordinates.email" } }
-    ]);
+        }, 
+        { $project: { "subordinates": "$subordinates.email", roleType: "$roleType", hierarchyWeight: 1 } }
+    ];
 
+    const result = await User.aggregate(fq);
     return result[0].subordinates;
 };
 
 
-export const managersForReassignment = async (req: Request, res: Response, next: NextFunction) => {
 
-    const users = await User.aggregate([
-        { $match: { roleType: { $ne: "frontline" } } },
-        { $project: { email: 1, roleType: 1, nickname: 1 } }
-    ]);
-
-
-    return res.status(200).json(users);
+// should be handled in database query itself, this is not the correct method
+export const managersForReassignment = async (req: AuthReq, res: Response, next: NextFunction) => {
+    const users = await User.find({
+        $and: [
+            { email: { $in: req.user.manages } },
+            { roleType: { $ne: "frontline" } }
+        ]
+    }, { email: 1 });
+    return res.status(200).send(users);
 };

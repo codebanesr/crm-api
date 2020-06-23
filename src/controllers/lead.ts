@@ -10,22 +10,24 @@ import { AuthReq } from "../interface/authorizedReq";
 
 
 export const reassignLead = async(req: AuthReq, res: Response) => {
-    const { oldUser, newUser, lead } = req.body;
+    const { oldUserEmail, newUserEmail, lead } = req.body;
 
     try {
-        const assigned = oldUser ? "reassigned" : "assigned";
+        const assigned = oldUserEmail ? "reassigned" : "assigned";
         let note = "";
-        if(oldUser) {
-            note = `Lead ${assigned} from ${oldUser.email} to ${newUser.email} by ${req.user.email}`;
+        if(oldUserEmail) {
+            note = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${req.user.email}`;
         } else{
-            note = `Lead ${assigned} to ${newUser.email} by ${req.user.email}`;
+            note = `Lead ${assigned} to ${newUserEmail} by ${req.user.email}`;
         }
         const history = {
-            oldUser: oldUser.email,
-            newUser: newUser.email,
+            oldUser: oldUserEmail,
+            newUser: newUserEmail,
             note
         };
-        const result = await Lead.findOneAndUpdate({_id: lead._id}, {email: newUser.email, $push: {history: history}}).lean().exec();
+        const leadtest = await Lead.findOne({_id: +lead._id});
+        console.log(leadtest);
+        const result = await Lead.updateOne({_id: lead._id}, {email: newUserEmail, $push: {history: history}}).lean().exec();
         return res.status(200).json(result);
     }catch(e) {
         return res.status(400).send({error: e.message});
@@ -72,10 +74,10 @@ export const findAll = async(req: Request & { user: UserDocument}, res: Response
     }
 
     let flds; 
-    if(showCols) {
+    if(showCols && showCols.length > 0) {
         flds = showCols;
     }else{
-        flds = (await CampaignConfig.find({name: "core"}, {internalField: 1, _id: 0})).map((config: any)=>config.internalField);
+        flds = (await CampaignConfig.find({name: "core", checked: true}, {internalField: 1}).lean().exec()).map((config: any)=>config.internalField);
     }
     
     const projectQ = { } as any;
@@ -83,7 +85,7 @@ export const findAll = async(req: Request & { user: UserDocument}, res: Response
         projectQ[fld] = { "$ifNull" : [`$${fld}`, "---"]};
     });
 
-    projectQ._id = 0;
+    projectQ._id = 1;
 
     const fq = [
         {$match: matchQ},
@@ -94,19 +96,16 @@ export const findAll = async(req: Request & { user: UserDocument}, res: Response
         {$skip: skip},
         {$limit: limit}
     ];
-
-    const leads = await Lead.aggregate(fq);
     console.log(JSON.stringify(fq));
+    const leads = await Lead.aggregate(fq);
     res.status(200).json(leads);
 };
 
 
 export const getAllLeadColumns = async(req: Request, res: Response, next: NextFunction) => {
-    const { campaignType } = req.query;
-    let matchQ = {} as any;
-    if(!campaignType) {
-        matchQ = {name: "core"};
-    }
+    const { campaignType = "core" } = req.query;
+    const matchQ: any = {name: campaignType};
+
     const paths = await CampaignConfig.aggregate([
         { $match: matchQ }
     ]);

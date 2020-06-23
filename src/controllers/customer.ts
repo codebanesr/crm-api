@@ -9,6 +9,7 @@ import Campaign from "../models/Campaign";
 import CampaignConfig from "../models/CampaignConfig";
 import XLSX from "xlsx";
 import { IConfig } from "../util/renameJson";
+import Lead from "../models/lead";
 
 
 
@@ -20,10 +21,10 @@ const saveLeads = async(leads: any[], others: any) => {
     const updated = [];
     const error = [];
     
-    for(const cc of leads) {
-        const { lastErrorObject, value } = await CampaignConfig.findOneAndUpdate(
-            { name: others.schemaName, internalField: cc.internalField }, 
-            cc, 
+    for(const l of leads) {
+        const { lastErrorObject, value } = await Lead.findOneAndUpdate(
+            { externalId: l.externalId }, 
+            l, 
             { new: true, upsert: true, rawResult: true }
         ).lean().exec();
         if(lastErrorObject.updatedExisting === true) {

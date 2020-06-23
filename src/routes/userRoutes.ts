@@ -15,7 +15,7 @@ router.get("/account/unlink/:provider", passportConfig.authenticateJWT, userCont
 router.post("/many", passportConfig.authenticateJWT, upload.single("file"), userController.insertMany);
 router.get("/latestUploadedFile", userController.getLatestUploadedFiles);
 router.post("/assignManager", passportConfig.authenticateJWT, userController.assignManager);
-router.get("/managersForReassignment", userController.managersForReassignment);
+router.get("/managersForReassignment", passportConfig.authenticateJWT, userController.managersForReassignment);
 router.get("/getUserReassignmentHistory", passportConfig.authenticateJWT, userController.getUserReassignmentHistory);
 
 
