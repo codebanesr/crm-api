@@ -5,7 +5,52 @@ import CampaignConfig from "../models/CampaignConfig";
 import * as userController from "../controllers/user";
 import { UserDocument } from "../models/User";
 import { sendEmail } from "../util/sendMail";
-import {isArray} from "lodash";
+import { isArray } from "lodash";
+import { AuthReq } from "../interface/authorizedReq";
+
+
+export const reassignLead = async(req: AuthReq, res: Response) => {
+    const { oldUser, newUser, lead } = req.body;
+
+    try {
+        const assigned = oldUser ? "reassigned" : "assigned";
+        let note = "";
+        if(oldUser) {
+            note = `Lead ${assigned} from ${oldUser.email} to ${newUser.email} by ${req.user.email}`;
+        } else{
+            note = `Lead ${assigned} to ${newUser.email} by ${req.user.email}`;
+        }
+        const history = {
+            oldUser: oldUser.email,
+            newUser: newUser.email,
+            note
+        };
+        const result = await Lead.findOneAndUpdate({_id: lead._id}, {email: newUser.email, $push: {history: history}}).lean().exec();
+        return res.status(200).json(result);
+    }catch(e) {
+        return res.status(400).send({error: e.message});
+    }
+};
+
+
+export const getLeadReassignmentHistory = async(req: Request, res: Response) => {
+    const leadId = req.query.email;
+    try {
+        const result = await Lead.aggregate([
+            {$match: {_id: leadId}},
+            {$project: {history: 1}},
+            {$unwind: "$history"},
+            {$sort: {time: 1}},
+            {$limit: 5},
+            {$replaceRoot: { newRoot: "$history" }}
+        ]);
+    
+        res.status(200).send(result);
+    }catch(e) {
+        res.status(400).send({error: e.message});
+    }
+};
+
 
 
 

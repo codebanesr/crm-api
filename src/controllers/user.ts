@@ -14,10 +14,11 @@ import logger from "../util/logger";
 import parseExcel from "../util/parseExcel";
 import AdminAction from "../models/AdminAction";
 import mongoose from "mongoose";
-import * as fs from "fs";
+import { get } from "lodash";
 
 
 import { getPermissionsArray } from "../controllers/role";
+import { AuthReq } from "../interface/authorizedReq";
 
 
 /**
@@ -37,7 +38,7 @@ export const getLogin = (req: Request, res: Response) => {
  */
 export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
     await check("email", "Email is not valid").isEmail().run(req);
-    await check("password", "Password cannot be blank").isLength({min: 1}).run(req);
+    await check("password", "Password cannot be blank").isLength({ min: 1 }).run(req);
     // eslint-disable-next-line @typescript-eslint/camelcase
     await sanitize("email").normalizeEmail({ gmail_remove_dots: false }).run(req);
 
@@ -48,15 +49,15 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
         return res.status(200).send("/login");
     }
 
-    passport.authenticate("local", async(err: Error, user: UserDocument, info: IVerifyOptions) => {
+    passport.authenticate("local", async (err: Error, user: UserDocument, info: IVerifyOptions) => {
         if (err) { return next(err); }
         if (!user) {
             logger.warn("User not found");
             return res.status(200).send("/login");
         }
         const permissions = await getPermissionsArray(user.roleType);
-        const token = jwt.sign({ email: req.body.email, permissions}, JWT_SECRET);
-        res.status(200).send({ token: token, permissions });           
+        const token = jwt.sign({ email: req.body.email, permissions }, JWT_SECRET);
+        res.status(200).send({ token: token, permissions });
     })(req, res, next);
 };
 
@@ -111,7 +112,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         }
         user.save((err) => {
             if (err) { return next(err); }
-            const token = jwt.sign({ email: req.body.email}, JWT_SECRET);
+            const token = jwt.sign({ email: req.body.email }, JWT_SECRET);
             res.status(200).send({ token: token });
         });
     });
@@ -383,25 +384,27 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
         res.status(200).send("/forgot");
     });
 };
-export const getAll = async(req: Request, res: Response, next: NextFunction) => {
+export const getAll = async (req: Request, res: Response, next: NextFunction) => {
     const subordinates = await getSubordinates(req.user as any);
     const users = await User.aggregate([
-        {$match: {email: {$in: subordinates}}},
-        {$lookup: {
-               from: "users",
-               localField: "email",
-               foreignField: "manages",
-               as: "managedBy"
-             }},
-        {$unwind: "$managedBy"}
-    ])
+        { $match: { email: { $in: subordinates } } },
+        {
+            $lookup: {
+                from: "users",
+                localField: "email",
+                foreignField: "manages",
+                as: "managedBy"
+            }
+        },
+        { $unwind: "$managedBy" }
+    ]);
 
     return res.status(200).send(users);
-}
-export const insertMany = async(req: Request, res: Response, next: NextFunction) => {
-    const userid = (req.user as Express.User & {id: string}).id;
+};
+export const insertMany = async (req: Request, res: Response, next: NextFunction) => {
+    const userid = (req.user as Express.User & { id: string }).id;
     const jsonRes = parseExcel(req.file.path);
-    
+
     const adminActions = new AdminAction({
         userid: mongoose.Types.ObjectId(userid),
         actionType: "upload",
@@ -414,116 +417,156 @@ export const insertMany = async(req: Request, res: Response, next: NextFunction)
     await addNewUsers(jsonRes); //this will send uploaded path to the worker, or aws s3 location
     try {
         const result = await adminActions.save();
-        res.status(200).json({success: true, filePath: req.file.path, message: "successfully parsed file"});
-    }catch(e) {
-        res.status(500).json({success: false, message: "An Error Occured while parsing the file"});
+        res.status(200).json({ success: true, filePath: req.file.path, message: "successfully parsed file" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "An Error Occured while parsing the file" });
     }
 };
 
-export const getLatestUploadedFiles = async(req: Request, res: Response, next: NextFunction) => {
+export const getLatestUploadedFiles = async (req: Request, res: Response, next: NextFunction) => {
     const { fileType } = req.query;
-    const qRes = AdminAction.find({fileType: fileType }, {filePath: 1}).sort({_id: -1}).limit(5) as any;
-    return res.status(200).json({filePath: qRes});
-}
+    const qRes = AdminAction.find({ fileType: fileType }, { filePath: 1 }).sort({ _id: -1 }).limit(5) as any;
+    return res.status(200).json({ filePath: qRes });
+};
 
 const parseManages = (user: any) => {
-    if(!user.manages) return []
-    const manages = user.manages.replace(/\s/g, "").split(",")
+    if (!user.manages) return [];
+    const manages = user.manages.replace(/\s/g, "").split(",");
     return manages;
-}
+};
 
 
 const assignHierarchyWeight = (u: UserDocument) => {
-    switch(u.roleType.trim().toLocaleLowerCase()){
-        case 'seniorManager':
+    switch (u.roleType.trim().toLocaleLowerCase()) {
+        case "seniorManager":
             return 60;
-        case 'manager':
+        case "manager":
             return 40;
-        case 'frontline':
+        case "frontline":
             return 20;
         default:
             return 0;
     }
-}
+};
 
 
 // cannot do bulk upload here, need to generate passwords one by one and also cannot skip validation
-const addNewUsers = async(users: UserDocument[]) => {
-    const erroredUsers: any = []
-    for(let u of users) {
-        /** check all users in the manages section exist, even if they dont it won't cause any trouble though */ 
+const addNewUsers = async (users: UserDocument[]) => {
+    const erroredUsers: any = [];
+    for (const u of users) {
+        /** check all users in the manages section exist, even if they dont it won't cause any trouble though */
         u.manages = parseManages(u);
         u.hierarchyWeight = assignHierarchyWeight(u);
-        u.email = u.email.toLocaleLowerCase()
+        u.email = u.email.toLocaleLowerCase();
 
         User.findOne({ email: u.email }, (err, existingUser) => {
-            if (err) { 
-                let errorMessage = err.message;
-                erroredUsers.push({...u, errorMessage});
+            if (err) {
+                const errorMessage = err.message;
+                erroredUsers.push({ ...u, errorMessage });
             }
             if (existingUser) {
-                let errorMessage = "Account with that email address already exists."
-                erroredUsers.push({...existingUser, errorMessage});
+                const errorMessage = "Account with that email address already exists.";
+                erroredUsers.push({ ...existingUser, errorMessage });
             }
 
             const user = new User(u);
             user.save((err) => {
-                if (err) { 
+                if (err) {
                     console.log(err);
-                    let errorMessage = err.message;
-                    erroredUsers.push({...u, errorMessage});
+                    const errorMessage = err.message;
+                    erroredUsers.push({ ...u, errorMessage });
                 }
             });
         });
     }
 
     console.log(erroredUsers);
-}
+};
 
 
-export const assignManager = async(req: Request, res: Response, next: NextFunction) => {
-    const { newManager, user } = req.body;
+export const assignManager = async (req: AuthReq, res: Response, next: NextFunction) => {
+    try {
+        const { newManager, user } = req.body;
 
-    const managedBy = user.managedBy.email;
-    await User.findOneAndUpdate({email: managedBy}, { $pullAll: { manages: [user.email] } })
+        const managedBy = get(user, "managedBy.email");
+        await User.findOneAndUpdate({ email: managedBy }, { $pullAll: { manages: [user.email] } });
 
-    await User.findOneAndUpdate({email: newManager.email}, { $addToSet: { manages: user.email} })
+        await User.findOneAndUpdate({ email: newManager.email }, { $addToSet: { manages: user.email } });
+
+        const assigned = user.managedBy ? "reassigned" : "assigned";
+        let note = "";
+        if (managedBy) {
+            note = `User ${assigned} from ${managedBy} to ${newManager.email} by ${req.user.email}`;
+        } else {
+            note = `User ${assigned} to ${newManager.email} by ${req.user.email}`;
+        }
+        const history = {
+            oldManager: managedBy,
+            newManager: newManager.email,
+            time: Date.now(),
+            note
+        };
+        const result = await User.findOneAndUpdate({ email: user.email }, { $push: { history: history } }).lean().exec();
+        return res.status(200).json(result);
+    } catch (e) {
+        return res.status(400).json({ error: e.message });
+    }
+
+};
+
+
+
+
+export const getUserReassignmentHistory = async(req: Request, res: Response) => {
+    const userEmail = req.query.email;
+    try {
+        const result = await User.aggregate([
+            {$match: {email: userEmail}},
+            {$project: {history: 1}},
+            {$unwind: "$history"},
+            {$sort: {time: 1}},
+            {$limit: 5},
+            {$replaceRoot: { newRoot: "$history" }}
+        ]);
     
-    return res.status(200).json({success: "success"});
-}
-
+        res.status(200).send(result);
+    }catch(e) {
+        res.status(400).send({error: e.message});;
+    }
+};
 
 
 /** returns subordinates if exists else returns the same id that was passed, in case of manager or sm it will return email ids of all
  * subordinates, in case of frontline it will return the email of the frontline itself
  */
-export const getSubordinates = async(user: UserDocument) : Promise<string[]> => {
-    if(user.roleType !== 'manager' && user.roleType!== 'seniorManager') {
+export const getSubordinates = async (user: UserDocument): Promise<string[]> => {
+    if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
         return [user.email];
     }
     const result: any = await User.aggregate([
-        {$match: {email: user.email}}, 
-        { $graphLookup: {
-          from: "users",
-          startWith: "$manages",
-          connectFromField: "manages",
-          connectToField: "email",
-          as: "subordinates"
-        },
-      },{$project: {"subordinates": "$subordinates.email"}}
+        { $match: { email: user.email } },
+        {
+            $graphLookup: {
+                from: "users",
+                startWith: "$manages",
+                connectFromField: "manages",
+                connectToField: "email",
+                as: "subordinates"
+            },
+        }, { $project: { "subordinates": "$subordinates.email" } }
     ]);
 
-    return result[0].subordinates; 
-}
+    return result[0].subordinates;
+};
 
 
-export const managersForReassignment = async(req: Request, res: Response, next: NextFunction) => {
+export const managersForReassignment = async (req: Request, res: Response, next: NextFunction) => {
 
     const users = await User.aggregate([
-        {$match: {roleType: {$ne: "frontline"}}},
-        {$project: {email: 1, roleType: 1, nickname: 1}}
-    ])
+        { $match: { roleType: { $ne: "frontline" } } },
+        { $project: { email: 1, roleType: 1, nickname: 1 } }
+    ]);
 
 
     return res.status(200).json(users);
-}
+};

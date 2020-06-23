@@ -20,8 +20,8 @@ export type UserDocument = mongoose.Document & {
         picture: string;
     };
 
-    manages: string[],
-    hierarchyWeight: number, //higher is more
+    manages: string[];
+    hierarchyWeight: number; //higher is more
     comparePassword: comparePasswordFunction;
     gravatar: (size: number) => string;
 };
@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema({
     tokens: Array,
     roleType: { type: String, required: true },
     manages: [String],
+    history: {type: Array, default: []},
     hierarchyWeight: Number,
     profile: {
         name: String,

@@ -10,9 +10,13 @@ router.post("/findAll", passportConfig.authenticateJWT, leadController.findAll);
  */
 router.post("/", passportConfig.authenticateJWT, leadController.insertOne);
 
+router.post("/reassignLead", passportConfig.authenticateJWT, leadController.reassignLead);
+
 router.post("/bulkEmail", passportConfig.authenticateJWT, leadController.sendBulkEmails);
 
 router.get("/getAllLeadColumns", leadController.getAllLeadColumns);
+
+router.get("/getLeadReassignmentHistory",passportConfig.authenticateJWT, leadController.getLeadReassignmentHistory);
 
 router.get("/:leadId", leadController.findOneById);
 

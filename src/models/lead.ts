@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const leadSchema = new mongoose.Schema({
   _id: { type: String, required: true },
+  history: { type: Array, default: [] },
   email: {
     type: String, required: true
   },
