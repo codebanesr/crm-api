@@ -1,4 +1,7 @@
-version: "3.1"
+version: "2"
+
+networks:
+  somenet:
 
 services:
   mongodb:
@@ -10,6 +13,18 @@ services:
       - "mongodb_data:/bitnami"
     ports:
       - "27019:27017"
+    networks:
+      - somenet
+  metabase-app:
+    image: metabase/metabase
+    restart: always
+    ports:
+      - 3001:3000
+    volumes:
+      # declare your mount volume /host/dir:/container/dir
+      - /Users/gamechange/Documents/opensource/crm-backend/metabase-data:/metabase-data
+    networks:
+      - somenet
   # webapp:
   #     container_name: mywebapp
   #     restart: always

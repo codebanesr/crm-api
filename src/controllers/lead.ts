@@ -85,7 +85,7 @@ export const findAll = async(req: Request & { user: UserDocument}, res: Response
         projectQ[fld] = { "$ifNull" : [`$${fld}`, "---"]};
     });
 
-    projectQ._id = 1;
+    projectQ._id = 0;
 
     const fq = [
         {$match: matchQ},
