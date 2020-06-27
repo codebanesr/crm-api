@@ -384,7 +384,35 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
         res.status(200).send("/forgot");
     });
 };
-export const getAll = async (req: Request, res: Response, next: NextFunction) => {
+
+
+/** returns subordinates if exists else returns the same id that was passed, in case of manager or sm it will return email ids of all
+ * subordinates, in case of frontline it will return the email of the frontline itself
+ */
+export const getSubordinates = async (user: UserDocument): Promise<string[]> => {
+    if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
+        return [user.email];
+    }
+    const fq: any = [
+        { $match: { email: user.email } },
+        {
+            $graphLookup: {
+                from: "users",
+                startWith: "$manages",
+                connectFromField: "manages",
+                connectToField: "email",
+                as: "subordinates"
+            },
+        }, 
+        { $project: { "subordinates": "$subordinates.email", roleType: "$roleType", hierarchyWeight: 1 } }
+    ];
+
+    const result = await User.aggregate(fq);
+    return result[0].subordinates;
+};
+
+
+export const getAll = async (req: AuthReq, res: Response, next: NextFunction) => {
     const subordinates = await getSubordinates(req.user as any);
     const users = await User.aggregate([
         { $match: { email: { $in: subordinates } } },
@@ -401,6 +429,7 @@ export const getAll = async (req: Request, res: Response, next: NextFunction) =>
 
     return res.status(200).send(users);
 };
+
 export const insertMany = async (req: Request, res: Response, next: NextFunction) => {
     const userid = (req.user as Express.User & { id: string }).id;
     const jsonRes = parseExcel(req.file.path);
@@ -534,33 +563,6 @@ export const getUserReassignmentHistory = async(req: Request, res: Response) => 
         res.status(400).send({error: e.message});;
     }
 };
-
-
-/** returns subordinates if exists else returns the same id that was passed, in case of manager or sm it will return email ids of all
- * subordinates, in case of frontline it will return the email of the frontline itself
- */
-export const getSubordinates = async (user: UserDocument): Promise<string[]> => {
-    if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
-        return [user.email];
-    }
-    const fq: any = [
-        { $match: { email: user.email } },
-        {
-            $graphLookup: {
-                from: "users",
-                startWith: "$manages",
-                connectFromField: "manages",
-                connectToField: "email",
-                as: "subordinates"
-            },
-        }, 
-        { $project: { "subordinates": "$subordinates.email", roleType: "$roleType", hierarchyWeight: 1 } }
-    ];
-
-    const result = await User.aggregate(fq);
-    return result[0].subordinates;
-};
-
 
 
 // should be handled in database query itself, this is not the correct method

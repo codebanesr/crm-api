@@ -25,15 +25,22 @@ export const reassignLead = async(req: AuthReq, res: Response) => {
             newUser: newUserEmail,
             note
         };
-        const leadtest = await Lead.findOne({_id: +lead._id});
-        console.log(leadtest);
-        const result = await Lead.updateOne({_id: lead._id}, {email: newUserEmail, $push: {history: history}}).lean().exec();
+
+        const result = await Lead.updateOne({externalId: lead.externalId}, {email: newUserEmail, $push: {history: history}}).lean().exec();
         return res.status(200).json(result);
     }catch(e) {
         return res.status(400).send({error: e.message});
     }
 };
 
+
+
+export const getLeadHistoryById = async(req: Request, res: Response) => {
+    const {externalId} = req.params;
+    const history = await Lead.findOne({externalId: externalId}, {history: 1, externalId});
+
+    return res.status(200).send(history);
+};
 
 export const getLeadReassignmentHistory = async(req: Request, res: Response) => {
     const leadId = req.query.email;

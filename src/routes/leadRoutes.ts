@@ -11,6 +11,7 @@ router.post("/findAll", passportConfig.authenticateJWT, leadController.findAll);
 router.post("/", passportConfig.authenticateJWT, leadController.insertOne);
 
 router.post("/reassignLead", passportConfig.authenticateJWT, leadController.reassignLead);
+router.get("/getLeadHistoryById/:externalId", passportConfig.authenticateJWT, leadController.getLeadHistoryById);
 
 router.post("/bulkEmail", passportConfig.authenticateJWT, leadController.sendBulkEmails);
 

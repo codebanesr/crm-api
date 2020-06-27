@@ -4,7 +4,7 @@ import Campaign from "../models/Campaign";
 import parseExcel from "../util/parseExcel";
 
 export const findAll = async (req: Request, res: Response, next: NextFunction) => {
-    const { page = 1, perPage = 20, filters={}, sortBy = 'handler' } = req.body;
+    const { page = 1, perPage = 20, filters={}, sortBy = "handler" } = req.body;
 
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
@@ -12,9 +12,9 @@ export const findAll = async (req: Request, res: Response, next: NextFunction) =
     const { handlerEmail, campaigns = [] } = filters;
 
 
-    let matchQ = {} as any;
+    const matchQ = {} as any;
 
-    matchQ.$and = []
+    matchQ.$and = [];
     if(handlerEmail) {
         matchQ.$and.push({handler:handlerEmail});
     }
@@ -31,7 +31,7 @@ export const findAll = async (req: Request, res: Response, next: NextFunction) =
     ];
 
     if(fq[0]["$match"]["$and"].length === 0) {
-        delete fq[0]["$match"]["$and"]
+        delete fq[0]["$match"]["$and"];
     }
     console.log(JSON.stringify(fq));
     const result = await Campaign.aggregate(fq);
@@ -112,7 +112,7 @@ export const deleteOne = (req: Request, res: Response, next: NextFunction) => {
                 error: err
             });
         });
-}
+};
 
 
 
@@ -131,17 +131,18 @@ export const getHandlerEmailHints = async(req: Request, res: Response, next: Nex
     ]);
 
     return res.status(200).send(result.map(r=>r.handler));
-}
+};
 
 export const getCampaignTypes = async(req: Request, res: Response, next: NextFunction) => {
-    const result = await Campaign.find().distinct('type');
+    const { hint } = req.query;
+    const result = await Campaign.find({type: {$regex: "^"+hint, $options:"I"}}).limit(20);
 
     return res.status(200).send(result);
-}
+};
 
 
 
 export const uploadConfig = async(req: Request, res: Response, next: NextFunction) => {
     const path = req.file.path;
     const excelObject = parseExcel(path);
-}
+};
