@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express";
-import Role from "../models/role";
+import { NextFunction, Request, Response } from "express"; 
+import Role from "../models/Role";
 import Permission from "../models/permission";
 
 export const findAll = async(req: Request, res: Response) => {
@@ -52,7 +52,7 @@ export const patch = (req: Request, res: Response) => {
                 }
             });
         })
-        .catch(err => {
+        .catch((err:any) => {
             console.log(err);
             res.status(500).json({
                 error: err
@@ -74,7 +74,7 @@ export const deleteOne = (req: Request, res: Response) => {
                 }
             });
         })
-        .catch(err => {
+        .catch((err:any) => {
             console.log(err);
             res.status(500).json({
                 error: err

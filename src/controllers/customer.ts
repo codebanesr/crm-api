@@ -1,6 +1,6 @@
 /** https://www.youtube.com/watch?v=srPXMt1Q0nY&t=477s */ 
 import { NextFunction, Request, Response } from "express";
-import Customer from "../models/customer";
+import Customer from "../models/Customer";
 import AdminAction from "../models/AdminAction";
 import parseExcel from "../util/parseExcel";
 import mongoose from "mongoose";
@@ -90,14 +90,14 @@ const saveCustomers = async(customers: any[]) => {
             .upsert()
             .updateOne(cu);
         if(c%1000 === 0){
-            bulk.execute((err, res)=>{
+            bulk.execute((err:any, res:any)=>{
                 console.log("Finished iteration ", c%1000);
                 bulk = Customer.collection.initializeUnorderedBulkOp();
             });
         }
     }
     if(c % 1000 !==0 )
-        bulk.execute((err, res)=>{
+        bulk.execute((err:any, res:any)=>{
             console.log("Finished iteration ", c%1000, err, res);
         });
 };
