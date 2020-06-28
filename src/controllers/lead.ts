@@ -63,45 +63,46 @@ export const getLeadReassignmentHistory = async(req: Request, res: Response) => 
 
 
 
-export const findAll = async(req: Request & { user: UserDocument}, res: Response, next: NextFunction) => {
-    const { page, perPage, sortBy="createdAt", showCols, searchTerm, unassigned } = req.body;
+export const findAll = async (req: Request & { user: UserDocument }, res: Response, next: NextFunction) => {
+    const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters } = req.body;
     const limit = Number(perPage);
-    const skip = Number((+page-1)*limit);
+    const skip = Number((+page - 1) * limit);
 
+    const { assigned, archived, lead, ticket } = filters;
     const matchQ = { $and: [] } as any;
-    if(!unassigned) {
+    if (assigned) {
         const subordinateEmails = await userController.getSubordinates(req.user);
         matchQ.$and.push({ email: { $in: [...subordinateEmails, req.user.email] } });
-    }else{
-        matchQ.$and.push({$exists: {$email: false}});
+    } else {
+        matchQ.$and.push({ email: { $exists: false } });
     }
 
-    if(searchTerm) {
+    if (searchTerm) {
         matchQ["$and"].push({ $text: { $search: searchTerm } });
     }
 
-    let flds; 
-    if(showCols && showCols.length > 0) {
+    let flds;
+    if (showCols && showCols.length > 0) {
         flds = showCols;
-    }else{
-        flds = (await CampaignConfig.find({name: "core", checked: true}, {internalField: 1}).lean().exec()).map((config: any)=>config.internalField);
+    } else {
+        flds = (await CampaignConfig.find({ name: "core", checked: true }, { internalField: 1 }).lean().exec()).map((config: any) => config.internalField);
     }
-    
-    const projectQ = { } as any;
-    flds.forEach((fld: string)=>{
-        projectQ[fld] = { "$ifNull" : [`$${fld}`, "---"]};
+
+    const projectQ = {} as any;
+    flds.forEach((fld: string) => {
+        projectQ[fld] = { "$ifNull": [`$${fld}`, "---"] };
     });
 
     projectQ._id = 0;
 
     const fq = [
-        {$match: matchQ},
+        { $match: matchQ },
         {
             $project: projectQ
         },
-        {$sort: {[sortBy]: 1}},
-        {$skip: skip},
-        {$limit: limit}
+        { $sort: { [sortBy]: 1 } },
+        { $skip: skip },
+        { $limit: limit }
     ];
     console.log(JSON.stringify(fq));
     const leads = await Lead.aggregate(fq);

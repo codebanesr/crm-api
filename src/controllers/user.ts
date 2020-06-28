@@ -412,7 +412,28 @@ export const getSubordinates = async (user: UserDocument): Promise<string[]> => 
 };
 
 
+// sample aggregation query to get the count and results in one go
+// db.users.aggregate([
+//     {
+//             $facet: {
+//                     pipe1: [
+//                         {$match: {email: /m/i}},
+//                         {$limit : 3}
+//                     ],
+//                     pipe2: [
+//                         { $count: "count" }
+//                     ]
+//             }
+//     }
+// ])
 export const getAll = async (req: AuthReq, res: Response, next: NextFunction) => {
+    const { assigned } = req.query;
+    if(!assigned) {
+        const users = await User.aggregate([
+            { $match: { email: { $exists: false } } }
+        ]);
+        return res.status(200).send(users);
+    }
     const subordinates = await getSubordinates(req.user as any);
     const users = await User.aggregate([
         { $match: { email: { $in: subordinates } } },
