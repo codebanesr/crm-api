@@ -1,6 +1,7 @@
 import express from "express";
 import * as leadController from "../controllers/lead";
 import * as passportConfig from "../config/passport";
+import { upload } from "../util/multerOpts";
 
 const router = express.Router();
 
@@ -18,6 +19,13 @@ router.post("/bulkEmail", passportConfig.authenticateJWT, leadController.sendBul
 router.get("/getAllLeadColumns", leadController.getAllLeadColumns);
 
 router.get("/getLeadReassignmentHistory",passportConfig.authenticateJWT, leadController.getLeadReassignmentHistory);
+
+router.get("/basicOverview", leadController.getBasicOverview);
+
+router.post("/createEmailTemplate", passportConfig.authenticateJWT, leadController.createEmailTemplate);
+router.post("/saveAttachments", passportConfig.authenticateJWT, upload.array("files[]"), leadController.saveEmailAttachments);
+router.get("/getAllEmailTemplates", passportConfig.authenticateJWT, leadController.getAllEmailTemplates);
+
 
 router.get("/:leadId", leadController.findOneById);
 

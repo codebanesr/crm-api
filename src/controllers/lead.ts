@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import Lead from "../models/lead";
+import EmailTemplate from "../models/EmailTemplate";
 import { createAlarm } from "./alarm";
 import CampaignConfig from "../models/CampaignConfig";
 import * as userController from "../controllers/user";
@@ -9,6 +10,11 @@ import { isArray } from "lodash";
 import { AuthReq } from "../interface/authorizedReq";
 
 
+
+export const saveEmailAttachments = ( req: AuthReq, res: Response) => {
+    const files = req.files;
+    return res.status(200).send({files});
+};
 export const reassignLead = async(req: AuthReq, res: Response) => {
     const { oldUserEmail, newUserEmail, lead } = req.body;
 
@@ -34,6 +40,44 @@ export const reassignLead = async(req: AuthReq, res: Response) => {
 };
 
 
+// filePath: String,
+// fileName: String
+export const createEmailTemplate = async (req: AuthReq, res: Response) => {
+    const { email } = req.user;
+    const { content, subject, campaigns, attachments } = req.body;
+
+
+    let acceptAttachmentFormat = attachments.map((a: any)=>{
+        let {originalname: fileName, path: filePath, ...others} = a
+        return {
+            fileName,
+            filePath,
+            ...others
+        }
+    })
+    const emailTemplate = new EmailTemplate({
+        campaigns: campaigns,
+        email: email,
+        content: content,
+        subject: subject,
+        attachments: acceptAttachmentFormat
+    });
+
+
+    const result = await emailTemplate.save();
+
+
+    return res.status(200).json(result);
+};
+
+
+export const getAllEmailTemplates = async(req: AuthReq, res: Response) => { 
+    const { limit, skip, offset } = req.query;
+    const result = await EmailTemplate.find({});
+
+
+    return result;
+};
 
 export const getLeadHistoryById = async(req: Request, res: Response) => {
     const {externalId} = req.params;
@@ -58,6 +102,16 @@ export const getLeadReassignmentHistory = async(req: Request, res: Response) => 
     }catch(e) {
         res.status(400).send({error: e.message});
     }
+};
+
+
+export const getBasicOverview = async(req: Request, res: Response) => {
+    const result = await Lead.aggregate([
+        {$group: { _id: "$leadStatus", count:{$sum:1}}}
+    ]);
+
+    const total = await Lead.count({});
+    return res.status(200).send({result, total});
 };
 
 
