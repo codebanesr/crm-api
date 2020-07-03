@@ -2,6 +2,7 @@
 import { NextFunction, Request, Response } from "express";
 import Campaign from "../models/Campaign";
 import parseExcel from "../util/parseExcel";
+import EmailTemplate from "../models/EmailTemplate";
 
 export const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const { page = 1, perPage = 20, filters={}, sortBy = "handler" } = req.body;
@@ -146,3 +147,5 @@ export const uploadConfig = async(req: Request, res: Response, next: NextFunctio
     const path = req.file.path;
     const excelObject = parseExcel(path);
 };
+
+

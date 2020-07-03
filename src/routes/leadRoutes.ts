@@ -14,17 +14,16 @@ router.post("/", passportConfig.authenticateJWT, leadController.insertOne);
 router.post("/reassignLead", passportConfig.authenticateJWT, leadController.reassignLead);
 router.get("/getLeadHistoryById/:externalId", passportConfig.authenticateJWT, leadController.getLeadHistoryById);
 
-router.post("/bulkEmail", passportConfig.authenticateJWT, leadController.sendBulkEmails);
-
 router.get("/getAllLeadColumns", leadController.getAllLeadColumns);
 
 router.get("/getLeadReassignmentHistory",passportConfig.authenticateJWT, leadController.getLeadReassignmentHistory);
 
 router.get("/basicOverview", leadController.getBasicOverview);
 
-router.post("/createEmailTemplate", passportConfig.authenticateJWT, leadController.createEmailTemplate);
-router.post("/saveAttachments", passportConfig.authenticateJWT, upload.array("files[]"), leadController.saveEmailAttachments);
 router.get("/getAllEmailTemplates", passportConfig.authenticateJWT, leadController.getAllEmailTemplates);
+router.post("/createEmailTemplate", passportConfig.authenticateJWT, leadController.createEmailTemplate);
+router.post("/bulkEmail", passportConfig.authenticateJWT, leadController.sendBulkEmails);
+router.post("/saveAttachments", passportConfig.authenticateJWT, upload.array("files[]"), leadController.saveEmailAttachments);
 
 
 router.get("/:leadId", leadController.findOneById);
@@ -32,5 +31,4 @@ router.get("/:leadId", leadController.findOneById);
 router.patch("/:leadId", leadController.patch);
 
 router.delete("/:leadId", leadController.deleteOne);
-
 export default router;
