@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express"; 
+import { Request, Response } from "express"; 
 import Role from "../models/Role";
 import Permission from "../models/permission";
 

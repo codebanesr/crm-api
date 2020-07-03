@@ -12,27 +12,29 @@ services:
     volumes:
       - "mongodb_data:/bitnami"
     ports:
-      - "27019:27017"
+      - "27017:27017"
     networks:
       - somenet
-  metabase-app:
-    image: metabase/metabase-enterprise
+  # metabase-app:
+  #   image: metabase/metabase-enterprise
+  #   restart: always
+  #   ports:
+  #     - 3001:3000
+  #   volumes:
+  #     # declare your mount volume /host/dir:/container/dir
+  #     - /Users/gamechange/Documents/opensource/crm-backend/metabase-data:/metabase-data
+  #   networks:
+  #     - somenet
+  webapp:
+    container_name: mywebapp
     restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile-example
     ports:
-      - 3001:3000
-    volumes:
-      # declare your mount volume /host/dir:/container/dir
-      - /Users/gamechange/Documents/opensource/crm-backend/metabase-data:/metabase-data
+      - "5182:3000"
     networks:
       - somenet
-  # webapp:
-  #     container_name: mywebapp
-  #     restart: always
-  #     build:
-  #         context: .
-  #         dockerfile: Dockerfile-example
-  #     ports:
-  #         - "5182:3000"
 volumes:
   mongodb_data:
     driver: local
