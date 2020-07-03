@@ -1,0 +1,1 @@
+{"version":3,"file":"CampaignConfig.js","sourceRoot":"","sources":["../../src/models/CampaignConfig.ts"],"names":[],"mappings":";;;;;AAAA,wDAAgC;AAEhC,MAAM,oBAAoB,GAAG,IAAI,kBAAQ,CAAC,MAAM,CAAC;IAC7C,IAAI,EAAE,MAAM;IACZ,aAAa,EAAE,MAAM;IACrB,aAAa,EAAE,MAAM;IACrB,IAAI,EAAE,MAAM;IACZ,OAAO,EAAE,OAAO;CACnB,CAAC,CAAC;AAEH,kBAAe,kBAAQ,CAAC,KAAK,CAAC,gBAAgB,EAAE,oBAAoB,CAAC,CAAC"}
