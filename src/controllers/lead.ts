@@ -8,6 +8,9 @@ import { UserDocument } from "../models/User";
 import { sendEmail } from "../util/sendMail";
 import { isArray } from "lodash";
 import { AuthReq } from "../interface/authorizedReq";
+import parseExcel from "../util/parseExcel";
+import { IConfig } from "../util/renameJson";
+import XLSX from "xlsx";
 
 export const saveEmailAttachments = (req: AuthReq, res: Response) => {
   const files = req.files;
@@ -325,12 +328,81 @@ export const suggestLeads = async(req: AuthReq, res: Response, next: NextFunctio
 }
 
 
-
-export const uploadMultipleLeadFiles = async (req: Request, res: Response) => {
+// {
+//   campaignName: 'typeb',
+//   comment: 'some info about the campaign, should reach multer',
+//   type: 'Lead Generation',
+//   interval: [ '2020-07-24T13:31:02.621Z', '2020-07-04T13:26:07.078Z' ]
+// }
+export const uploadMultipleLeadFiles = async (req: AuthReq, res: Response) => {
   const files = req.files;
 
   let { campaignInfo } = req.body;
   campaignInfo = JSON.parse(campaignInfo);
+
+
+  const ccnfg = await CampaignConfig.find({name: campaignInfo.campaignName}, {readableField: 1, internalField: 1, _id: 0}).lean().exec() as IConfig[];
+  if (!ccnfg) {
+    return res.status(400).json({ error: `Campaign with name ${campaignInfo.campaignName} not found, create a campaign before uploading leads for that campaign` })
+  }
+
+  const result = await parseLeadFiles(files, ccnfg, campaignInfo.campaignName);
   // parse data here
   res.status(200).send(files);
 }
+
+
+
+
+interface iFile {
+
+    "fieldname": string,
+    "originalname": string,
+    "encoding": string,
+    "mimetype": string,
+    "destination": string,
+    "path": string,
+    "size": number
+
+  
+}
+export const parseLeadFiles = async(files: any, ccnfg: IConfig[], campaignName: string) => {
+  files.forEach(async(file: iFile) => {
+    const jsonRes = parseExcel(file.path, ccnfg);
+    saveLeads(jsonRes, campaignName, file.originalname);
+  })
+};
+
+
+/** Findone and update implementation */
+const saveLeads = async(leads: any[], campaignName: string, originalFileName: string) => {
+  const created = [];
+  const updated = [];
+  const error = [];
+  
+  for(const l of leads) {
+      const { lastErrorObject, value } = await Lead.findOneAndUpdate(
+          { externalId: l.externalId }, 
+          {...l, campaign: campaignName}, 
+          { new: true, upsert: true, rawResult: true }
+      ).lean().exec();
+      if(lastErrorObject.updatedExisting === true) {
+          updated.push(value);
+      }else if(lastErrorObject.upserted) {
+          created.push(value);
+      }else{
+          error.push(value);
+      }
+  }
+
+  // createExcel files and update them to aws and then store the urls in database with AdminActions
+  const created_ws = XLSX.utils.json_to_sheet(created);
+  const updated_ws = XLSX.utils.json_to_sheet(updated);
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, updated_ws, "tickets updated");
+  XLSX.utils.book_append_sheet(wb, created_ws, "tickets created");
+
+  XLSX.writeFile(wb, originalFileName + "_system");
+  console.log("created: ",created.length, "updated: ",updated.length, "error:", error.length);
+};

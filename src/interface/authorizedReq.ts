@@ -7,3 +7,4 @@ export interface AuthReq extends Request{
         manages: string[];
     };
 }
+
