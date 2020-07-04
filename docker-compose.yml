@@ -12,7 +12,7 @@ services:
     volumes:
       - "mongodb_data:/bitnami"
     ports:
-      - "27017:27017"
+      - "27019:27017"
     networks:
       - somenet
   # metabase-app:
@@ -33,6 +33,8 @@ services:
       dockerfile: Dockerfile-example
     ports:
       - "5182:3000"
+    env_file:
+      - .env
     networks:
       - somenet
 volumes:

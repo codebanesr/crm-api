@@ -26,6 +26,8 @@ router.post("/bulkEmail", passportConfig.authenticateJWT, leadController.sendBul
 router.post("/saveAttachments", passportConfig.authenticateJWT, upload.array("files[]"), leadController.saveEmailAttachments);
 
 
+router.get("/suggest/:leadId", passportConfig.authenticateJWT,leadController.suggestLeads);
+
 router.get("/:leadId", leadController.findOneById);
 
 router.patch("/:leadId", leadController.patch);

@@ -428,12 +428,12 @@ export const getSubordinates = async (user: UserDocument): Promise<string[]> => 
 // ])
 export const getAll = async (req: AuthReq, res: Response, next: NextFunction) => {
     const { assigned } = req.query;
-    if(!assigned) {
-        const users = await User.aggregate([
-            { $match: { email: { $exists: false } } }
-        ]);
-        return res.status(200).send(users);
-    }
+    // if(!assigned) {
+    //     const users = await User.aggregate([
+    //         { $match: { email: { $exists: false } } }
+    //     ]);
+    //     return res.status(200).send(users);
+    // }
     const subordinates = await getSubordinates(req.user as any);
     const users = await User.aggregate([
         { $match: { email: { $in: subordinates } } },

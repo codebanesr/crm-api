@@ -231,8 +231,8 @@ export const findOneById = async (
   res: Response,
   next: NextFunction
 ) => {
-  const id = req.params.leadId;
-  const lead = await Lead.findById(id).lean().exec();
+  const leadId = req.params.leadId;
+  const lead = await Lead.findOne({externalId: leadId}).lean().exec();
 
   res.status(200).send(lead);
 };
@@ -301,3 +301,25 @@ export const sendBulkEmails = (
     console.log(e);
   }
 };
+
+
+export const suggestLeads = async(req: AuthReq, res: Response, next: NextFunction) => {
+  const { leadId, limit = 10 } = req.params;
+  const query = Lead.aggregate();
+
+  query.match({ externalId: { $regex: `^${leadId}` }, email: req.user.email });
+  query.project('externalId -_id');
+  query.limit(Number(limit));
+  // const query = [
+  //     {
+  //         $match: {
+  //             externalId: {$regex: `^${externalId}`}
+  //         }
+  //     },
+  //     { $project : { leadId : 1} },
+  //     { $limit: 10 }
+  // ];
+
+  let result = await query.exec();
+  return res.status(200).json(result);
+}
