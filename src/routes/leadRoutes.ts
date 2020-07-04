@@ -23,6 +23,9 @@ router.get("/basicOverview", leadController.getBasicOverview);
 router.get("/getAllEmailTemplates", passportConfig.authenticateJWT, leadController.getAllEmailTemplates);
 router.post("/createEmailTemplate", passportConfig.authenticateJWT, leadController.createEmailTemplate);
 router.post("/bulkEmail", passportConfig.authenticateJWT, leadController.sendBulkEmails);
+
+
+router.post("/uploadMultipleLeadFiles", passportConfig.authenticateJWT, upload.array("files[]"), leadController.uploadMultipleLeadFiles)
 router.post("/saveAttachments", passportConfig.authenticateJWT, upload.array("files[]"), leadController.saveEmailAttachments);
 
 

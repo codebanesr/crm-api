@@ -323,3 +323,14 @@ export const suggestLeads = async(req: AuthReq, res: Response, next: NextFunctio
   let result = await query.exec();
   return res.status(200).json(result);
 }
+
+
+
+export const uploadMultipleLeadFiles = async (req: Request, res: Response) => {
+  const files = req.files;
+
+  let { campaignInfo } = req.body;
+  campaignInfo = JSON.parse(campaignInfo);
+  // parse data here
+  res.status(200).send(files);
+}
