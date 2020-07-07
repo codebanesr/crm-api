@@ -37,6 +37,8 @@ const CampaignConfig_1 = __importDefault(require("../models/CampaignConfig"));
 const userController = __importStar(require("../controllers/user"));
 const sendMail_1 = require("../util/sendMail");
 const lodash_1 = require("lodash");
+const parseExcel_1 = __importDefault(require("../util/parseExcel"));
+const xlsx_1 = __importDefault(require("xlsx"));
 exports.saveEmailAttachments = (req, res) => {
     const files = req.files;
     return res.status(200).send({ files });
@@ -195,8 +197,8 @@ exports.insertOne = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     return res.status(201).json(result);
 });
 exports.findOneById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.leadId;
-    const lead = yield lead_1.default.findById(id).lean().exec();
+    const leadId = req.params.leadId;
+    const lead = yield lead_1.default.findOne({ externalId: leadId }).lean().exec();
     res.status(200).send(lead);
 });
 exports.patch = (req, res, next) => {
@@ -253,4 +255,72 @@ exports.sendBulkEmails = (req, res, next) => {
         console.log(e);
     }
 };
+exports.suggestLeads = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { leadId, limit = 10 } = req.params;
+    const query = lead_1.default.aggregate();
+    query.match({ externalId: { $regex: `^${leadId}` }, email: req.user.email });
+    query.project('externalId -_id');
+    query.limit(Number(limit));
+    // const query = [
+    //     {
+    //         $match: {
+    //             externalId: {$regex: `^${externalId}`}
+    //         }
+    //     },
+    //     { $project : { leadId : 1} },
+    //     { $limit: 10 }
+    // ];
+    let result = yield query.exec();
+    return res.status(200).json(result);
+});
+// {
+//   campaignName: 'typeb',
+//   comment: 'some info about the campaign, should reach multer',
+//   type: 'Lead Generation',
+//   interval: [ '2020-07-24T13:31:02.621Z', '2020-07-04T13:26:07.078Z' ]
+// }
+exports.uploadMultipleLeadFiles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const files = req.files;
+    let { campaignInfo } = req.body;
+    campaignInfo = JSON.parse(campaignInfo);
+    const ccnfg = yield CampaignConfig_1.default.find({ name: campaignInfo.campaignName }, { readableField: 1, internalField: 1, _id: 0 }).lean().exec();
+    if (!ccnfg) {
+        return res.status(400).json({ error: `Campaign with name ${campaignInfo.campaignName} not found, create a campaign before uploading leads for that campaign` });
+    }
+    const result = yield exports.parseLeadFiles(files, ccnfg, campaignInfo.campaignName);
+    // parse data here
+    res.status(200).send(files);
+});
+exports.parseLeadFiles = (files, ccnfg, campaignName) => __awaiter(void 0, void 0, void 0, function* () {
+    files.forEach((file) => __awaiter(void 0, void 0, void 0, function* () {
+        const jsonRes = parseExcel_1.default(file.path, ccnfg);
+        saveLeads(jsonRes, campaignName, file.originalname);
+    }));
+});
+/** Findone and update implementation */
+const saveLeads = (leads, campaignName, originalFileName) => __awaiter(void 0, void 0, void 0, function* () {
+    const created = [];
+    const updated = [];
+    const error = [];
+    for (const l of leads) {
+        const { lastErrorObject, value } = yield lead_1.default.findOneAndUpdate({ externalId: l.externalId }, Object.assign(Object.assign({}, l), { campaign: campaignName }), { new: true, upsert: true, rawResult: true }).lean().exec();
+        if (lastErrorObject.updatedExisting === true) {
+            updated.push(value);
+        }
+        else if (lastErrorObject.upserted) {
+            created.push(value);
+        }
+        else {
+            error.push(value);
+        }
+    }
+    // createExcel files and update them to aws and then store the urls in database with AdminActions
+    const created_ws = xlsx_1.default.utils.json_to_sheet(created);
+    const updated_ws = xlsx_1.default.utils.json_to_sheet(updated);
+    const wb = xlsx_1.default.utils.book_new();
+    xlsx_1.default.utils.book_append_sheet(wb, updated_ws, "tickets updated");
+    xlsx_1.default.utils.book_append_sheet(wb, created_ws, "tickets created");
+    xlsx_1.default.writeFile(wb, originalFileName + "_system");
+    console.log("created: ", created.length, "updated: ", updated.length, "error:", error.length);
+});
 //# sourceMappingURL=lead.js.map

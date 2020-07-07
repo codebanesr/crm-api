@@ -432,12 +432,12 @@ exports.getSubordinates = (user) => __awaiter(void 0, void 0, void 0, function* 
 // ])
 exports.getAll = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { assigned } = req.query;
-    if (!assigned) {
-        const users = yield User_1.User.aggregate([
-            { $match: { email: { $exists: false } } }
-        ]);
-        return res.status(200).send(users);
-    }
+    // if(!assigned) {
+    //     const users = await User.aggregate([
+    //         { $match: { email: { $exists: false } } }
+    //     ]);
+    //     return res.status(200).send(users);
+    // }
     const subordinates = yield exports.getSubordinates(req.user);
     const users = yield User_1.User.aggregate([
         { $match: { email: { $in: subordinates } } },

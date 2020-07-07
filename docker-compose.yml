@@ -28,6 +28,8 @@ services:
   webapp:
     container_name: mywebapp
     restart: always
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: Dockerfile-example
