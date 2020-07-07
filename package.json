@@ -29,6 +29,7 @@
     "watch-debug": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve-debug\""
   },
   "dependencies": {
+    "@types/cors": "^2.8.6",
     "@types/multer": "^1.4.3",
     "@types/passport-jwt": "^3.0.3",
     "ajv": "^6.12.2",
@@ -39,6 +40,7 @@
     "both": "0.0.0",
     "compression": "^1.7.4",
     "connect-mongo": "^3.0.0",
+    "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "errorhandler": "^1.5.1",
     "express": "^4.17.1",

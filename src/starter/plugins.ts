@@ -9,7 +9,9 @@ import lusca from "lusca";
 import passport from "passport";
 import path from "path";
 import { MONGODB_URI, SESSION_SECRET } from "../util/secrets";
+import * as cors from "cors";
 const MongoStore = mongo(session);
+
 
 export default (app: core.Express) => {
     const mongoUrl = MONGODB_URI;
@@ -28,10 +30,11 @@ export default (app: core.Express) => {
             autoReconnect: true,
         })
     }));
+    app.use(cors.default())
     app.use(passport.initialize());
     app.use(passport.session());
     app.use(flash());
-    app.use(lusca.xframe("SAMEORIGIN"));
+    app.use(lusca.xframe("http://localhost:4200"));
     app.use(lusca.xssProtection(true));
     app.use((req, res, next) => {
         res.locals.user = req.user;
