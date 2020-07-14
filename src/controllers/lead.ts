@@ -366,6 +366,26 @@ interface iFile {
 
   
 }
+
+export const updateLead = async (req: Request, res: Response, next: NextFunction) => {
+  const { externalId } = req.params;
+  let { lead } = req.body;
+
+  // lead = lead.filter((l: any) => {
+  //   return !!l;
+  // })
+
+  let obj = {} as any;
+  Object.keys(lead).forEach(key => {
+    if (!!lead[key]) {
+      obj[key] = lead[key];
+    }
+  })
+
+  const result = await Lead.findOneAndUpdate({ externalId: externalId }, { $set: obj });
+  return res.status(200).send(result);
+}
+
 export const parseLeadFiles = async(files: any, ccnfg: IConfig[], campaignName: string) => {
   files.forEach(async(file: iFile) => {
     const jsonRes = parseExcel(file.path, ccnfg);
