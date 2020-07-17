@@ -1,0 +1,1 @@
+{"version":3,"file":"CallLog.js","sourceRoot":"","sources":["../../src/models/CallLog.ts"],"names":[],"mappings":";;;;;AAAA,wDAAgC;AAEhC,MAAM,OAAO,GAAG,IAAI,kBAAQ,CAAC,MAAM,CAAC;IAChC,GAAG,EAAE,kBAAQ,CAAC,MAAM,CAAC,KAAK,CAAC,QAAQ;CACtC,EAAE;IACC,MAAM,EAAE,KAAK;CAChB,CAAC,CAAC;AAEH,kBAAe,kBAAQ,CAAC,KAAK,CAAC,SAAS,EAAE,OAAO,CAAC,CAAC"}

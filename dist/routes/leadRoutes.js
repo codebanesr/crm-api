@@ -20,7 +20,9 @@ router.post("/findAll", passportConfig.authenticateJWT, leadController.findAll);
  * there should only be one file being sent, otherwise multer will send back an error to the client..
  */
 router.post("/", passportConfig.authenticateJWT, leadController.insertOne);
+router.put("/:externalId", passportConfig.authenticateJWT, leadController.updateLead);
 router.post("/reassignLead", passportConfig.authenticateJWT, leadController.reassignLead);
+router.post("/syncPhoneCalls", passportConfig.authenticateJWT, leadController.syncPhoneCalls);
 router.get("/getLeadHistoryById/:externalId", passportConfig.authenticateJWT, leadController.getLeadHistoryById);
 router.get("/getAllLeadColumns", leadController.getAllLeadColumns);
 router.get("/getLeadReassignmentHistory", passportConfig.authenticateJWT, leadController.getLeadReassignmentHistory);

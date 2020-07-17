@@ -11,6 +11,8 @@ import { AuthReq } from "../interface/authorizedReq";
 import parseExcel from "../util/parseExcel";
 import { IConfig } from "../util/renameJson";
 import XLSX from "xlsx";
+import CallLog from "../models/CallLog";
+import * as fs from "fs";
 
 export const saveEmailAttachments = (req: AuthReq, res: Response) => {
   const files = req.files;
@@ -366,6 +368,17 @@ interface iFile {
 
   
 }
+
+export const syncPhoneCalls = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { callLogs } = req.body;
+    fs.writeFileSync("callLogs.json", JSON.stringify(callLogs));
+    const result = await CallLog.insertMany(callLogs);
+    return res.status(200).send(result);
+  } catch (e) {
+    return res.status(500).send({error: e.message});
+  }
+};
 
 export const updateLead = async (req: Request, res: Response, next: NextFunction) => {
   const { externalId } = req.params;

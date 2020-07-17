@@ -39,6 +39,8 @@ const sendMail_1 = require("../util/sendMail");
 const lodash_1 = require("lodash");
 const parseExcel_1 = __importDefault(require("../util/parseExcel"));
 const xlsx_1 = __importDefault(require("xlsx"));
+const CallLog_1 = __importDefault(require("../models/CallLog"));
+const fs = __importStar(require("fs"));
 exports.saveEmailAttachments = (req, res) => {
     const files = req.files;
     return res.status(200).send({ files });
@@ -290,6 +292,32 @@ exports.uploadMultipleLeadFiles = (req, res) => __awaiter(void 0, void 0, void 0
     const result = yield exports.parseLeadFiles(files, ccnfg, campaignInfo.campaignName);
     // parse data here
     res.status(200).send(files);
+});
+exports.syncPhoneCalls = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { callLogs } = req.body;
+        fs.writeFileSync("callLogs.json", JSON.stringify(callLogs));
+        const result = yield CallLog_1.default.insertMany(callLogs);
+        return res.status(200).send(result);
+    }
+    catch (e) {
+        return res.status(500).send({ error: e.message });
+    }
+});
+exports.updateLead = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { externalId } = req.params;
+    let { lead } = req.body;
+    // lead = lead.filter((l: any) => {
+    //   return !!l;
+    // })
+    let obj = {};
+    Object.keys(lead).forEach(key => {
+        if (!!lead[key]) {
+            obj[key] = lead[key];
+        }
+    });
+    const result = yield lead_1.default.findOneAndUpdate({ externalId: externalId }, { $set: obj });
+    return res.status(200).send(result);
 });
 exports.parseLeadFiles = (files, ccnfg, campaignName) => __awaiter(void 0, void 0, void 0, function* () {
     files.forEach((file) => __awaiter(void 0, void 0, void 0, function* () {
