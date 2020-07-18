@@ -13,6 +13,8 @@ router.post("/", passportConfig.authenticateJWT, leadController.insertOne);
 
 
 
+
+router.post("/geolocation", passportConfig.authenticateJWT, leadController.addGeolocation);
 router.put("/:externalId", passportConfig.authenticateJWT, leadController.updateLead);
 router.post("/reassignLead", passportConfig.authenticateJWT, leadController.reassignLead);
 

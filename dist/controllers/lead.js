@@ -41,6 +41,7 @@ const parseExcel_1 = __importDefault(require("../util/parseExcel"));
 const xlsx_1 = __importDefault(require("xlsx"));
 const CallLog_1 = __importDefault(require("../models/CallLog"));
 const fs = __importStar(require("fs"));
+const GeoLocation_1 = __importDefault(require("../models/GeoLocation"));
 exports.saveEmailAttachments = (req, res) => {
     const files = req.files;
     return res.status(200).send({ files });
@@ -303,6 +304,19 @@ exports.syncPhoneCalls = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     catch (e) {
         return res.status(500).send({ error: e.message });
     }
+});
+exports.addGeolocation = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { lat, lng, speed } = req.body;
+    const { user } = req.body;
+    var geoObj = new GeoLocation_1.default({
+        userid: user,
+        location: {
+            lat,
+            lng
+        }
+    });
+    const result = yield geoObj.save();
+    return res.status(200).json(result);
 });
 exports.updateLead = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { externalId } = req.params;

@@ -13,6 +13,7 @@ import { IConfig } from "../util/renameJson";
 import XLSX from "xlsx";
 import CallLog from "../models/CallLog";
 import * as fs from "fs";
+import GeoLocation from "../models/GeoLocation";
 
 export const saveEmailAttachments = (req: AuthReq, res: Response) => {
   const files = req.files;
@@ -378,6 +379,21 @@ export const syncPhoneCalls = async (req: Request, res: Response, next: NextFunc
   } catch (e) {
     return res.status(500).send({error: e.message});
   }
+};
+
+export const addGeolocation = async (req: Request, res: Response, next: NextFunction) => {
+  const { lat, lng, speed } = req.body;
+  const { user } = req.body;
+  var geoObj = new GeoLocation({
+    userid: user,
+    location: {
+      lat,
+      lng
+    }
+  });
+  const result = await geoObj.save();
+
+  return res.status(200).json(result);
 };
 
 export const updateLead = async (req: Request, res: Response, next: NextFunction) => {
