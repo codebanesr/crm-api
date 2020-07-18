@@ -14,5 +14,5 @@ const geoLocationSchema = new mongoose_1.default.Schema({
     }
 });
 geoLocationSchema.index({ "loc": "2dsphere" });
-exports.default = mongoose_1.default.model("Role", geoLocationSchema);
+exports.default = mongoose_1.default.model("GeoLocation", geoLocationSchema);
 //# sourceMappingURL=GeoLocation.js.map

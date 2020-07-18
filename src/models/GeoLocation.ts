@@ -11,4 +11,4 @@ const geoLocationSchema = new mongoose.Schema({
 
 geoLocationSchema.index({ "loc": "2dsphere" });
 
-export default mongoose.model("Role", geoLocationSchema);
+export default mongoose.model("GeoLocation", geoLocationSchema);
