@@ -42,6 +42,7 @@ const xlsx_1 = __importDefault(require("xlsx"));
 const CallLog_1 = __importDefault(require("../models/CallLog"));
 const fs = __importStar(require("fs"));
 const GeoLocation_1 = __importDefault(require("../models/GeoLocation"));
+const mongoose_1 = __importDefault(require("mongoose"));
 exports.saveEmailAttachments = (req, res) => {
     const files = req.files;
     return res.status(200).send({ files });
@@ -306,10 +307,10 @@ exports.syncPhoneCalls = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.addGeolocation = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { lat, lng, speed } = req.body;
+    const { lat, lng, timstamp } = req.body;
     const { user } = req.body;
     var geoObj = new GeoLocation_1.default({
-        userid: user,
+        userid: mongoose_1.default.Types.ObjectId(user._id),
         location: {
             lat,
             lng

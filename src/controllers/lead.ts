@@ -14,6 +14,7 @@ import XLSX from "xlsx";
 import CallLog from "../models/CallLog";
 import * as fs from "fs";
 import GeoLocation from "../models/GeoLocation";
+import mongoose from "mongoose";
 
 export const saveEmailAttachments = (req: AuthReq, res: Response) => {
   const files = req.files;
@@ -382,10 +383,10 @@ export const syncPhoneCalls = async (req: Request, res: Response, next: NextFunc
 };
 
 export const addGeolocation = async (req: Request, res: Response, next: NextFunction) => {
-  const { lat, lng, speed } = req.body;
+  const { lat, lng, timstamp } = req.body;
   const { user } = req.body;
   var geoObj = new GeoLocation({
-    userid: user,
+    userid: mongoose.Types.ObjectId(user._id),
     location: {
       lat,
       lng
