@@ -7,11 +7,16 @@ const mongoose_1 = __importDefault(require("mongoose"));
 // add a lead priority index [An enum variable with list of priorities]
 const geoLocationSchema = new mongoose_1.default.Schema({
     _id: mongoose_1.default.Schema.Types.ObjectId,
-    userid: mongoose_1.default.Schema.Types.ObjectId,
+    userid: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     loc: {
         type: { type: String },
         coordinates: [Number],
     }
+}, {
+    timestamps: true
 });
 geoLocationSchema.index({ "loc": "2dsphere" });
 exports.default = mongoose_1.default.model("GeoLocation", geoLocationSchema);

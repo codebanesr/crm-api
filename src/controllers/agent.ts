@@ -142,5 +142,4 @@ export const downloadFile = async(req: Request, res: Response, next: NextFunctio
         res.end()
     })
     readStream.pipe(res)
-
 }

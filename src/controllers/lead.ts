@@ -382,11 +382,11 @@ export const syncPhoneCalls = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export const addGeolocation = async (req: Request, res: Response, next: NextFunction) => {
-  const { lat, lng, timstamp } = req.body;
-  const { user } = req.body;
+export const addGeolocation = async (req: AuthReq, res: Response, next: NextFunction) => {
+  const { lat, lng } = req.body;
+  const { id } = req.user;
   var geoObj = new GeoLocation({
-    userid: mongoose.Types.ObjectId(user._id),
+    userid: mongoose.Types.ObjectId(id),
     location: {
       lat,
       lng
