@@ -82,7 +82,7 @@ export const getAllEmailTemplates = async (req: AuthReq, res: Response) => {
 
   const query = EmailTemplate.aggregate();
   const result = await query
-    .match({ campaign: {$regex: `^${campaign}`, $options: "I"} })
+    .match({ campaign: { $regex: `^${campaign}`, $options: "I" } })
     .sort("type")
     .limit(limit)
     .skip(skip)
@@ -239,7 +239,7 @@ export const findOneById = async (
   next: NextFunction
 ) => {
   const leadId = req.params.leadId;
-  const lead = await Lead.findOne({externalId: leadId}).lean().exec();
+  const lead = await Lead.findOne({ externalId: leadId }).lean().exec();
 
   res.status(200).send(lead);
 };
@@ -310,7 +310,7 @@ export const sendBulkEmails = (
 };
 
 
-export const suggestLeads = async(req: AuthReq, res: Response, next: NextFunction) => {
+export const suggestLeads = async (req: AuthReq, res: Response, next: NextFunction) => {
   const { leadId, limit = 10 } = req.params;
   const query = Lead.aggregate();
 
@@ -345,7 +345,7 @@ export const uploadMultipleLeadFiles = async (req: AuthReq, res: Response) => {
   campaignInfo = JSON.parse(campaignInfo);
 
 
-  const ccnfg = await CampaignConfig.find({name: campaignInfo.campaignName}, {readableField: 1, internalField: 1, _id: 0}).lean().exec() as IConfig[];
+  const ccnfg = await CampaignConfig.find({ name: campaignInfo.campaignName }, { readableField: 1, internalField: 1, _id: 0 }).lean().exec() as IConfig[];
   if (!ccnfg) {
     return res.status(400).json({ error: `Campaign with name ${campaignInfo.campaignName} not found, create a campaign before uploading leads for that campaign` })
   }
@@ -360,15 +360,15 @@ export const uploadMultipleLeadFiles = async (req: AuthReq, res: Response) => {
 
 interface iFile {
 
-    "fieldname": string,
-    "originalname": string,
-    "encoding": string,
-    "mimetype": string,
-    "destination": string,
-    "path": string,
-    "size": number
+  "fieldname": string,
+  "originalname": string,
+  "encoding": string,
+  "mimetype": string,
+  "destination": string,
+  "path": string,
+  "size": number
 
-  
+
 }
 
 export const syncPhoneCalls = async (req: Request, res: Response, next: NextFunction) => {
@@ -378,7 +378,7 @@ export const syncPhoneCalls = async (req: Request, res: Response, next: NextFunc
     const result = await CallLog.insertMany(callLogs);
     return res.status(200).send(result);
   } catch (e) {
-    return res.status(500).send({error: e.message});
+    return res.status(500).send({ error: e.message });
   }
 };
 
@@ -388,9 +388,10 @@ export const addGeolocation = async (req: AuthReq, res: Response, next: NextFunc
   const { id } = req.user;
   var geoObj = new GeoLocation({
     userid: mongoose.Types.ObjectId(id),
-    loc: {
-      lat,
-      lng
+    location: {
+      type: 'Point',
+      // Place longitude first, then latitude
+      coordinates: [lng, lat]
     }
   });
   const result = await geoObj.save();
@@ -417,8 +418,8 @@ export const updateLead = async (req: Request, res: Response, next: NextFunction
   return res.status(200).send(result);
 }
 
-export const parseLeadFiles = async(files: any, ccnfg: IConfig[], campaignName: string) => {
-  files.forEach(async(file: iFile) => {
+export const parseLeadFiles = async (files: any, ccnfg: IConfig[], campaignName: string) => {
+  files.forEach(async (file: iFile) => {
     const jsonRes = parseExcel(file.path, ccnfg);
     saveLeads(jsonRes, campaignName, file.originalname);
   })
@@ -426,24 +427,24 @@ export const parseLeadFiles = async(files: any, ccnfg: IConfig[], campaignName: 
 
 
 /** Findone and update implementation */
-const saveLeads = async(leads: any[], campaignName: string, originalFileName: string) => {
+const saveLeads = async (leads: any[], campaignName: string, originalFileName: string) => {
   const created = [];
   const updated = [];
   const error = [];
-  
-  for(const l of leads) {
-      const { lastErrorObject, value } = await Lead.findOneAndUpdate(
-          { externalId: l.externalId }, 
-          {...l, campaign: campaignName}, 
-          { new: true, upsert: true, rawResult: true }
-      ).lean().exec();
-      if(lastErrorObject.updatedExisting === true) {
-          updated.push(value);
-      }else if(lastErrorObject.upserted) {
-          created.push(value);
-      }else{
-          error.push(value);
-      }
+
+  for (const l of leads) {
+    const { lastErrorObject, value } = await Lead.findOneAndUpdate(
+      { externalId: l.externalId },
+      { ...l, campaign: campaignName },
+      { new: true, upsert: true, rawResult: true }
+    ).lean().exec();
+    if (lastErrorObject.updatedExisting === true) {
+      updated.push(value);
+    } else if (lastErrorObject.upserted) {
+      created.push(value);
+    } else {
+      error.push(value);
+    }
   }
 
   // createExcel files and update them to aws and then store the urls in database with AdminActions
@@ -455,5 +456,5 @@ const saveLeads = async(leads: any[], campaignName: string, originalFileName: st
   XLSX.utils.book_append_sheet(wb, created_ws, "tickets created");
 
   XLSX.writeFile(wb, originalFileName + "_system");
-  console.log("created: ",created.length, "updated: ",updated.length, "error:", error.length);
+  console.log("created: ", created.length, "updated: ", updated.length, "error:", error.length);
 };

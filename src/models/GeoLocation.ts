@@ -5,9 +5,9 @@ const geoLocationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    loc: {
-        type: { type: String },
-        coordinates: [Number],
+    location: {
+        type: { type: String, default: 'Point' },
+        coordinates: {type: [Number], default: [0, 0]}
     }
 }, {
     timestamps: true

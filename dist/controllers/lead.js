@@ -312,9 +312,10 @@ exports.addGeolocation = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     const { id } = req.user;
     var geoObj = new GeoLocation_1.default({
         userid: mongoose_1.default.Types.ObjectId(id),
-        loc: {
-            lat,
-            lng
+        location: {
+            type: 'Point',
+            // Place longitude first, then latitude
+            coordinates: [lng, lat]
         }
     });
     const result = yield geoObj.save();

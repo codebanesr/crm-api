@@ -10,9 +10,9 @@ const geoLocationSchema = new mongoose_1.default.Schema({
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'User'
     },
-    loc: {
-        type: { type: String },
-        coordinates: [Number],
+    location: {
+        type: { type: String, default: 'Point' },
+        coordinates: { type: [Number], default: [0, 0] }
     }
 }, {
     timestamps: true
