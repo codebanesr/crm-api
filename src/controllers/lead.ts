@@ -388,7 +388,7 @@ export const addGeolocation = async (req: AuthReq, res: Response, next: NextFunc
   const { id } = req.user;
   var geoObj = new GeoLocation({
     userid: mongoose.Types.ObjectId(id),
-    location: {
+    loc: {
       lat,
       lng
     }
