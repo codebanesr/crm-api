@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 // add a lead priority index [An enum variable with list of priorities]
 const geoLocationSchema = new mongoose_1.default.Schema({
-    _id: mongoose_1.default.Schema.Types.ObjectId,
     userid: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: 'User'
