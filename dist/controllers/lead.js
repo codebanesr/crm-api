@@ -308,6 +308,7 @@ exports.syncPhoneCalls = (req, res, next) => __awaiter(void 0, void 0, void 0, f
 });
 exports.addGeolocation = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { lat, lng } = req.body;
+    console.log(req.body);
     const { id } = req.user;
     var geoObj = new GeoLocation_1.default({
         userid: mongoose_1.default.Types.ObjectId(id),

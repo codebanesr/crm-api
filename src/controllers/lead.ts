@@ -384,6 +384,7 @@ export const syncPhoneCalls = async (req: Request, res: Response, next: NextFunc
 
 export const addGeolocation = async (req: AuthReq, res: Response, next: NextFunction) => {
   const { lat, lng } = req.body;
+  console.log(req.body);
   const { id } = req.user;
   var geoObj = new GeoLocation({
     userid: mongoose.Types.ObjectId(id),
