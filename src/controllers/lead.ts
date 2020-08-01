@@ -341,18 +341,17 @@ export const suggestLeads = async (req: AuthReq, res: Response, next: NextFuncti
 export const uploadMultipleLeadFiles = async (req: AuthReq, res: Response) => {
   const files = req.files;
 
-  let { campaignInfo } = req.body;
-  campaignInfo = JSON.parse(campaignInfo);
+  let { campaignName } = req.body;
 
 
-  const ccnfg = await CampaignConfig.find({ name: campaignInfo.campaignName }, { readableField: 1, internalField: 1, _id: 0 }).lean().exec() as IConfig[];
+  const ccnfg = await CampaignConfig.find({ name: campaignName }, { readableField: 1, internalField: 1, _id: 0 }).lean().exec() as IConfig[];
   if (!ccnfg) {
-    return res.status(400).json({ error: `Campaign with name ${campaignInfo.campaignName} not found, create a campaign before uploading leads for that campaign` })
+    return res.status(400).json({ error: `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign` })
   }
 
-  const result = await parseLeadFiles(files, ccnfg, campaignInfo.campaignName);
+  const result = await parseLeadFiles(files, ccnfg, campaignName);
   // parse data here
-  res.status(200).send(files);
+  res.status(200).send({files, result});
 }
 
 

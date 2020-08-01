@@ -2,24 +2,22 @@
 import { NextFunction, Request, Response } from "express";
 import Campaign from "../models/Campaign";
 import parseExcel from "../util/parseExcel";
-import EmailTemplate from "../models/EmailTemplate";
 import Disposition from "../models/Disposition";
 import { AuthReq } from "../interface/authorizedReq";
-import mongoose from "mongoose";
 export const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const { page = 1, perPage = 20, filters={}, sortBy = "handler" } = req.body;
 
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
 
-    const { handlerEmail, campaigns = [] } = filters;
+    const { createdBy, campaigns = [] } = filters;
 
 
     const matchQ = {} as any;
 
     matchQ.$and = [];
-    if(handlerEmail) {
-        matchQ.$and.push({handler:handlerEmail});
+    if(createdBy) {
+        matchQ.$and.push({createdBy:createdBy});
     }
 
     if(campaigns && campaigns.length > 0) {
@@ -162,4 +160,27 @@ export const uploadConfig = async(req: Request, res: Response, next: NextFunctio
     const excelObject = parseExcel(path);
 };
 
+
+
+export const createCampaignAndDisposition = async(req: AuthReq, res: Response) => {
+    const { id: userid } = req.user;
+    let { dispositionData, campaignInfo } = req.body;
+
+    const campaignFile = req.file;
+    
+    dispositionData = JSON.parse(dispositionData);
+    campaignInfo = JSON.parse(campaignInfo);
+
+    let campaign = new Campaign({...campaignInfo, createdBy: userid});
+    campaign = await campaign.save();
+
+    let disposition = new Disposition({ ...dispositionData, campaign: campaign._id });
+    disposition = await disposition.save();
+
+    return res.status(200).json({
+        campaign,
+        disposition
+    })
+
+}
 

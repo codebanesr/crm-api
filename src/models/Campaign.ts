@@ -1,11 +1,16 @@
 import mongoose from "mongoose";
 
 const campaignSchema = new mongoose.Schema({
-    _id: mongoose.Schema.Types.ObjectId,
+    campaignName: {type: String, required: true},
     worklow: String,
-    handler: String,
-    interval: Date,
-    type: String
+    comment: String,
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    interval: [Date],
+    type: { type: String }
 },{ timestamps: true});
 
 export default mongoose.model("Campaign", campaignSchema);
