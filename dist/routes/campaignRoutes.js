@@ -16,6 +16,7 @@ const passportConfig = __importStar(require("../config/passport"));
 const multerOpts_1 = require("../util/multerOpts");
 const router = express_1.default.Router();
 router.post("/get", campaignController.findAll);
+router.get("/disposition/:id", passportConfig.authenticateJWT, campaignController.getDispositionForCampaign);
 router.get("/autocomplete/suggestEmails", campaignController.getHandlerEmailHints);
 router.get("/autocomplete/suggestTypes", campaignController.getCampaignTypes);
 router.post("/config/upload", passportConfig.authenticateJWT, multerOpts_1.upload.single("file"), campaignController.uploadConfig);

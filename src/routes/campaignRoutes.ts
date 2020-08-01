@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post("/get", campaignController.findAll);
 
+router.get("/disposition/:campaignId", passportConfig.authenticateJWT, campaignController.getDispositionForCampaign);
 
 router.get("/autocomplete/suggestEmails", campaignController.getHandlerEmailHints);
 

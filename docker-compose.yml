@@ -12,7 +12,7 @@ services:
     volumes:
       - "mongodb_data:/bitnami"
     ports:
-      - "27019:27017"
+      - "27017:27017"
     networks:
       - somenet
   metabase-app:

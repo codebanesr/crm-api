@@ -3,7 +3,9 @@ import { NextFunction, Request, Response } from "express";
 import Campaign from "../models/Campaign";
 import parseExcel from "../util/parseExcel";
 import EmailTemplate from "../models/EmailTemplate";
-
+import Disposition from "../models/Disposition";
+import { AuthReq } from "../interface/authorizedReq";
+import mongoose from "mongoose";
 export const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const { page = 1, perPage = 20, filters={}, sortBy = "handler" } = req.body;
 
@@ -39,31 +41,16 @@ export const findAll = async (req: Request, res: Response, next: NextFunction) =
     res.status(200).json(result);
 };
 
-export const findOneById = (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.campaignId;
-    Campaign.findById(id)
-        .select("name price _id productImage")
-        .exec()
-        .then(doc => {
-            console.log("From database", doc);
-            if (doc) {
-                res.status(200).json({
-                    product: doc,
-                    request: {
-                        type: "GET",
-                        url: "http://localhost:3000/product"
-                    }
-                });
-            } else {
-                res
-                    .status(404)
-                    .json({ message: "No valid entry found for provided ID" });
-            }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({ error: err });
-        });
+export const findOneById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = req.params.campaignId;
+        const result = await Campaign.findById(id);
+    
+        return res.status(200).json(result);
+    } catch (e) {
+        console.log(e.message);
+        return res.status(500).json({ error: e.message });
+    }
 };
 
 
@@ -140,6 +127,33 @@ export const getCampaignTypes = async(req: Request, res: Response, next: NextFun
 
     return res.status(200).send(result);
 };
+
+/** @Todo this has to be thought better */
+const defaultDisposition = async (res: Response) => {
+    try {
+        let disposition = await Disposition.findOne({
+            campaign: "5ee225b99580594afd8561dd"
+        });
+        if (!disposition) {
+            return res.status(500).json({ error: "Core campaign schema not found, verify that creator id exists in user schema and campaignId in campaign schema... This is for core config. Also remember that during populate mongoose will look for these ids" });
+        }
+    
+        return res.status(200).json(disposition);
+    } catch (e) {
+        return res.status(500).json({e: e.message})
+    }
+}
+
+export const getDispositionForCampaign = async (req: AuthReq, res: Response, next: NextFunction) => {
+    const { campaignId } = req.params;
+    if (campaignId == "core") {
+        defaultDisposition(res);
+    } else {
+        let disposition = await Disposition.findOne({ campaign: campaignId });
+
+        return res.status(200).json(disposition);   
+    }
+}
 
 
 

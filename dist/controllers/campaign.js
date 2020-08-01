@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Campaign_1 = __importDefault(require("../models/Campaign"));
 const parseExcel_1 = __importDefault(require("../util/parseExcel"));
+const Disposition_1 = __importDefault(require("../models/Disposition"));
 exports.findAll = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { page = 1, perPage = 20, filters = {}, sortBy = "handler" } = req.body;
     const limit = Number(perPage);
@@ -132,6 +133,11 @@ exports.getCampaignTypes = (req, res, next) => __awaiter(void 0, void 0, void 0,
     const { hint } = req.query;
     const result = yield Campaign_1.default.find({ type: { $regex: "^" + hint, $options: "I" } }).limit(20);
     return res.status(200).send(result);
+});
+exports.getDispositionForCampaign = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const { campaignId } = req.params;
+    const disposition = yield Disposition_1.default.findOne({ campaign: campaignId });
+    return res.status(200).json(disposition);
 });
 exports.uploadConfig = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const path = req.file.path;
