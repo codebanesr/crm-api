@@ -1,8 +1,8 @@
-import Agent from "../models/Agent";
+import Agent from "../../models/Agent";
 import { NextFunction, Request, Response } from "express";
-import AdminAction from "../models/AdminAction";
+import AdminAction from "../../models/AdminAction";
 import mongoose from "mongoose";
-import parseExcel from "../util/parseExcel";
+import parseExcel from "../../util/parseExcel";
 import * as fs from "fs";
 // import agentValidator from '../validator/agent';
 

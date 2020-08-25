@@ -1,6 +1,6 @@
 /** https://www.youtube.com/watch?v=srPXMt1Q0nY&t=477s */
 import { NextFunction, Request, Response } from "express";
-import Alarm, {IAlarm} from "../models/Alarm";
+import Alarm, {IAlarm} from "../../models/Alarm";
 
 export const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const { page = 1, perPage = 20, filters={}, sortBy = 'createdAt' } = req.body;

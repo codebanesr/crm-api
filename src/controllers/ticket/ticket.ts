@@ -1,9 +1,9 @@
 /** https://www.youtube.com/watch?v=srPXMt1Q0nY&t=477s */ 
 import { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
-import Ticket from "../models/ticket";
-import logger from "../util/logger";
-import Lead from "../models/lead";
+import Ticket from "../../models/ticket";
+import logger from "../../util/logger";
+import Lead from "../../models/lead";
 
 export const findAll = async(req: Request, res: Response, next: NextFunction) => {
     const { page, perPage, sortBy='createdAt' } = req.query;

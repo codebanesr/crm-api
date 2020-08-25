@@ -1,9 +1,11 @@
 /** https://www.youtube.com/watch?v=srPXMt1Q0nY&t=477s */
 import { NextFunction, Request, Response } from "express";
-import Campaign from "../models/Campaign";
-import parseExcel from "../util/parseExcel";
-import Disposition from "../models/Disposition";
-import { AuthReq } from "../interface/authorizedReq";
+import Campaign from "../../models/Campaign";
+import parseExcel from "../../util/parseExcel";
+import Disposition from "../../models/Disposition";
+import { AuthReq } from "../../interface/authorizedReq";
+import XLSX from "xlsx";
+import CampaignConfig from "../../models/CampaignConfig";
 export const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const { page = 1, perPage = 20, filters={}, sortBy = "handler" } = req.body;
 
@@ -166,21 +168,61 @@ export const createCampaignAndDisposition = async(req: AuthReq, res: Response) =
     const { id: userid } = req.user;
     let { dispositionData, campaignInfo } = req.body;
 
-    const campaignFile = req.file;
-    
     dispositionData = JSON.parse(dispositionData);
     campaignInfo = JSON.parse(campaignInfo);
 
-    let campaign = new Campaign({...campaignInfo, createdBy: userid});
-    campaign = await campaign.save();
+    const ccJSON = parseExcel(req.file.path);
 
-    let disposition = new Disposition({ ...dispositionData, campaign: campaign._id });
+    const campaign = await Campaign.findOneAndUpdate(
+        { campaignName: campaignInfo.campaignName },
+        { ...campaignInfo, createdBy: userid },
+        { new: true, upsert: true, rawResult: true }
+    )
+
+    const campaignResult = await saveCampaignSchema(ccJSON, { schemaName: campaignInfo.campaignName });
+
+    let disposition = new Disposition({ options: dispositionData, campaign: campaign.value.id });
     disposition = await disposition.save();
 
     return res.status(200).json({
-        campaign,
-        disposition
+        campaign: campaign.value,
+        disposition,
+        campaignResult
     })
 
 }
 
+
+
+
+export const saveCampaignSchema = async(ccJSON: any[], others: any) => {
+    const created = [];
+    const updated = [];
+    const error = [];
+    
+    for(const cc of ccJSON) {
+        const { lastErrorObject, value } = await CampaignConfig.findOneAndUpdate(
+            { name: others.schemaName, internalField: cc.internalField }, 
+            cc, 
+            { new: true, upsert: true, rawResult: true }
+        ).lean().exec();
+        if(lastErrorObject.updatedExisting === true) {
+            updated.push(value);
+        }else if(lastErrorObject.upserted) {
+            created.push(value);
+        }else{
+            error.push(value);
+        }
+    }
+
+    // createExcel files and update them to aws and then store the urls in database with AdminActions
+    const created_ws = XLSX.utils.json_to_sheet(created);
+    const updated_ws = XLSX.utils.json_to_sheet(updated);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, updated_ws, "tickets updated");
+    XLSX.utils.book_append_sheet(wb, created_ws, "tickets created");
+
+    XLSX.writeFile(wb, "sheetjs.xlsx");
+    console.log("created: ",created.length, "updated: ",updated.length, "error:", error.length);
+};

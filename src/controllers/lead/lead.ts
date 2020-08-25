@@ -1,19 +1,19 @@
 import { NextFunction, Request, Response } from "express";
-import Lead from "../models/lead";
-import EmailTemplate from "../models/EmailTemplate";
-import { createAlarm } from "./alarm";
-import CampaignConfig from "../models/CampaignConfig";
-import * as userController from "../controllers/user";
-import { UserDocument } from "../models/User";
-import { sendEmail } from "../util/sendMail";
+import Lead from "../../models/lead";
+import EmailTemplate from "../../models/EmailTemplate";
+import { createAlarm } from "../alarm/alarm";
+import CampaignConfig from "../../models/CampaignConfig";
+import * as userController from "../user/user";
+import { UserDocument } from "../../models/User";
+import { sendEmail } from "../../util/sendMail";
 import { isArray } from "lodash";
-import { AuthReq } from "../interface/authorizedReq";
-import parseExcel from "../util/parseExcel";
-import { IConfig } from "../util/renameJson";
+import { AuthReq } from "../../interface/authorizedReq";
+import parseExcel from "../../util/parseExcel";
+import { IConfig } from "../../util/renameJson";
 import XLSX from "xlsx";
-import CallLog from "../models/CallLog";
+import CallLog from "../../models/CallLog";
 import * as fs from "fs";
-import GeoLocation from "../models/GeoLocation";
+import GeoLocation from "../../models/GeoLocation";
 import mongoose from "mongoose";
 
 export const saveEmailAttachments = (req: AuthReq, res: Response) => {
@@ -396,6 +396,12 @@ export const addGeolocation = async (req: AuthReq, res: Response, next: NextFunc
   const result = await geoObj.save();
 
   return res.status(200).json(result);
+};
+
+
+export const getPerformance = async (req: Request, res: Response, next: NextFunction) => {
+
+  
 };
 
 export const updateLead = async (req: Request, res: Response, next: NextFunction) => {

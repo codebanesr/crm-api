@@ -1,5 +1,5 @@
 import express from "express";
-import * as attachmentController from "../controllers/attachments";
+import * as attachmentController from "../controllers/attachment";
 import * as passportConfig from "../config/passport";
 import { upload } from "../util/multerOpts";
 

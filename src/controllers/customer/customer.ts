@@ -1,15 +1,16 @@
 /** https://www.youtube.com/watch?v=srPXMt1Q0nY&t=477s */ 
 import { NextFunction, Request, Response } from "express";
-import Customer from "../models/Customer";
-import AdminAction from "../models/AdminAction";
-import parseExcel from "../util/parseExcel";
+import Customer from "../../models/Customer";
+import AdminAction from "../../models/AdminAction";
+import parseExcel from "../../util/parseExcel";
 import mongoose from "mongoose";
-import Ticket from "../models/ticket";
-import Campaign from "../models/Campaign";
-import CampaignConfig from "../models/CampaignConfig";
+import Ticket from "../../models/ticket";
+import Campaign from "../../models/Campaign";
+import CampaignConfig from "../../models/CampaignConfig";
 import XLSX from "xlsx";
-import { IConfig } from "../util/renameJson";
-import Lead from "../models/lead";
+import { IConfig } from "../../util/renameJson";
+import Lead from "../../models/lead";
+import { saveCampaignSchema } from "../campaign/campaign";
 
 
 
@@ -125,39 +126,6 @@ const saveCampaign = async(campaigns: any[]) => {
         bulk.execute((err, res)=>{
             console.log("Finished iteration ", c%1000, err, res);
         });
-};
-
-
-const saveCampaignSchema = async(ccJSON: any[], others: any) => {
-    const created = [];
-    const updated = [];
-    const error = [];
-    
-    for(const cc of ccJSON) {
-        const { lastErrorObject, value } = await CampaignConfig.findOneAndUpdate(
-            { name: others.schemaName, internalField: cc.internalField }, 
-            cc, 
-            { new: true, upsert: true, rawResult: true }
-        ).lean().exec();
-        if(lastErrorObject.updatedExisting === true) {
-            updated.push(value);
-        }else if(lastErrorObject.upserted) {
-            created.push(value);
-        }else{
-            error.push(value);
-        }
-    }
-
-    // createExcel files and update them to aws and then store the urls in database with AdminActions
-    const created_ws = XLSX.utils.json_to_sheet(created);
-    const updated_ws = XLSX.utils.json_to_sheet(updated);
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, updated_ws, "tickets updated");
-    XLSX.utils.book_append_sheet(wb, created_ws, "tickets created");
-
-    XLSX.writeFile(wb, "sheetjs.xlsx");
-    console.log("created: ",created.length, "updated: ",updated.length, "error:", error.length);
 };
 
 export const findAll = async(req: Request, res: Response, next: NextFunction) => {

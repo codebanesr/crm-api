@@ -25,6 +25,8 @@ router.get("/getAllLeadColumns", leadController.getAllLeadColumns);
 
 router.get("/getLeadReassignmentHistory",passportConfig.authenticateJWT, leadController.getLeadReassignmentHistory);
 
+router.get("/user/performance", passportConfig.authenticateJWT, leadController.getPerformance);
+
 router.get("/basicOverview", leadController.getBasicOverview);
 
 router.get("/getAllEmailTemplates", passportConfig.authenticateJWT, leadController.getAllEmailTemplates);

@@ -6,6 +6,7 @@ const leadSchema = new mongoose.Schema({
   email: {
     type: String, required: true
   },
+  campaign: String,
   firstName: String,
   lastName: String,
   source: String,
@@ -25,7 +26,8 @@ const leadSchema = new mongoose.Schema({
   pincode: Number
 }, {
   timestamps: true,
-  autoIndex: true
+  autoIndex: true,
+  strict: false
 });
 
 leadSchema.index({"$**": "text"});

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import Attachment from '../models/attachments';
+import Attachment from '../../models/attachments';
 import * as fs from "fs";
 
 export const uploadFile = async(req: Request, res: Response, next: NextFunction) => {

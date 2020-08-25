@@ -2,7 +2,7 @@ import express from "express";
 import * as passportConfig from "./config/passport";
 import * as apiController from "./controllers/api";
 // Controllers (route handlers)
-import * as homeController from "./controllers/home";
+import * as homeController from "./controllers/home/home";
 import dbInit from "./starter/dbInit";
 import initRoutes from "./starter/initRoutes";
 import pluginStarter from "./starter/plugins";

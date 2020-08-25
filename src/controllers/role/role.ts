@@ -1,6 +1,6 @@
 import { Request, Response } from "express"; 
-import Role from "../models/Role";
-import Permission from "../models/permission";
+import Role from "../../models/Role";
+import Permission from "../../models/permission";
 
 export const findAll = async(req: Request, res: Response) => {
     const roles = await Role.aggregate([

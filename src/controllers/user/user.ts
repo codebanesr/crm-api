@@ -2,23 +2,23 @@ import async from "async";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import passport from "passport";
-import { User, UserDocument, AuthToken } from "../models/User";
+import { User, UserDocument, AuthToken } from "../../models/User";
 import { Request, Response, NextFunction } from "express";
 import { IVerifyOptions } from "passport-local";
 import { WriteError } from "mongodb";
 import { check, sanitize, validationResult } from "express-validator";
-import "../config/passport";
+import "../../config/passport";
 import * as jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../util/secrets";
-import logger from "../util/logger";
-import parseExcel from "../util/parseExcel";
-import AdminAction from "../models/AdminAction";
+import { JWT_SECRET } from "../../util/secrets";
+import logger from "../../util/logger";
+import parseExcel from "../../util/parseExcel";
+import AdminAction from "../../models/AdminAction";
 import mongoose from "mongoose";
 import { get } from "lodash";
 
 
-import { getPermissionsArray } from "../controllers/role";
-import { AuthReq } from "../interface/authorizedReq";
+import { getPermissionsArray } from "../role/role";
+import { AuthReq } from "../../interface/authorizedReq";
 
 
 /**
