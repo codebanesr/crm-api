@@ -14,6 +14,7 @@ const leadSchema = new mongoose.Schema({
   customerEmail: String,
   phoneNumberPrefix: String,
   phoneNumber: String,
+  additionalPhoneNumber: [String],
   leadStatus: String,
   address: String,
   followUp: Date,
@@ -23,7 +24,7 @@ const leadSchema = new mongoose.Schema({
   geoLocation: String,
   bucket: String,
   operationalArea: String,
-  pincode: Number
+  pincode: Number,
 }, {
   timestamps: true,
   autoIndex: true,

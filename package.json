@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@types/cors": "^2.8.6",
+    "@types/ioredis": "^4.17.3",
     "@types/multer": "^1.4.3",
     "@types/passport-jwt": "^3.0.3",
     "ajv": "^6.12.2",
@@ -48,6 +49,7 @@
     "express-session": "^1.16.2",
     "express-validator": "^6.2.0",
     "fbgraph": "^1.4.4",
+    "ioredis": "^4.17.3",
     "lodash": "^4.17.15",
     "lusca": "^1.6.1",
     "mongoose": "^5.9.2",

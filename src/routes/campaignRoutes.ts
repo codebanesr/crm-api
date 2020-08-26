@@ -23,4 +23,6 @@ router.delete("/:campaignId", campaignController.deleteOne);
 
 
 router.post("/createCampaignAndDisposition", passportConfig.authenticateJWT, upload.single("campaignFile"), campaignController.createCampaignAndDisposition);
+
+router.get("campaign/:na")
 export default router;

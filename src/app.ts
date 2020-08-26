@@ -6,7 +6,7 @@ import * as homeController from "./controllers/home/home";
 import dbInit from "./starter/dbInit";
 import initRoutes from "./starter/initRoutes";
 import pluginStarter from "./starter/plugins";
-
+import {RedisContainer} from './starter/redis-container'
 
 
 const app = express();
@@ -14,6 +14,7 @@ const app = express();
 pluginStarter(app);
 dbInit(app);
 initRoutes(app);
+RedisContainer.initialize();
 
 
 app.get("/", homeController.index);

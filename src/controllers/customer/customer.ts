@@ -10,7 +10,7 @@ import CampaignConfig from "../../models/CampaignConfig";
 import XLSX from "xlsx";
 import { IConfig } from "../../util/renameJson";
 import Lead from "../../models/lead";
-import { saveCampaignSchema } from "../campaign/campaign";
+import { saveCampaignSchema } from "../campaign";
 
 
 

@@ -17,6 +17,6 @@ router.get("/latestUploadedFile", userController.getLatestUploadedFiles);
 router.post("/assignManager", passportConfig.authenticateJWT, userController.assignManager);
 router.get("/managersForReassignment", passportConfig.authenticateJWT, userController.managersForReassignment);
 router.get("/getUserReassignmentHistory", passportConfig.authenticateJWT, userController.getUserReassignmentHistory);
-
+router.get("/lead/activity/:email", passportConfig.authenticateJWT, userController.leadActivityByUser);
 
 export default router;

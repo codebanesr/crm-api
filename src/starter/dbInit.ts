@@ -15,5 +15,4 @@ export default (app: core.Express) => {
         console.log("MongoDB connection error. Please make sure MongoDB is running. " + err);
         // process.exit();
     });
-
 };

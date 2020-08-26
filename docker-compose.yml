@@ -25,6 +25,13 @@ services:
       - /Users/gamechange/Documents/opensource/crm-backend/metabase-data:/metabase-data
     networks:
       - somenet
+  redis_db:
+    image: redis
+    # only needed to directly access Redis from host
+    ports:
+      - 6379:6379
+    networks:
+      - somenet
   webapp:
     container_name: mywebapp
     restart: always
