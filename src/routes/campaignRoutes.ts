@@ -15,7 +15,7 @@ router.get("/autocomplete/suggestTypes", campaignController.getCampaignTypes);
 
 router.post("/config/upload", passportConfig.authenticateJWT, upload.single("file"), campaignController.uploadConfig);
 
-router.get("/:campaignId", campaignController.findOneById);
+router.get("/:campaignId", campaignController.findOneByIdOrName);
 
 router.patch("/:campaignId", campaignController.patch);
 

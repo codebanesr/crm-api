@@ -40,8 +40,6 @@ export const getDispositionForCampaign = async (req: AuthReq, res: Response, nex
     }
 }
 
-
-
 export const uploadConfig = async(req: Request, res: Response, next: NextFunction) => {
     const path = req.file.path;
     const excelObject = parseExcel(path);

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import Campaign from "../../models/Campaign";
+import {RedisContainer} from '../../starter/redis-container';
 export const findAll = async (req: Request, res: Response, next: NextFunction) => {
     const { page = 1, perPage = 20, filters={}, sortBy = "handler" } = req.body;
 
@@ -35,18 +36,32 @@ export const findAll = async (req: Request, res: Response, next: NextFunction) =
     res.status(200).json(result);
 };
 
-export const findOneById = async (req: Request, res: Response, next: NextFunction) => {
+export const findOneByIdOrName = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = req.params.campaignId;
-        const result = await Campaign.findById(id);
-    
+        const { identifier } = req.query;
+        const redisClient = RedisContainer.getClient();
+        
+        const cachedCampaign = JSON.parse(await redisClient.get(id));
+        if (cachedCampaign) {
+            return res.status(200).send(cachedCampaign)
+        }
+
+        let result;
+        switch (identifier) {
+            case 'campaignName':
+                result = await Campaign.findOne({ campaignName: id }).lean().exec();
+                break;
+            default:
+                result = await Campaign.findById(id).lean().exec();
+        }
+        redisClient.set(id, JSON.stringify(result));
         return res.status(200).json(result);
     } catch (e) {
         console.log(e.message);
         return res.status(500).json({ error: e.message });
     }
 };
-
 
 export const patch = (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.campaignId;

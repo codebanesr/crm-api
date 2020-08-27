@@ -20,6 +20,7 @@ router.post("/reassignLead", passportConfig.authenticateJWT, leadController.reas
 
 router.post("/syncPhoneCalls", passportConfig.authenticateJWT, leadController.syncPhoneCalls);
 router.get("/getLeadHistoryById/:externalId", passportConfig.authenticateJWT, leadController.getLeadHistoryById);
+router.get("/fetchNextLead/:campaignId/:leadStatus", passportConfig.authenticateJWT, leadController.fetchNextLead);
 
 router.get("/getAllLeadColumns", leadController.getAllLeadColumns);
 
