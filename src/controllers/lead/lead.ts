@@ -15,6 +15,7 @@ import CallLog from "../../models/CallLog";
 import * as fs from "fs";
 import GeoLocation from "../../models/GeoLocation";
 import mongoose from "mongoose";
+import Campaign from "../../models/Campaign";
 
 export const saveEmailAttachments = (req: AuthReq, res: Response) => {
   const files = req.files;
@@ -204,7 +205,11 @@ export const getAllLeadColumns = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { campaignType = "core" } = req.query;
+  let { campaignType = "core" }: any = req.query;
+  if (campaignType !== "core") {
+    const campaign: any = await Campaign.findOne({ _id: mongoose.Types.ObjectId(campaignType) }).lean().exec();
+    campaignType = campaign.campaignName;
+  }
   const matchQ: any = { name: campaignType };
 
   const paths = await CampaignConfig.aggregate([{ $match: matchQ }]);
