@@ -30,7 +30,6 @@ export const postContact = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        req.flash("errors", errors.array());
         return res.status(200).send("/contact");
     }
 
@@ -43,10 +42,8 @@ export const postContact = async (req: Request, res: Response) => {
 
     transporter.sendMail(mailOptions, (err) => {
         if (err) {
-            req.flash("errors", { msg: err.message });
             return res.status(200).send("/contact");
         }
-        req.flash("success", { msg: "Email has been sent successfully!" });
         res.status(200).send("/contact");
     });
 };

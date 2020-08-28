@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.caMeta = void 0;
 exports.caMeta = () => {
     return {
         "productId": "PRODUCT_ID",

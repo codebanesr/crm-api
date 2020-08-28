@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TRANSITIONS = exports.STAGE = exports.STATUS = void 0;
 const STATUS = {
     OPEN: "OPEN",
     CLOSED: "CLOSED"

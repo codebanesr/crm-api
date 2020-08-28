@@ -24,8 +24,12 @@ export const findAll = async (req: Request, res: Response, next: NextFunction) =
     const fq = [
         { $match: matchQ },
         { $sort: { [sortBy]: 1 } },
-        { $skip: skip },
-        { $limit: limit }
+        {
+            '$facet': {
+                metadata: [ { $count: "total" }, { $addFields: { page: Number(page) } } ],
+                data: [ { $skip: skip }, { $limit: limit } ] // add projection here wish you re-shape the docs
+            }
+        }
     ];
 
     if(fq[0]["$match"]["$and"].length === 0) {
@@ -33,7 +37,7 @@ export const findAll = async (req: Request, res: Response, next: NextFunction) =
     }
     console.log(JSON.stringify(fq));
     const result = await Campaign.aggregate(fq);
-    res.status(200).json(result);
+    res.status(200).json({ data: result[0].data, metadata: result[0].metadata[0] });
 };
 
 export const findOneByIdOrName = async (req: Request, res: Response, next: NextFunction) => {

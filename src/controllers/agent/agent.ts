@@ -137,7 +137,7 @@ export const listActions = async (
 
 export const downloadFile = async(req: Request, res: Response, next: NextFunction) => {
     const { location } = req.query;
-    let readStream = fs.createReadStream(location);
+    let readStream = fs.createReadStream(location as string);
     readStream.on('close', () => {
         res.end()
     })

@@ -10,6 +10,7 @@ const leadSchema = new mongoose_1.default.Schema({
     email: {
         type: String, required: true
     },
+    campaign: String,
     firstName: String,
     lastName: String,
     source: String,
@@ -17,6 +18,7 @@ const leadSchema = new mongoose_1.default.Schema({
     customerEmail: String,
     phoneNumberPrefix: String,
     phoneNumber: String,
+    additionalPhoneNumber: [String],
     leadStatus: String,
     address: String,
     followUp: Date,
@@ -26,10 +28,11 @@ const leadSchema = new mongoose_1.default.Schema({
     geoLocation: String,
     bucket: String,
     operationalArea: String,
-    pincode: Number
+    pincode: Number,
 }, {
     timestamps: true,
-    autoIndex: true
+    autoIndex: true,
+    strict: false
 });
 leadSchema.index({ "$**": "text" });
 exports.default = mongoose_1.default.model("Lead", leadSchema);

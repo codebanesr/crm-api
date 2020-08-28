@@ -78,8 +78,10 @@ export const createEmailTemplate = async (req: AuthReq, res: Response) => {
 
 // const result = await Campaign.find({type: {$regex: "^"+hint, $options:"I"}}).limit(20);
 export const getAllEmailTemplates = async (req: AuthReq, res: Response) => {
-  const { limit = 10, skip = 0, campaign } = req.query;
+  let { limit = 10, skip = 0, campaign } = req.query;
 
+  limit = Number(limit);
+  skip = Number(skip);
   const query = EmailTemplate.aggregate();
   const result = await query
     .match({ campaign: { $regex: `^${campaign}`, $options: "I" } })
@@ -344,12 +346,12 @@ export const uploadMultipleLeadFiles = async (req: AuthReq, res: Response) => {
   let { campaignName } = req.body;
 
 
-  const ccnfg = await CampaignConfig.find({ name: campaignName }, { readableField: 1, internalField: 1, _id: 0 }).lean().exec() as IConfig[];
+  const ccnfg: any = await CampaignConfig.find({ name: campaignName }, { readableField: 1, internalField: 1, _id: 0 }).lean().exec();
   if (!ccnfg) {
     return res.status(400).json({ error: `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign` })
   }
 
-  const result = await parseLeadFiles(files, ccnfg, campaignName);
+  const result = await parseLeadFiles(files, ccnfg as IConfig[], campaignName);
   // parse data here
   res.status(200).send({files, result});
 }

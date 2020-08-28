@@ -31,5 +31,5 @@ const dispositionSchema = new mongoose_1.default.Schema({
     autoIndex: true,
     strict: false
 });
-exports.default = mongoose_1.default.model("GeoLocation", dispositionSchema);
+exports.default = mongoose_1.default.model("Disposition", dispositionSchema);
 //# sourceMappingURL=Disposition.js.map

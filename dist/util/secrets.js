@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.REDIS_URI = exports.MONGODB_URI = exports.JWT_SECRET = exports.SESSION_SECRET = exports.ENVIRONMENT = void 0;
 const logger_1 = __importDefault(require("./logger"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const fs_1 = __importDefault(require("fs"));
@@ -19,6 +20,7 @@ const prod = exports.ENVIRONMENT === "production"; // Anything else is treated a
 exports.SESSION_SECRET = process.env["SESSION_SECRET"];
 exports.JWT_SECRET = process.env["JWT_SECRET"];
 exports.MONGODB_URI = prod ? process.env["MONGODB_URI"] : process.env["MONGODB_URI_LOCAL"];
+exports.REDIS_URI = prod ? process.env["REDIS_URI"] : process.env["REDIS_URI"];
 if (!exports.SESSION_SECRET) {
     logger_1.default.error("No client secret. Set SESSION_SECRET environment variable.");
     process.exit(1);

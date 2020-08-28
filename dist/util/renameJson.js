@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.renameJson = void 0;
 const lodash_1 = require("lodash");
 /** Takes two arguments json array and rename dictionary array
  * [{name: "Name"}, "age": "Age"] where the key is the name as mentioned in the excel sheet and value is how

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ticketMeta = void 0;
 exports.ticketMeta = () => {
     return {
         "productId": "PRODUCT_ID",

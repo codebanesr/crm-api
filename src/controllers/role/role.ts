@@ -102,7 +102,7 @@ export const getAllPermissions = async(req: Request, res: Response) => {
 
 export const getPermissionsArray = async(roleType: string) => {
     console.log(roleType);
-    const result = await Role.findOne({value: roleType}, {permissions: 1}).lean().exec();
+    const result = await Role.findOne({value: roleType}, {permissions: 1}).lean().exec() as any;
     const permissions = result.permissions.map((permission: any)=>permission.value);
 
 

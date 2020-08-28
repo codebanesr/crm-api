@@ -33,7 +33,7 @@ export const getAllFiles = async(req: Request, res: Response, next: NextFunction
 
 
 export const getBlobByPath = async(req:Request, res: Response, next: NextFunction) => {
-    var readStream = fs.createReadStream(req.query.filename);
+    var readStream = fs.createReadStream(req.query.filename as string);
 
     // This will wait until we know the readable stream is actually valid before piping
     readStream.on('open', function () {

@@ -5,7 +5,7 @@ export const leadActivityByUser = async (req: AuthReq, res: Response, next:NextF
     const { email } = req.params;
     const { startDate, endDate } = req.query;
     
-    const updatedAtQuery = getUpdatedAtQuery(startDate, endDate);
+    const updatedAtQuery = getUpdatedAtQuery(startDate as string, endDate as string);
     const qb = Lead.aggregate();
     qb.match({
         email,

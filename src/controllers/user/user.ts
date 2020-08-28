@@ -427,7 +427,11 @@ export const getSubordinates = async (user: UserDocument): Promise<string[]> => 
 //     }
 // ])
 export const getAll = async (req: AuthReq, res: Response, next: NextFunction) => {
-    const { assigned } = req.query;
+    const { assigned, page = 1, perPage = 20  } = req.query;
+
+    const limit = Number(perPage);
+    const skip = (Number(page) - 1) * limit;
+
     // if(!assigned) {
     //     const users = await User.aggregate([
     //         { $match: { email: { $exists: false } } }
@@ -435,7 +439,7 @@ export const getAll = async (req: AuthReq, res: Response, next: NextFunction) =>
     //     return res.status(200).send(users);
     // }
     const subordinates = await getSubordinates(req.user as any);
-    const users = await User.aggregate([
+    const result = await User.aggregate([
         { $match: { email: { $in: subordinates } } },
         {
             $lookup: {
@@ -445,10 +449,16 @@ export const getAll = async (req: AuthReq, res: Response, next: NextFunction) =>
                 as: "managedBy"
             }
         },
-        { $unwind: "$managedBy" }
+        { $unwind: "$managedBy" },
+        {
+            '$facet': {
+                metadata: [ { $count: "total" }, { $addFields: { page: Number(page) } } ],
+                users: [ { $skip: skip }, { $limit: limit } ] // add projection here wish you re-shape the docs
+            }
+        }
     ]);
 
-    return res.status(200).send(users);
+    return res.status(200).send({users: result[0].users, metadata: result[0].metadata[0]});
 };
 
 export const insertMany = async (req: Request, res: Response, next: NextFunction) => {

@@ -129,10 +129,10 @@ const saveCampaign = async(campaigns: any[]) => {
 };
 
 export const findAll = async(req: Request, res: Response, next: NextFunction) => {
-    const { page, perPage, sortBy="createdAt" } = req.query;
+    const { page, perPage, sortBy="createdAt" }: any = req.query;
 
     const limit = Number(perPage);
-    const skip = Number((page-1)*limit);
+    const skip = (Number(page)-1)*limit;
     const result = await Customer.aggregate([
         {$match: {}},
         {$sort: {[sortBy]: 1}},
@@ -156,8 +156,8 @@ const handleBulkUploads = async(filePath: any, category: string, others: any) =>
                 saveCustomers(jsonRes);
                 break;
             case "lead":
-                const ccnfg = await CampaignConfig.find({name: "core"}, {readableField: 1, internalField: 1, _id: 0}).lean().exec() as IConfig[];
-                jsonRes = parseExcel(filePath, ccnfg);
+                const ccnfg: any= await CampaignConfig.find({name: "core"}, {readableField: 1, internalField: 1, _id: 0}).lean().exec();
+                jsonRes = parseExcel(filePath, ccnfg as IConfig[]);
                 saveLeads(jsonRes, others);
                 break;
             case "ticket":
@@ -183,7 +183,7 @@ const handleBulkUploads = async(filePath: any, category: string, others: any) =>
 export const insertMany = async(req: Request, res: Response, next: NextFunction) => {
     const { type: category, ...others } = req.query;
     const userid = (req.user as Express.User & {id: string}).id;
-    handleBulkUploads(req.file.path, category, others);
+    handleBulkUploads(req.file.path, category as string, others);
     const adminActions = new AdminAction({
         userid: mongoose.Types.ObjectId(userid),
         actionType: "upload",

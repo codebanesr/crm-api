@@ -9,10 +9,10 @@ export const findAll = async(req: Request, res: Response, next: NextFunction) =>
     const { page, perPage, sortBy='createdAt' } = req.query;
 
     const limit = Number(perPage);
-    const skip = Number((page-1)*limit);
+    const skip = (Number(page)-1)*limit;
     const result = await Ticket.aggregate([
         {$match: {}},
-        {$sort: {[sortBy]: 1}},
+        {$sort: {[sortBy as string]: 1}},
         {$skip: skip},
         {$limit: limit}
     ]);

@@ -6,7 +6,7 @@ export const fetchNextLead = async (req: AuthReq, res: Response, next: NextFunct
     const { campaignId, leadStatus } = req.params;
  
     // cache this call
-    const campaign = await Campaign.findOne({ _id: campaignId }).lean().exec();
+    const campaign: any = await Campaign.findOne({ _id: campaignId }).lean().exec();
     const result = await Lead.findOne(
         {
             campaign: campaign.campaignName,
