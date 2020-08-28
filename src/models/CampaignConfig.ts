@@ -5,6 +5,7 @@ const CampaignConfigSchema = new mongoose.Schema({
     internalField: String,
     readableField: String,
     type: String,
+    options: [String],
     checked: Boolean
 });
 

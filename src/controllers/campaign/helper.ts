@@ -7,9 +7,12 @@ export const saveCampaignSchema = async(ccJSON: any[], others: any) => {
     const updated = [];
     const error = [];
     
-    for(const cc of ccJSON) {
+    for (const cc of ccJSON) {
+        if (cc.type === 'select') {
+            cc.options = cc.options.split(", ");
+        }
         const { lastErrorObject, value } = await CampaignConfig.findOneAndUpdate(
-            { name: others.schemaName, internalField: cc.internalField }, 
+            { name: others.schemaName, internalField: cc.internalField },
             cc, 
             { new: true, upsert: true, rawResult: true }
         ).lean().exec();

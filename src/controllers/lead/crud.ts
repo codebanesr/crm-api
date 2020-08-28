@@ -1,26 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 import Lead from "../../models/lead";
-import EmailTemplate from "../../models/EmailTemplate";
 import { createAlarm } from "../alarm/alarm";
 import CampaignConfig from "../../models/CampaignConfig";
 import * as userController from "../user/user";
 import { UserDocument } from "../../models/User";
-import { sendEmail } from "../../util/sendMail";
-import { isArray } from "lodash";
 import { AuthReq } from "../../interface/authorizedReq";
-import parseExcel from "../../util/parseExcel";
-import { IConfig } from "../../util/renameJson";
-import XLSX from "xlsx";
+
 import CallLog from "../../models/CallLog";
 import * as fs from "fs";
-import GeoLocation from "../../models/GeoLocation";
-import mongoose from "mongoose";
-import Campaign from "../../models/Campaign";
 
-export const saveEmailAttachments = (req: AuthReq, res: Response) => {
-  const files = req.files;
-  return res.status(200).send({ files });
-};
 export const reassignLead = async (req: AuthReq, res: Response) => {
   const { oldUserEmail, newUserEmail, lead } = req.body;
 
@@ -50,49 +38,6 @@ export const reassignLead = async (req: AuthReq, res: Response) => {
   }
 };
 
-// filePath: String,
-// fileName: String
-export const createEmailTemplate = async (req: AuthReq, res: Response) => {
-  const { email } = req.user;
-  const { content, subject, campaign, attachments } = req.body;
-
-  let acceptableAttachmentFormat = attachments.map((a: any) => {
-    let { originalname: fileName, path: filePath, ...others } = a;
-    return {
-      fileName,
-      filePath,
-      ...others,
-    };
-  });
-  const emailTemplate = new EmailTemplate({
-    campaign: campaign,
-    email: email,
-    content: content,
-    subject: subject,
-    attachments: acceptableAttachmentFormat,
-  });
-
-  const result = await emailTemplate.save();
-
-  return res.status(200).json(result);
-};
-
-// const result = await Campaign.find({type: {$regex: "^"+hint, $options:"I"}}).limit(20);
-export const getAllEmailTemplates = async (req: AuthReq, res: Response) => {
-  let { limit = 10, skip = 0, campaign } = req.query;
-
-  limit = Number(limit);
-  skip = Number(skip);
-  const query = EmailTemplate.aggregate();
-  const result = await query
-    .match({ campaign: { $regex: `^${campaign}`, $options: "I" } })
-    .sort("type")
-    .limit(limit)
-    .skip(skip)
-    .exec();
-
-  return res.status(200).send(result);
-};
 
 export const getLeadHistoryById = async (req: Request, res: Response) => {
   const { externalId } = req.params;
@@ -200,23 +145,6 @@ export const findAll = async (
   res.status(200).json(leads);
 };
 
-export const getAllLeadColumns = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  let { campaignType = "core" }: any = req.query;
-  if (campaignType !== "core") {
-    const campaign: any = await Campaign.findOne({ _id: mongoose.Types.ObjectId(campaignType) }).lean().exec();
-    campaignType = campaign.campaignName;
-  }
-  const matchQ: any = { name: campaignType };
-
-  const paths = await CampaignConfig.aggregate([{ $match: matchQ }]);
-
-  return res.status(200).send({ paths: paths });
-};
-
 export const insertOne = async (
   req: any,
   res: Response,
@@ -295,27 +223,6 @@ export const deleteOne = async (
   res.status(200).json(result);
 };
 
-// {
-//     filename: 'text3.txt',
-//     path: '/path/to/file.txt'
-// }
-export const sendBulkEmails = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  let { emails, subject, text, attachments } = req.body;
-  emails = isArray(emails) ? emails : [emails];
-  emails = emails.join(",");
-  try {
-    sendEmail(emails, subject, text, attachments);
-    res.status(200).send({ success: true });
-  } catch (e) {
-    res.status(400).send({ error: e.message });
-    console.log(e);
-  }
-};
-
 
 export const suggestLeads = async (req: AuthReq, res: Response, next: NextFunction) => {
   const { leadId, limit = 10 } = req.params;
@@ -338,45 +245,6 @@ export const suggestLeads = async (req: AuthReq, res: Response, next: NextFuncti
   return res.status(200).json(result);
 }
 
-
-// {
-//   campaignName: 'typeb',
-//   comment: 'some info about the campaign, should reach multer',
-//   type: 'Lead Generation',
-//   interval: [ '2020-07-24T13:31:02.621Z', '2020-07-04T13:26:07.078Z' ]
-// }
-export const uploadMultipleLeadFiles = async (req: AuthReq, res: Response) => {
-  const files = req.files;
-
-  let { campaignName } = req.body;
-
-
-  const ccnfg: any = await CampaignConfig.find({ name: campaignName }, { readableField: 1, internalField: 1, _id: 0 }).lean().exec();
-  if (!ccnfg) {
-    return res.status(400).json({ error: `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign` })
-  }
-
-  const result = await parseLeadFiles(files, ccnfg as IConfig[], campaignName);
-  // parse data here
-  res.status(200).send({files, result});
-}
-
-
-
-
-interface iFile {
-
-  "fieldname": string,
-  "originalname": string,
-  "encoding": string,
-  "mimetype": string,
-  "destination": string,
-  "path": string,
-  "size": number
-
-
-}
-
 export const syncPhoneCalls = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { callLogs } = req.body;
@@ -388,28 +256,7 @@ export const syncPhoneCalls = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export const addGeolocation = async (req: AuthReq, res: Response, next: NextFunction) => {
-  const { lat, lng } = req.body;
-  console.log(req.body);
-  const { id } = req.user;
-  var geoObj = new GeoLocation({
-    userid: mongoose.Types.ObjectId(id),
-    location: {
-      type: 'Point',
-      // Place longitude first, then latitude
-      coordinates: [lng, lat]
-    }
-  });
-  const result = await geoObj.save();
-
-  return res.status(200).json(result);
-};
-
-
-export const getPerformance = async (req: Request, res: Response, next: NextFunction) => {
-
-  
-};
+export const getPerformance = async (req: Request, res: Response, next: NextFunction) => {};
 
 export const updateLead = async (req: Request, res: Response, next: NextFunction) => {
   const { externalId } = req.params;
@@ -429,44 +276,3 @@ export const updateLead = async (req: Request, res: Response, next: NextFunction
   const result = await Lead.findOneAndUpdate({ externalId: externalId }, { $set: obj });
   return res.status(200).send(result);
 }
-
-export const parseLeadFiles = async (files: any, ccnfg: IConfig[], campaignName: string) => {
-  files.forEach(async (file: iFile) => {
-    const jsonRes = parseExcel(file.path, ccnfg);
-    saveLeads(jsonRes, campaignName, file.originalname);
-  })
-};
-
-
-/** Findone and update implementation */
-const saveLeads = async (leads: any[], campaignName: string, originalFileName: string) => {
-  const created = [];
-  const updated = [];
-  const error = [];
-
-  for (const l of leads) {
-    const { lastErrorObject, value } = await Lead.findOneAndUpdate(
-      { externalId: l.externalId },
-      { ...l, campaign: campaignName },
-      { new: true, upsert: true, rawResult: true }
-    ).lean().exec();
-    if (lastErrorObject.updatedExisting === true) {
-      updated.push(value);
-    } else if (lastErrorObject.upserted) {
-      created.push(value);
-    } else {
-      error.push(value);
-    }
-  }
-
-  // createExcel files and update them to aws and then store the urls in database with AdminActions
-  const created_ws = XLSX.utils.json_to_sheet(created);
-  const updated_ws = XLSX.utils.json_to_sheet(updated);
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, updated_ws, "tickets updated");
-  XLSX.utils.book_append_sheet(wb, created_ws, "tickets created");
-
-  XLSX.writeFile(wb, originalFileName + "_system");
-  console.log("created: ", created.length, "updated: ", updated.length, "error:", error.length);
-};
