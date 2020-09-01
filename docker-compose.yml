@@ -1,0 +1,44 @@
+version: "2"
+
+networks:
+  somenet:
+
+services:
+  mongodb:
+    container_name: mymongo
+    image: "bitnami/mongodb:4.0"
+    expose:
+      - "27017"
+    volumes:
+      - "mongodb_data:/bitnami"
+    ports:
+      - "27017:27017"
+    networks:
+      - somenet
+  metabase-app:
+    image: metabase/metabase-enterprise
+    restart: always
+    ports:
+      - 3001:3000
+    volumes:
+      # declare your mount volume /host/dir:/container/dir
+      - /Users/gamechange/Documents/opensource/crm-backend/metabase-data:/metabase-data
+    networks:
+      - somenet
+  webapp:
+    container_name: mywebapp
+    restart: always
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile-example
+    ports:
+      - "5182:3000"
+    env_file:
+      - .env
+    networks:
+      - somenet
+volumes:
+  mongodb_data:
+    driver: local
