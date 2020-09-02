@@ -4,31 +4,44 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Post,
+  Request,
+  Body,
 } from "@nestjs/common";
-import { AuthGuard } from "@nestjs/passport";
-import { Roles } from "src/auth/decorators/roles.decorator";
 import {
   ApiOperation,
-  ApiImplicitHeader,
-  ApiOkResponse,
+  ApiUseTags
 } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
 
+@ApiUseTags('Lead')
 @Controller("lead")
 export class LeadController {
   constructor(private readonly leadService: LeadService) {}
 
-  @Get("data")
-  @UseGuards(AuthGuard("jwt"))
-  @Roles("admin")
-  @ApiOperation({ title: "A private route for check the auth" })
-  @ApiImplicitHeader({
-    name: "Bearer",
-    description: "the token we need for auth.",
-  })
+  @Post("findAll")
+  @ApiOperation({ title: "Fetches all lead for the given user" })
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({})
-  findAll() {
-    return {name: "shanur"};
+  findAll(@Body() body, @Request() req) {
+    const {
+      page,
+      perPage,
+      sortBy = "createdAt",
+      showCols,
+      searchTerm,
+      filters,
+    } = body;
+
+    const { email, roleType } = req.user;
+    return this.leadService.findAll(
+      page,
+      perPage,
+      sortBy,
+      showCols,
+      searchTerm,
+      filters,
+      email,
+      roleType
+    );
   }
 }
