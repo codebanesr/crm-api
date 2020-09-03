@@ -11,6 +11,9 @@ import {
   Param,
   Logger,
   Query,
+  UseInterceptors,
+  UploadedFiles,
+  Patch,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
@@ -20,7 +23,12 @@ import { Request as ERequest } from "express";
 import { GeoLocationDto } from "./dto/geo-location.dto";
 import { ReassignLeadDto } from "./dto/reassign-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
-import { CreateEmailTemplateDto, BulkEmailDto } from "./dto/create-email-template.dto";
+import {
+  CreateEmailTemplateDto,
+  BulkEmailDto,
+} from "./dto/create-email-template.dto";
+import { FilesInterceptor } from "@nestjs/platform-express";
+import { UploadMultipleFilesDto } from "./dto/generic.dto";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -99,9 +107,7 @@ export class LeadController {
   @Post("syncPhoneCalls")
   @ApiOperation({ summary: "Sync phone calls from device to database" })
   @HttpCode(HttpStatus.OK)
-  syncPhoneCalls(
-    @Body() callLogs: SyncCallLogsDto
-  ) {
+  syncPhoneCalls(@Body() callLogs: SyncCallLogsDto) {
     return this.leadService.syncPhoneCalls(callLogs);
   }
 
@@ -149,13 +155,18 @@ export class LeadController {
   })
   @HttpCode(HttpStatus.OK)
   createEmailTemplate(@Request() req, @Body() body: CreateEmailTemplateDto) {
-    const {email: userEmail} = req.user;
+    const { email: userEmail } = req.user;
     const { content, subject, campaign, attachments } = body;
 
     Logger.debug(body);
-    return this.leadService.createEmailTemplate(userEmail, content, subject, campaign, attachments);
+    return this.leadService.createEmailTemplate(
+      userEmail,
+      content,
+      subject,
+      campaign,
+      attachments
+    );
   }
-
 
   @Post("bulkEmail")
   @ApiOperation({
@@ -163,9 +174,50 @@ export class LeadController {
   })
   @HttpCode(HttpStatus.OK)
   sendBulkEmails(@Request() req, @Body() body: BulkEmailDto) {
-    const {email: userEmail} = req.user;
+    const { email: userEmail } = req.user;
     const { emails, subject, text, attachments } = body;
 
     return this.leadService.sendBulkEmails(emails, subject, text, attachments);
+  }
+
+  @Post("uploadMultipleLeadFiles")
+  @ApiOperation({
+    summary: "Upload multiple lead files",
+  })
+  /**If things fail try using files[] */
+  @UseInterceptors(FilesInterceptor("files[]"))
+  @HttpCode(HttpStatus.OK)
+  uploadMultipleLeadFiles(
+    @Request() req,
+    @Body() body: UploadMultipleFilesDto,
+    @UploadedFiles() files
+  ) {
+    const { campaignName } = body;
+    return this.leadService.uploadMultipleLeadFiles(files, campaignName);
+  }
+
+  @Post("saveAttachments")
+  @ApiOperation({
+    summary: "Upload multiple lead files",
+  })
+  @UseInterceptors(FilesInterceptor("files[]"))
+  @HttpCode(HttpStatus.OK)
+  saveEmailAttachments(
+    @Request() req,
+    @UploadedFiles() files
+  ) {
+    return this.leadService.saveEmailAttachments(files);
+  }
+
+
+  @Get(":leadId")
+  @ApiOperation({
+    summary: "Get lead by id",
+  })
+  @HttpCode(HttpStatus.OK)
+  findOneById(
+    @Param("leadId") leadId: string,
+  ) {
+    return this.leadService.findOneById(leadId);
   }
 }

@@ -44,8 +44,7 @@ export class LeadService {
     private readonly alarmModel: Model<Alarm>
   ) {}
 
-  saveEmailAttachments(req: AuthReq, res: Response) {
-    const files = req.files;
+  saveEmailAttachments(files) {
     return files;
   }
 
