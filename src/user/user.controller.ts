@@ -1,107 +1,147 @@
-import { Roles } from './../auth/decorators/roles.decorator';
-import { ResetPasswordDto } from './dto/reset-password.dto';
-import { CreateForgotPasswordDto } from './dto/create-forgot-password.dto';
-import { Request } from 'express';
-import { LoginUserDto } from './dto/login-user.dto';
-import { Controller, Get, Post, Body, UseGuards, Req, HttpCode, HttpStatus } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { VerifyUuidDto } from './dto/verify-uuid.dto';
-import { UserService } from './user.service';
-import { AuthGuard, PassportModule } from '@nestjs/passport';
-import { RefreshAccessTokenDto } from './dto/refresh-access-token.dto';
-import {
-    ApiCreatedResponse,
-    ApiOkResponse,
-    ApiUseTags,
-    ApiBearerAuth,
-    ApiImplicitHeader,
-    ApiOperation,
-    } from '@nestjs/swagger';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from "./../auth/decorators/roles.decorator";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { LoginUserDto } from "./dto/login-user.dto";
 
-@ApiUseTags('User')
-@Controller('user')
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  HttpCode,
+  HttpStatus,
+  Query,
+  Request,
+  UseInterceptors,
+  UploadedFile
+} from "@nestjs/common";
+import { Request as IRequest } from 'express';
+import { CreateUserDto } from "./dto/create-user.dto";
+import { VerifyUuidDto } from "./dto/verify-uuid.dto";
+import { UserService } from "./user.service";
+import { AuthGuard, PassportModule } from "@nestjs/passport";
+import { RefreshAccessTokenDto } from "./dto/refresh-access-token.dto";
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+} from "@nestjs/swagger";
+import { RolesGuard } from "../auth/guards/roles.guard";
+import {FileInterceptor} from "@nestjs/platform-express";
+import { FileUploadDto } from "./dto/fileUpload.dto";
+
+@ApiTags("User")
+@Controller("user")
 @UseGuards(RolesGuard)
 export class UserController {
-    constructor(
-        private readonly userService: UserService,
-        ) {}
+  constructor(private readonly userService: UserService) {}
 
-    // ╔═╗╦ ╦╔╦╗╦ ╦╔═╗╔╗╔╔╦╗╦╔═╗╔═╗╔╦╗╔═╗
-    // ╠═╣║ ║ ║ ╠═╣║╣ ║║║ ║ ║║  ╠═╣ ║ ║╣
-    // ╩ ╩╚═╝ ╩ ╩ ╩╚═╝╝╚╝ ╩ ╩╚═╝╩ ╩ ╩ ╚═╝
-    @Post()
-    @HttpCode(HttpStatus.CREATED)
-    @ApiOperation({title: 'Register user',})
-    @ApiCreatedResponse({})
-    async register(@Body() createUserDto: CreateUserDto) {
-        return await this.userService.create(createUserDto);
-    }
+  // ╔═╗╦ ╦╔╦╗╦ ╦╔═╗╔╗╔╔╦╗╦╔═╗╔═╗╔╦╗╔═╗
+  // ╠═╣║ ║ ║ ╠═╣║╣ ║║║ ║ ║║  ╠═╣ ║ ║╣
+  // ╩ ╩╚═╝ ╩ ╩ ╩╚═╝╝╚╝ ╩ ╩╚═╝╩ ╩ ╩ ╚═╝
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Register user" })
+  @ApiCreatedResponse({})
+  async register(@Body() createUserDto: CreateUserDto) {
+    return await this.userService.create(createUserDto);
+  }
 
-    @Post('verify-email')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({title: 'Verify Email',})
-    @ApiOkResponse({})
-    async verifyEmail(@Req() req: Request, @Body() verifyUuidDto: VerifyUuidDto) {
-        return await this.userService.verifyEmail(req, verifyUuidDto);
-    }
+  @Post("verify-email")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Verify Email" })
+  @ApiOkResponse({})
+  async verifyEmail(@Req() req: IRequest, @Body() verifyUuidDto: VerifyUuidDto) {
+    return await this.userService.verifyEmail(req, verifyUuidDto);
+  }
 
-    @Post('login')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({title: 'Login User',})
-    @ApiOkResponse({})
-    async login(@Req() req: Request, @Body() loginUserDto: LoginUserDto) {
-        return await this.userService.login(req, loginUserDto);
-    }
+  @Post("login")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Login User" })
+  @ApiOkResponse({})
+  async login(@Req() req: IRequest, @Body() loginUserDto: LoginUserDto) {
+    return await this.userService.login(req, loginUserDto);
+  }
 
-    @Post('refresh-access-token')
-    @HttpCode(HttpStatus.CREATED)
-    @ApiOperation({title: 'Refresh Access Token with refresh token',})
-    @ApiCreatedResponse({})
-    async refreshAccessToken(@Body() refreshAccessTokenDto: RefreshAccessTokenDto) {
-        return await this.userService.refreshAccessToken(refreshAccessTokenDto);
-    }
+  @Post("refresh-access-token")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Refresh Access Token with refresh token" })
+  @ApiCreatedResponse({})
+  async refreshAccessToken(
+    @Body() refreshAccessTokenDto: RefreshAccessTokenDto
+  ) {
+    return await this.userService.refreshAccessToken(refreshAccessTokenDto);
+  }
 
-    // @Post('forgot-password')
-    // @HttpCode(HttpStatus.OK)
-    // @ApiOperation({title: 'Forgot password',})
-    // @ApiOkResponse({})
-    // async forgotPassword(@Req() req: Request, @Body() createForgotPasswordDto: CreateForgotPasswordDto) {
-    //     return await this.userService.forgotPassword(req, createForgotPasswordDto);
-    // }
+  // @Post('forgot-password')
+  // @HttpCode(HttpStatus.OK)
+  // @ApiOperation({summary: 'Forgot password',})
+  // @ApiOkResponse({})
+  // async forgotPassword(@Req() req: Request, @Body() createForgotPasswordDto: CreateForgotPasswordDto) {
+  //     return await this.userService.forgotPassword(req, createForgotPasswordDto);
+  // }
 
-    @Post('forgot-password-verify')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({title: 'Verfiy forget password code',})
-    @ApiOkResponse({})
-    async forgotPasswordVerify(@Req() req: Request, @Body() verifyUuidDto: VerifyUuidDto) {
-        return await this.userService.forgotPasswordVerify(req, verifyUuidDto);
-    }
+  @Post("forgot-password-verify")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Verfiy forget password code" })
+  @ApiOkResponse({})
+  async forgotPasswordVerify(
+    @Req() req: IRequest,
+    @Body() verifyUuidDto: VerifyUuidDto
+  ) {
+    return await this.userService.forgotPasswordVerify(req, verifyUuidDto);
+  }
 
-    @Post('reset-password')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({title: 'Reset password after verify reset password',})
-    @ApiBearerAuth()
-    @ApiImplicitHeader({
-        name: 'Bearer',
-        description: 'the token we need for auth.'
-    })
-    @ApiOkResponse({})
-    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-        return await this.userService.resetPassword(resetPasswordDto);
-    }
+  @Post("reset-password")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Reset password after verify reset password" })
+  @ApiBearerAuth()
+  @ApiHeader({
+    name: "Bearer",
+    description: "the token we need for auth.",
+  })
+  @ApiOkResponse({})
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return await this.userService.resetPassword(resetPasswordDto);
+  }
 
-    @Get('data')
-    @UseGuards(AuthGuard('jwt'))
-    @Roles('admin')
-    @ApiOperation({title: 'A private route for check the auth',})
-    @ApiImplicitHeader({
-        name: 'Bearer',
-        description: 'the token we need for auth.'
-    })
-    @HttpCode(HttpStatus.OK)
-    @ApiOkResponse({})
-    findAll() {
-        return this.userService.findAll();
-    }
+  @Post("allUsers")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @ApiOperation({ summary: "Gets all users" })
+  @ApiHeader({
+    name: "Bearer",
+    description: "the token we need for auth.",
+  })
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({})
+  findAll(@Request() req: any, @Query("assigned") assigned: string) {
+    return this.userService.getAll(req.user, assigned);
+  }
+
+
+  @Post("many")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @ApiOperation({ summary: "Add users in bulk from excel file" })
+  @ApiHeader({
+    name: "Bearer",
+    description: "the token we need for auth.",
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'List of Users',
+    type: FileUploadDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({})
+  @UseInterceptors(FileInterceptor('file'))
+  add(@Request() req: any, @Query("assigned") assigned: string, @UploadedFile() file) {
+    return this.userService.insertMany(req.user.id, file.path);
+  }
 }

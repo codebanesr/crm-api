@@ -3,7 +3,7 @@ import { LeadService } from './lead.service';
 import { LeadController } from './lead.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { LeadSchema } from './schema/lead.schema';
-import { UserSchema } from 'src/user/schemas/user.schema';
+import { UserSchema } from '../user/schemas/user.schema';
 import { CampaignConfigSchema } from './schema/campaign-config.schema';
 import { EmailTemplateSchema } from './schema/email-templates.schema';
 import { CallLogSchema } from './schema/call-log.schema';

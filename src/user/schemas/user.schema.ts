@@ -56,6 +56,10 @@ export const UserSchema = new mongoose.Schema ({
       type: Date,
       default: Date.now,
     },
+    roleType: { type: String, required: true },
+    manages: [String],
+    history: {type: Array, default: null},
+    hierarchyWeight: Number,
 }, {
     versionKey: false,
     timestamps: true,

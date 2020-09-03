@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import {readFile} from "xlsx";
 import { renameJson, IConfig } from "./renameJson";
-
-
 /**
  * 
  * @param filePath String

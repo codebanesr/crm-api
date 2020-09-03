@@ -3,13 +3,19 @@ import { UserSchema } from './schemas/user.schema';
 import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
-import { AuthModule } from 'src/auth/auth.module';
+import { AuthModule } from '../auth/auth.module';
 import { ForgotPasswordSchema } from './schemas/forgot-password.schema';
+import { AdminActionSchema } from './schemas/admin-action.schema';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
     MongooseModule.forFeature([{ name: 'ForgotPassword', schema: ForgotPasswordSchema}]),
+    MongooseModule.forFeature([{ name: 'AdminAction', schema: AdminActionSchema}]),
+    MulterModule.register({
+      dest: '~/.upload',
+    }),
     AuthModule,
   ],
   controllers: [UserController],

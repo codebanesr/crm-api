@@ -13,4 +13,7 @@ export interface User extends Document {
     bankAccountNumber?: string;
     bankAccountName?: string;
     roleType: string;
+    manages: string[],
+    history: string[],
+    hierarchyWeight: number
 }

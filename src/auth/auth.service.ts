@@ -4,12 +4,13 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { sign } from 'jsonwebtoken';
-import { User } from 'src/user/interfaces/user.interface';
+import { User } from '../user/interfaces/user.interface';
 import { RefreshToken } from './interfaces/refresh-token.interface';
 import { v4 } from 'uuid';
-import { Request } from 'express';
 import { getClientIp } from 'request-ip';
 import * as Cryptr from 'cryptr';
+import { Role } from './interfaces/role.interface';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
     @InjectModel('RefreshToken') private readonly refreshTokenModel: Model<RefreshToken>,
+    @InjectModel('Role') private readonly roleModel: Model<Role>,
     private readonly jwtService: JwtService,
   ) {
     this.cryptr = new Cryptr(process.env.ENCRYPT_JWT_SECRET);
@@ -93,8 +95,6 @@ export class AuthService {
     return this.jwtExtractor;
   }
 
-
-
   getIp(req: any): string {
     return getClientIp(req);
   }
@@ -109,5 +109,13 @@ export class AuthService {
 
   encryptText(text: string): string {
     return this.cryptr.encrypt(text);
+  }
+
+  async getPermissionsArray(roleType: string) {
+    const result: any = await this.roleModel.findOne({value: roleType}, {permissions: 1}).lean().exec();
+    const permissions = result.permissions.map((permission: any)=>permission.value);
+
+
+    return permissions;
   }
 }

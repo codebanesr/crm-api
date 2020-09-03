@@ -4,14 +4,16 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserSchema } from 'src/user/schemas/user.schema';
+import { UserSchema } from '../user/schemas/user.schema';
 import { RefreshTokenSchema } from './schemas/refresh-token.schema';
+import { RoleSchema } from './schemas/role.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'RefreshToken', schema: RefreshTokenSchema },
+      { name: 'Role', schema: RoleSchema },
     ]),
     PassportModule,
     JwtModule.register({

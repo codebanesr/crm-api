@@ -10,17 +10,17 @@ import {
 } from "@nestjs/common";
 import {
   ApiOperation,
-  ApiUseTags
+  ApiTags
 } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
 
-@ApiUseTags('Lead')
+@ApiTags('Lead')
 @Controller("lead")
 export class LeadController {
   constructor(private readonly leadService: LeadService) {}
 
   @Post("findAll")
-  @ApiOperation({ title: "Fetches all lead for the given user" })
+  @ApiOperation({ summary: "Fetches all lead for the given user" })
   @HttpCode(HttpStatus.OK)
   findAll(@Body() body, @Request() req) {
     const {
