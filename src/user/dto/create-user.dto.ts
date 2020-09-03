@@ -23,6 +23,7 @@ export class CreateUserDto {
       description: 'The email of the User',
       format: 'email',
       uniqueItems: true,
+      
       minLength: 5,
       maxLength: 255,
     })

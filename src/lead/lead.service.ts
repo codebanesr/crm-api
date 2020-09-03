@@ -16,6 +16,8 @@ import { EmailTemplate } from "./interfaces/email-template.interface";
 import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
+import { CreateLeadDto } from "./dto/create-lead.dto";
+import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 
 @Injectable()
 export class LeadService {
@@ -39,7 +41,7 @@ export class LeadService {
     private readonly geoLocationModel: Model<GeoLocation>,
 
     @InjectModel("Alarm")
-    private readonly alarmModel: Model<Alarm>,
+    private readonly alarmModel: Model<Alarm>
   ) {}
 
   saveEmailAttachments(req: AuthReq, res: Response) {
@@ -51,7 +53,7 @@ export class LeadService {
     activeUserEmail: string,
     oldUserEmail: string,
     newUserEmail: string,
-    lead: Lead
+    lead: Partial<Lead>
   ) {
     try {
       const assigned = oldUserEmail ? "reassigned" : "assigned";
@@ -156,7 +158,7 @@ export class LeadService {
     }
   }
 
-  async getBasicOverview(req: Request, res: Response) {
+  async getBasicOverview() {
     const result = await this.leadModel.aggregate([
       { $group: { _id: "$leadStatus", count: { $sum: 1 } } },
     ]);
@@ -373,11 +375,9 @@ export class LeadService {
     return { files, result };
   }
 
-  async syncPhoneCalls(callLogs: any) {
+  async syncPhoneCalls(callLogs: SyncCallLogsDto) {
     try {
-      writeFileSync("callLogs.json", JSON.stringify(callLogs));
-      const result = await this.callLogModel.insertMany(callLogs);
-      return result;
+      return this.callLogModel.insertMany(callLogs);
     } catch (e) {
       Logger.error(
         "An error occured while syncing phone calls in leadService.ts",
@@ -403,7 +403,7 @@ export class LeadService {
 
   async getPerformance() {}
 
-  async updateLead(externalId: string, lead: Lead) {
+  async updateLead(externalId: string, lead: Partial<CreateLeadDto>) {
     let obj = {} as any;
     Object.keys(lead).forEach((key) => {
       if (!!lead[key]) {
@@ -546,4 +546,5 @@ export class LeadService {
       error.length
     );
   }
+
 }
