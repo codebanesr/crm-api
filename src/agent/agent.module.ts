@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AgentController } from './agent.controller';
 import { AgentService } from './agent.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AdminActionSchema } from 'dist/user/schemas/admin-action.schema';
+import { AdminActionSchema } from '../user/schemas/admin-action.schema';
 
 @Module({
   imports:[

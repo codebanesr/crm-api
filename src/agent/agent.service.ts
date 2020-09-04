@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
-import { AdminAction } from "dist/user/interfaces/admin-actions.interface";
 import { createReadStream } from "fs";
 import { Response } from "express";
+import { AdminAction } from "../user/interfaces/admin-actions.interface";
 
 @Injectable()
 export class AgentService {
