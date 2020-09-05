@@ -82,7 +82,6 @@ export class LeadService {
         .exec();
       return result;
     } catch (e) {
-      Logger.error("An error occured in reassign lead");
       return e.message;
     }
   }
@@ -123,7 +122,6 @@ export class LeadService {
     skip,
     campaign: string
   ) {
-    Logger.debug(limit + ", " + skip);
     const query = this.emailTemplateModel.aggregate();
     const result = await query
       .match({ campaign: { $regex: `^${campaign}`, $options: "I" } })
@@ -570,8 +568,6 @@ export class LeadService {
         _id: { leadStatus: "$leadStatus" },
         myCount: { $sum: 1 },
     });
-
-    Logger.debug(qb.pipeline())
     return qb.exec();
   }  
 

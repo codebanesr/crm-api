@@ -193,8 +193,6 @@ export class LeadController {
   ) {
     const { email: userEmail } = user;
     const { content, subject, campaign, attachments } = body;
-
-    Logger.debug(body);
     return this.leadService.createEmailTemplate(
       userEmail,
       content,
@@ -241,7 +239,6 @@ export class LeadController {
   saveEmailAttachments(
     @UploadedFiles() files
   ) {
-    Logger.debug({files});
     return this.leadService.saveEmailAttachments(files);
   }
 

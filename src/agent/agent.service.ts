@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { createReadStream } from "fs";
@@ -56,8 +56,7 @@ export class AgentService {
         $limit: 10,
       },
     ];
-    const result = await this.adminActionModel.aggregate(fq);
-    return result;
+    return this.adminActionModel.aggregate(fq);
   }
 
   async downloadFile(location: string, res: Response) {

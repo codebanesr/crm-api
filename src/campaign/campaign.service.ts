@@ -138,7 +138,6 @@ export class CampaignService {
 
   //   campaignId params
   async getDispositionForCampaign(campaignId: string) {
-    Logger.debug({campaignId})
     if (campaignId == "core") {
       return this.defaultDisposition();
     } else {
@@ -160,7 +159,6 @@ export class CampaignService {
   ) {
     dispositionData = JSON.parse(dispositionData);
     campaignInfo = JSON.parse(campaignInfo);
-
     const ccJSON = parseExcel(file.path);
 
     const campaign = await this.campaignModel.findOneAndUpdate(

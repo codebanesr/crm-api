@@ -14,12 +14,16 @@ import {
   ValidationPipe,
   CacheKey,
   CacheTTL,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiConsumes } from "@nestjs/swagger";
 import { CampaignService } from "./campaign.service";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { sortBy } from "lodash";
 import { FindCampaignsDto } from "./dto/find-campaigns.dto";
+import { AuthGuard } from "@nestjs/passport";
+import { CurrentUser } from "src/auth/decorators/current-user.decorator";
+import { User } from "src/user/interfaces/user.interface";
 
 @ApiTags("Campaign")
 @Controller("campaign")
@@ -75,17 +79,18 @@ export class CampaignController {
   }
 
   @Post("createCampaignAndDisposition")
-  @UseInterceptors(FileInterceptor("file"))
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(FileInterceptor("campaignFile"))
   @ApiOperation({
     summary: "Upload a campaign file and also send disposition data",
   })
   @HttpCode(HttpStatus.OK)
   createCampaignAndDisposition(
-    @Request() req,
+    @CurrentUser() currrentUser: User,
     @UploadedFile() file,
     @Body() body
   ) {
-    const { id: activeUserId } = req.user;
+    const { id: activeUserId } = currrentUser;
     const { dispositionData, campaignInfo } = body;
     return this.campaignService.createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo);
   }
