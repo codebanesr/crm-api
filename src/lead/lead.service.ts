@@ -18,6 +18,8 @@ import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
+import { Campaign } from "src/campaign/interfaces/campaign.interface";
+import { response } from "express";
 
 @Injectable()
 export class LeadService {
@@ -30,6 +32,9 @@ export class LeadService {
 
     @InjectModel("CampaignConfig")
     private readonly campaignConfigModel: Model<CampaignConfig>,
+
+    @InjectModel("Campaign")
+    private readonly campaignModel: Model<Campaign>,
 
     @InjectModel("EmailTemplate")
     private readonly emailTemplateModel: Model<EmailTemplate>,
@@ -114,16 +119,17 @@ export class LeadService {
 
   // const result = await Campaign.find({type: {$regex: "^"+hint, $options:"I"}}).limit(20);
   async getAllEmailTemplates(
-    limit: number = 10,
-    skip: number = 0,
+    limit,
+    skip,
     campaign: string
   ) {
+    Logger.debug(limit + ", " + skip);
     const query = this.emailTemplateModel.aggregate();
     const result = await query
       .match({ campaign: { $regex: `^${campaign}`, $options: "I" } })
       .sort("type")
-      .limit(limit)
-      .skip(skip)
+      .limit(+limit)
+      .skip(+skip)
       .exec();
 
     return result;
@@ -224,20 +230,27 @@ export class LeadService {
       { $sort: { [sortBy]: 1 } },
       { $skip: skip },
       { $limit: limit },
+      {
+        '$facet': {
+            metadata: [ { $count: "total" }, { $addFields: { page: Number(page) } } ],
+            data: [ { $skip: skip }, { $limit: limit } ] // add projection here wish you re-shape the docs
+        }
+      }
     ];
-    console.log(JSON.stringify(fq));
-    const leads = await this.leadModel.aggregate(fq);
-    return leads;
+    const response = await this.leadModel.aggregate(fq);
+    return {
+      total: response[0].metadata[0].total, 
+      page: response[0].metadata[0].page, 
+      data: response[0].data
+    };
   }
 
-  async getAllLeadColumns(campaignType: string = "core") {
+  async getLeadColumns(campaignType: string = "core") {
     const matchQ: any = { name: campaignType };
-
     const paths = await this.campaignConfigModel.aggregate([
       { $match: matchQ },
     ]);
-
-    return paths;
+    return {paths};
   }
 
   async insertOne(body: any, activeUserEmail: string) {
@@ -546,4 +559,49 @@ export class LeadService {
     );
   }
 
+  async leadActivityByUser(startDate: string, endDate: string, email: string) {
+    const updatedAtQuery = this.getUpdatedAtQuery(startDate as string, endDate as string);
+    const qb = this.leadModel.aggregate();
+    qb.match({
+        email,
+        ...updatedAtQuery
+    });
+    qb.group({
+        _id: { leadStatus: "$leadStatus" },
+        myCount: { $sum: 1 },
+    });
+
+    Logger.debug(qb.pipeline())
+    return qb.exec();
+  }  
+
+
+  async getUpdatedAtQuery(startDate: string, endDate: string) {
+    const uq = { "updatedAt": { "$gt": new Date("1000-01-01T00:00:00.000Z")  } };
+    if (startDate) {
+        uq.updatedAt["$gt"] = new Date(startDate);
+    }   
+
+    if (endDate) {
+        uq.updatedAt["$lt"] = new Date(endDate);
+    }
+    return uq;
+  } 
+
+
+  async fetchNextLead(campaignId: string, leadStatus: string, email:string) {
+    const campaign: any = await this.campaignModel.findOne({ _id: campaignId }).lean().exec();
+    const result = await this.leadModel.findOne(
+        {
+            campaign: campaign.campaignName,
+            leadStatus,
+            $or: [
+                { email: email },
+                {
+                    email: { $exists: false }
+                }
+            ]
+        }).sort({ _id: -1 }).lean().exec();
+    return {result}
+  } 
 }

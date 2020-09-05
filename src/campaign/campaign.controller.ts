@@ -10,6 +10,10 @@ import {
   Body,
   Param,
   Query,
+  UsePipes,
+  ValidationPipe,
+  CacheKey,
+  CacheTTL,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiConsumes } from "@nestjs/swagger";
 import { CampaignService } from "./campaign.service";
@@ -22,9 +26,10 @@ import { FindCampaignsDto } from "./dto/find-campaigns.dto";
 export class CampaignController {
   constructor(private campaignService: CampaignService) {}
 
-  @Get("")
+  @Post("get")
   @ApiOperation({ summary: "Fetches all lead for the given user" })
   @HttpCode(HttpStatus.OK)
+  // @UsePipes(new ValidationPipe({transform: true}))
   findAll(@Body() body: FindCampaignsDto) {
         const {filters, page, perPage, sortBy} = body;
       return this.campaignService.findAll(page, perPage, filters, sortBy)
@@ -64,8 +69,9 @@ export class CampaignController {
   @Get(":campaignId")
   @ApiOperation({ summary: "Get one campaign by id" })
   @HttpCode(HttpStatus.OK)
-  findOneById(@Param('campaignId') campaignId: string) {
-    return this.campaignService.findOneById(campaignId);
+  @CacheTTL(300)
+  findOneByIdOrName(@Param('campaignId') campaignId: string, @Query('identifier') identifier: string) {
+    return this.campaignService.findOneByIdOrName(campaignId, identifier);
   }
 
   @Post("createCampaignAndDisposition")

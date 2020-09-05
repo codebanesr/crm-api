@@ -13,7 +13,8 @@ import {
   Query,
   Request,
   UseInterceptors,
-  UploadedFile
+  UploadedFile,
+  Get
 } from "@nestjs/common";
 import { Request as IRequest } from 'express';
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -34,6 +35,9 @@ import {
 import { RolesGuard } from "../auth/guards/roles.guard";
 import {FileInterceptor} from "@nestjs/platform-express";
 import { FileUploadDto } from "./dto/fileUpload.dto";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { User } from "./interfaces/user.interface";
+import { FindAllDto } from "../lead/dto/find-all.dto";
 
 @ApiTags("User")
 @Controller("user")
@@ -110,9 +114,8 @@ export class UserController {
     return await this.userService.resetPassword(resetPasswordDto);
   }
 
-  @Post("allUsers")
+  @Get("allUsers")
   @UseGuards(AuthGuard("jwt"))
-  @Roles("admin")
   @ApiOperation({ summary: "Gets all users" })
   @ApiHeader({
     name: "Bearer",
@@ -120,14 +123,18 @@ export class UserController {
   })
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
-  findAll(@Request() req: any, @Query("assigned") assigned: string) {
-    return this.userService.getAll(req.user, assigned);
+  findAll(
+    @CurrentUser() user: User, 
+    @Query("assigned") assigned: string,
+    @Body() findAllDto: FindAllDto
+  ) {
+    return this.userService.getAll(user, assigned);
   }
 
 
   @Post("many")
   @UseGuards(AuthGuard("jwt"))
-  @Roles("admin")
+  @Roles("user")
   @ApiOperation({ summary: "Add users in bulk from excel file" })
   @ApiHeader({
     name: "Bearer",

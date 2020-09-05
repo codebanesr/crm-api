@@ -9,13 +9,13 @@ export class AttachmentDto {
         example: "somefilename"
     })
     @IsString()
-    fileName: string;
+    filename: string;
 
     @ApiProperty({
         example: "somefilepath"
     })
     @IsString()
-    filePath: string;
+    path: string;
 }
 
 export class CreateEmailTemplateDto {
@@ -39,11 +39,11 @@ export class CreateEmailTemplateDto {
 
     @ApiProperty({
         examples: [{
-            fileName: "somefilename",
-            filePath: "somefilepath"
+            filename: "somefilename",
+            path: "somefilepath"
         }, {
-            fileName: "somefilename",
-            filePath: "somefilepath"
+            filename: "somefilename",
+            path: "somefilepath"
         }]
     })
     @IsArray()
@@ -77,8 +77,8 @@ export class BulkEmailDto {
 
     @ApiProperty({
         example: {
-            fileName: "somefilename",
-            filePath: "somefilepath"            
+            filename: "somefilename",
+            path: "somefilepath"            
         }
     })
     @IsArray()

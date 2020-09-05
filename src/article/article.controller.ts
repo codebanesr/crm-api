@@ -44,12 +44,12 @@ export class ArticleController {
     @HttpCode(HttpStatus.CREATED)
     @UseGuards(AuthGuard('jwt'))
     @Roles('admin')
-     @ApiOperation({ summary:'Create one article',})
     @ApiBearerAuth()
     @ApiHeader({
         name: 'Bearer',
         description: 'the token we need for auth.'
     })
+    @ApiOperation({ summary:'Create one article',})
     @ApiCreatedResponse({})
     async createArticle(@Body() createArticleDto: CreateArticleDto) {
         return await this.articleService.createArticle(createArticleDto);

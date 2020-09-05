@@ -18,42 +18,65 @@ export class CampaignService {
     private readonly dispositionModel: Model<Disposition>
   ) {}
 
+
+  // sort by default handler
   async findAll(page, perPage, filters, sortBy) {
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
 
     const { createdBy, campaigns = [] } = filters;
 
+
     const matchQ = {} as any;
 
     matchQ.$and = [];
-    if (createdBy) {
-      matchQ.$and.push({ createdBy: createdBy });
+    if(createdBy) {
+        matchQ.$and.push({createdBy:createdBy});
     }
 
-    if (campaigns && campaigns.length > 0) {
-      matchQ.$and.push({ type: { $in: campaigns } });
+    if(campaigns && campaigns.length > 0) {
+        matchQ.$and.push({ type: { $in: campaigns } });
     }
 
     const fq = [
-      { $match: matchQ },
-      { $sort: { [sortBy]: 1 } },
-      { $skip: skip },
-      { $limit: limit },
+        { $match: matchQ },
+        { $sort: { [sortBy]: 1 } },
+        {
+            '$facet': {
+                metadata: [ { $count: "total" }, { $addFields: { page: Number(page) } } ],
+                data: [ { $skip: skip }, { $limit: limit } ] // add projection here wish you re-shape the docs
+            }
+        }
     ];
 
-    if (fq[0]["$match"]["$and"].length === 0) {
-      delete fq[0]["$match"]["$and"];
+    if(fq[0]["$match"]["$and"].length === 0) {
+        delete fq[0]["$match"]["$and"];
     }
     console.log(JSON.stringify(fq));
     const result = await this.campaignModel.aggregate(fq);
-    return result;
+    return { data: result[0].data, metadata: result[0].metadata[0] };
   }
 
   //   campaign id from params.campaignId
-  async findOneById(campaignId) {
-    return this.campaignModel.findById(campaignId);
+
+  async findOneByIdOrName(campaignId, identifier) {
+    let result;
+    switch (identifier) {
+      case "campaignName":
+        result = await this.campaignModel
+          .findOne({ campaignName: campaignId })
+          .lean()
+          .exec();
+        break;
+      default:
+        result = await this.campaignModel
+          .findById(campaignId)
+          .lean()
+          .exec();
+    }
+    return result;
   }
+
 
   async patch(campaignId, requestBody) {
     const updateOps: { [index: string]: any } = {};
@@ -89,10 +112,9 @@ export class CampaignService {
 
   //   @Query
   async getCampaignTypes(hint) {
-    const result = this.campaignModel
-      .find({ type: { $regex: "^" + hint, $options: "I" } })
+    return this.campaignModel
+      .find({ campaignName: { $regex: "^" + hint, $options: "I" } })
       .limit(20);
-    return result;
   }
 
   /** @Todo this has to be thought better */

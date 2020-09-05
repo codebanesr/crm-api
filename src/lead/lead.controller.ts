@@ -14,6 +14,8 @@ import {
   UseInterceptors,
   UploadedFiles,
   Patch,
+  UsePipes,
+  ValidationPipe,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
@@ -29,11 +31,26 @@ import {
 } from "./dto/create-email-template.dto";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { UploadMultipleFilesDto } from "./dto/generic.dto";
+import { AuthGuard } from "@nestjs/passport";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { User } from "../user/interfaces/user.interface";
 
 @ApiTags("Lead")
 @Controller("lead")
 export class LeadController {
   constructor(private readonly leadService: LeadService) {}
+
+  @Get("getAllLeadColumns")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Get lead by id",
+  })
+  getAllLeadColumns(@Query('campaignType') campaignType: string){
+
+    
+    return this.leadService.getLeadColumns(campaignType);
+  }
+
 
   @Post("")
   @ApiOperation({ summary: "Fetches all lead for the given user" })
@@ -43,6 +60,9 @@ export class LeadController {
   }
 
   @Post("findAll")
+  // enabled this feature globally in main.ts, not required now
+  // @UsePipes(new ValidationPipe({transform: true}))
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: "Fetches all lead for the given user" })
   @HttpCode(HttpStatus.OK)
   findAll(@Body() body: FindAllDto, @Request() req) {
@@ -89,15 +109,16 @@ export class LeadController {
   }
 
   @Post("reassignLead")
+  @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Adds users location emitted from the device" })
   @HttpCode(HttpStatus.OK)
   reassignLead(
     @Body() body: ReassignLeadDto,
-    @Request() req,
+    @CurrentUser() user: User,
     @Param("externalId") externalId: string
   ) {
     return this.leadService.reassignLead(
-      req.user.email,
+      user.email,
       body.oldUserEmail,
       body.newUserEmail,
       body.lead
@@ -127,6 +148,18 @@ export class LeadController {
     return this.leadService.getPerformance();
   }
 
+  @Get("suggest/:externalId")
+  @ApiOperation({ summary: "Get users performance" })
+  @HttpCode(HttpStatus.OK)
+  getLeadSuggestions(
+    @CurrentUser() user: User,
+    @Param('externalId') externalId: string,
+    @Query('page') page: number = 1,
+    @Query('perPage') perPage: number = 20
+  ) {
+    return this.leadService.suggestLeads(user.email, externalId);
+  }
+
   @Get("basicOverview")
   @ApiOperation({
     summary: "Get basic performance overviews for graphs, deprecated",
@@ -142,11 +175,11 @@ export class LeadController {
   })
   @HttpCode(HttpStatus.OK)
   getAllEmailTemplates(
-    @Query("limit") limit: number,
-    @Query("skip") skip: number,
+    @Query("limit") limit: number = 10,
+    @Query("skip") skip: number = 0,
     @Query("campaign") campaign: string
   ) {
-    return this.leadService.getAllEmailTemplates(limit, skip, campaign);
+    return this.leadService.getAllEmailTemplates(limit || 20, skip || 0 , campaign);
   }
 
   @Post("createEmailTemplate")
@@ -154,8 +187,11 @@ export class LeadController {
     summary: "Create an email template to be used by agents",
   })
   @HttpCode(HttpStatus.OK)
-  createEmailTemplate(@Request() req, @Body() body: CreateEmailTemplateDto) {
-    const { email: userEmail } = req.user;
+  @UseGuards(AuthGuard("jwt"))
+  createEmailTemplate(
+    @CurrentUser() user: User, @Body() body: CreateEmailTemplateDto
+  ) {
+    const { email: userEmail } = user;
     const { content, subject, campaign, attachments } = body;
 
     Logger.debug(body);
@@ -203,9 +239,9 @@ export class LeadController {
   @UseInterceptors(FilesInterceptor("files[]"))
   @HttpCode(HttpStatus.OK)
   saveEmailAttachments(
-    @Request() req,
     @UploadedFiles() files
   ) {
+    Logger.debug({files});
     return this.leadService.saveEmailAttachments(files);
   }
 
@@ -219,5 +255,36 @@ export class LeadController {
     @Param("leadId") leadId: string,
   ) {
     return this.leadService.findOneById(leadId);
+  }
+
+
+
+  @Get("activity/:email")
+  @ApiOperation({
+    summary: "Get lead by id",
+  })
+  @HttpCode(HttpStatus.OK)
+  leadActivityByUser(
+    @Param("email") email: string,
+    @Query("startDate") startDate: string,
+    @Query("endDate") endDate: string
+  ) {
+    return this.leadService.leadActivityByUser(startDate, endDate, email);
+  }
+
+
+  // router.get("/fetchNextLead/:campaignId/:leadStatus", passportConfig.authenticateJWT, leadController.fetchNextLead);
+
+  @Get("fetchNextLead/:campaignId/:leadStatus")
+  @ApiOperation({
+    summary: "Fetches next lead for telecaller operative, always returns one lead in that category, this has to be sorted by last updated at desc"
+  })
+  @HttpCode(HttpStatus.OK)
+  fetchNextLead(
+    @CurrentUser() user: User,
+    @Param('campaignId') campaignId: string,
+    @Param('leadStatus') leadStatus: string
+  ) {
+    return this.leadService.fetchNextLead(campaignId, leadStatus, user.email)
   }
 }

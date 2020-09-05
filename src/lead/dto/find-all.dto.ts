@@ -18,7 +18,7 @@ export class FindAllDto {
         default: 1
     })
     @IsNumber()
-    readonly page: number;
+    readonly page: number = 1;
       
 
     @ApiProperty({
@@ -28,17 +28,16 @@ export class FindAllDto {
         default: 15
     })
     @IsNumber()
-    readonly perPage: number;
+    readonly perPage: number=20;
 
 
     @ApiProperty({
         example: '15',
         description: 'The property you want to sort by',
         format: 'string',
-        default: 'createdAt'
     })
     @IsString()
-    readonly sortBy: string;
+    readonly sortBy: string = 'createdAt';
 
     @ApiProperty({
         example: ['email', 'leadStatus', 'name'],
@@ -47,19 +46,18 @@ export class FindAllDto {
         default: 'createdAt'
     })
     @IsArray()
-    readonly showCols: string[];
+    readonly showCols: string[] = [];
 
 
     @ApiProperty({
         example: 'sha'
     })
     @IsString()
-    readonly searchTerm: string;
+    readonly searchTerm: string = '';
 
 
     @ApiProperty({
         example: {}
     })
-    @IsJSON()
     readonly filters: JSON;
 }

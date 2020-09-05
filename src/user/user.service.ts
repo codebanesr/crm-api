@@ -68,15 +68,12 @@ export class UserService {
     this.isUserBlocked(user);
     await this.checkPassword(loginUserDto.password, user);
     await this.passwordsAreMatch(user);
-    const permissions = await this.authService.getPermissionsArray(
-      user.roleType
-    );
+
     return {
       fullName: user.fullName,
       email: user.email,
       accessToken: await this.authService.createAccessToken(user._id),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
-      permissions,
     };
   }
 
