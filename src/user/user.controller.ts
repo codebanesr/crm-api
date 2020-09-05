@@ -128,8 +128,28 @@ export class UserController {
     @Query("assigned") assigned: string,
     @Body() findAllDto: FindAllDto
   ) {
-    return this.userService.getAll(user, assigned);
+    return this.userService.getAll(user, assigned, findAllDto);
   }
+
+
+
+  @Get("managersForReassignment")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Gets all users" })
+  @ApiHeader({
+    name: "Bearer",
+    description: "the token we need for auth.",
+  })
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({})
+  managersForReassignment(
+    @CurrentUser() user: User, 
+    @Query("assigned") assigned: string,
+  ) {
+    return this.userService.managersForReassignment(user.manages);
+  }
+
+
 
 
   @Post("many")

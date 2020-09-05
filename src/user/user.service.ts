@@ -21,6 +21,8 @@ import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { Request } from "express";
 import parseExcel from "../utils/parseExcel";
 import { AdminAction } from "./interfaces/admin-actions.interface";
+import { FindAllDto } from "src/lead/dto/find-all.dto";
+import { find } from "lodash";
 
 @Injectable()
 export class UserService {
@@ -138,15 +140,18 @@ export class UserService {
   // ┌─┐┬─┐┌┬┐┌─┐┌─┐┌┬┐┌─┐┌┬┐  ┌─┐┌─┐┬─┐┬  ┬┬┌─┐┌─┐
   // ├─┘├┬┘ │ ├┤ │   │ ├┤  ││  └─┐├┤ ├┬┘└┐┌┘││  ├┤
   // ┴  ┴└─ ┴ └─┘└─┘ ┴ └─┘─┴┘  └─┘└─┘┴└─ └┘ ┴└─┘└─┘
-  async getAll(user: User, assigned: string): Promise<any> {
+  async getAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any> {
     // if(!assigned) {
     //     const users = await User.aggregate([
     //         { $match: { email: { $exists: false } } }
     //     ]);
     //     return res.status(200).send(users);
     // }
+    const {filters, page, perPage, searchTerm, showCols, sortBy} = findAllDto;
+    const skip = (page - 1) * perPage;
+
     const subordinates = await this.getSubordinates(user);
-    const users = await this.userModel.aggregate([
+    const result = await this.userModel.aggregate([
       { $match: { email: { $in: subordinates } } },
       {
         $lookup: {
@@ -157,9 +162,15 @@ export class UserService {
         },
       },
       { $unwind: "$managedBy" },
+      {
+        '$facet': {
+            metadata: [ { $count: "total" }, { $addFields: { page: Number(page) } } ],
+            users: [ { $skip: skip }, { $limit: perPage } ] // add projection here wish you re-shape the docs
+        }
+      }
     ]);
 
-    return users;
+    return {users: result[0].users, metadata: result[0].metadata[0]};
   }
 
   async getSubordinates(user: User): Promise<any> {
@@ -418,4 +429,14 @@ export class UserService {
         return 0;
     }
   }
+
+
+  async managersForReassignment (manages: string[]) {
+    return this.userModel.find({
+        $and: [
+            { email: { $in: manages } },
+            { roleType: { $ne: "frontline" } }
+        ]
+    }, { email: 1 }).lean().exec();
+  };
 }
