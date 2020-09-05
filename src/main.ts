@@ -7,6 +7,8 @@ import { warn } from 'console';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { LeadModule } from './lead/lead.module';
+import { CampaignModule } from './campaign/campaign.module';
+import { AgentModule } from './agent/agent.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -33,7 +35,9 @@ async function bootstrap() {
     include: [
       UserModule,
       ArticleModule,
-      LeadModule
+      LeadModule,
+      CampaignModule,
+      AgentModule
   ],
   });
   SwaggerModule.setup('api', app, document);
