@@ -39,7 +39,7 @@ export class CampaignController {
   @ApiOperation({ summary: "get disposition for campaign" })
   @HttpCode(HttpStatus.OK)
   getDispositionForCampaign(@Param('campaignId') campaignId: string) {
-    this.campaignService.getDispositionForCampaign(campaignId);
+    return this.campaignService.getDispositionForCampaign(campaignId);
   }
 
   @Get("autocomplete/suggestEmails")
