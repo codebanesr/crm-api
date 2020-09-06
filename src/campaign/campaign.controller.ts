@@ -22,8 +22,8 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { sortBy } from "lodash";
 import { FindCampaignsDto } from "./dto/find-campaigns.dto";
 import { AuthGuard } from "@nestjs/passport";
-import { CurrentUser } from "src/auth/decorators/current-user.decorator";
-import { User } from "src/user/interfaces/user.interface";
+import { CurrentUser } from "../auth/decorators/current-user.decorator";
+import { User } from "../user/interfaces/user.interface";
 
 @ApiTags("Campaign")
 @Controller("campaign")

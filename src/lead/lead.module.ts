@@ -9,7 +9,7 @@ import { EmailTemplateSchema } from "./schema/email-templates.schema";
 import { CallLogSchema } from "./schema/call-log.schema";
 import { GeoLocationSchema } from "./schema/geo-location.schema";
 import { AlarmSchema } from "./schema/alarm.schema";
-import { CampaignSchema } from "src/campaign/schema/campaign.schema";
+import { CampaignSchema } from "../campaign/schema/campaign.schema";
 import { MulterModule } from "@nestjs/platform-express";
 
 @Module({

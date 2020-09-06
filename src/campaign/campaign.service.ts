@@ -2,8 +2,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Campaign } from "./interfaces/campaign.interface";
-import { CampaignConfig } from "src/lead/interfaces/campaign-config.interface";
-import parseExcel from "src/utils/parseExcel";
+import { CampaignConfig } from "../lead/interfaces/campaign-config.interface";
+import parseExcel from "../utils/parseExcel";
 import { writeFile, utils } from "xlsx";
 import { Disposition } from "./interfaces/disposition.interface";
 
@@ -190,6 +190,9 @@ export class CampaignService {
     const error = [];
 
     for (const cc of ccJSON) {
+      if (cc.type === 'select') {
+        cc.options = cc.options.split(", ");
+      }
       const { lastErrorObject, value } = await this.campaignConfigModel
         .findOneAndUpdate(
           { name: others.schemaName, internalField: cc.internalField },

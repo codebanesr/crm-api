@@ -18,7 +18,7 @@ import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
-import { Campaign } from "src/campaign/interfaces/campaign.interface";
+import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { response } from "express";
 
 @Injectable()
@@ -244,11 +244,15 @@ export class LeadService {
   }
 
   async getLeadColumns(campaignType: string = "core") {
+    if (campaignType !== "core") {
+      const campaign: any = await this.campaignModel.findOne({ _id: Types.ObjectId(campaignType) }).lean().exec();
+      campaignType = campaign.campaignName;
+    }
     const matchQ: any = { name: campaignType };
-    const paths = await this.campaignConfigModel.aggregate([
-      { $match: matchQ },
-    ]);
-    return {paths};
+  
+    const paths = await this.campaignConfigModel.aggregate([{ $match: matchQ }]);
+  
+    return { paths: paths }; 
   }
 
   async insertOne(body: any, activeUserEmail: string) {

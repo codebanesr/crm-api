@@ -46,8 +46,6 @@ export class LeadController {
     summary: "Get lead by id",
   })
   getAllLeadColumns(@Query('campaignType') campaignType: string){
-
-    
     return this.leadService.getLeadColumns(campaignType);
   }
 
@@ -276,6 +274,7 @@ export class LeadController {
   @ApiOperation({
     summary: "Fetches next lead for telecaller operative, always returns one lead in that category, this has to be sorted by last updated at desc"
   })
+  @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
   fetchNextLead(
     @CurrentUser() user: User,

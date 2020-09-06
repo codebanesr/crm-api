@@ -21,8 +21,7 @@ import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { Request } from "express";
 import parseExcel from "../utils/parseExcel";
 import { AdminAction } from "./interfaces/admin-actions.interface";
-import { FindAllDto } from "src/lead/dto/find-all.dto";
-import { find } from "lodash";
+import { FindAllDto } from "../lead/dto/find-all.dto";
 
 @Injectable()
 export class UserService {

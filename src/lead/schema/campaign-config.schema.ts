@@ -5,5 +5,6 @@ export const CampaignConfigSchema = new Schema({
     internalField: String,
     readableField: String,
     type: String,
+    options: [String],
     checked: Boolean
 });

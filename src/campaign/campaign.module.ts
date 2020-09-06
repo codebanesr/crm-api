@@ -3,7 +3,7 @@ import { CampaignService } from "./campaign.service";
 import { CampaignController } from "./campaign.controller";
 import { MongooseModule } from "@nestjs/mongoose";
 import { CampaignSchema } from "./schema/campaign.schema";
-import { CampaignConfigSchema } from "src/lead/schema/campaign-config.schema";
+import { CampaignConfigSchema } from "../lead/schema/campaign-config.schema";
 import { DispositionSchema } from "./schema/disposition.schema";
 import { MulterModule } from "@nestjs/platform-express";
 
