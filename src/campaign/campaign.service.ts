@@ -137,12 +137,12 @@ export class CampaignService {
     }
   }
 
-  //   campaignId params
+
   async getDispositionForCampaign(campaignId: string) {
     if (campaignId == "core") {
       return this.defaultDisposition();
     } else {
-      return this.dispositionModel.findOne({ campaign: campaignId });
+      return this.dispositionModel.findOne({ campaign: campaignId }).sort({_id: 1});
     }
   }
 

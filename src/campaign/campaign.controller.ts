@@ -40,7 +40,7 @@ export class CampaignController {
   }
 
   @Get("disposition/:campaignId")
-  @ApiOperation({ summary: "get disposition for campaign" })
+  @ApiOperation({ summary: "Gets the latest version of disposition from all disposition trees added with campaign" })
   @HttpCode(HttpStatus.OK)
   getDispositionForCampaign(@Param('campaignId') campaignId: string) {
     return this.campaignService.getDispositionForCampaign(campaignId);
