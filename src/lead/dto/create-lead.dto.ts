@@ -1,5 +1,6 @@
-import { IsString, IsArray, IsEmail, IsNumber, IsDate, Max, Min, IsDateString } from "class-validator";
+import { IsString, IsArray, IsEmail, IsNumber, IsDate, Max, Min, IsDateString, IsOptional } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 
 export class CreateLeadDto {
   @ApiProperty({
@@ -65,6 +66,7 @@ export class CreateLeadDto {
     type: Number,
     default: 0,
   })
+  @Type(() => Number)
   amount: number;
 
 
@@ -176,6 +178,7 @@ export class CreateLeadDto {
     default: "Buck0",
   })
   @IsString()
+  @IsOptional()
   bucket: string;
 
 
@@ -186,6 +189,7 @@ export class CreateLeadDto {
     default: "NPC",
   })
   @IsString()
+  @IsOptional()
   operationalArea: string;
 
 
@@ -196,5 +200,6 @@ export class CreateLeadDto {
     default: "-",
   })
   @IsNumber()
+  @IsOptional()
   pincode: number;
 }

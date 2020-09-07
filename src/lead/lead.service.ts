@@ -20,6 +20,7 @@ import { CreateLeadDto } from "./dto/create-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { response } from "express";
+import { FiltersDto } from "./dto/find-all.dto";
 
 @Injectable()
 export class LeadService {
@@ -117,11 +118,7 @@ export class LeadService {
   }
 
   // const result = await Campaign.find({type: {$regex: "^"+hint, $options:"I"}}).limit(20);
-  async getAllEmailTemplates(
-    limit,
-    skip,
-    campaign: string
-  ) {
+  async getAllEmailTemplates(limit, skip, campaign: string) {
     const query = this.emailTemplateModel.aggregate();
     const result = await query
       .match({ campaign: { $regex: `^${campaign}`, $options: "I" } })
@@ -176,14 +173,20 @@ export class LeadService {
     sortBy = "createdAt",
     showCols: string[],
     searchTerm: string,
-    filters: any,
+    filters: FiltersDto,
     activeUserEmail: string,
     roleType: string
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
 
-    const { assigned, archived, lead, ticket } = filters;
+    const {
+      assigned,
+      selectedCampaign,
+      dateRange,
+    } = filters;
+
+    const [startDate, endDate] = dateRange || [];
     const matchQ = { $and: [] } as any;
     if (assigned) {
       const subordinateEmails = await this.getSubordinates(
@@ -195,6 +198,22 @@ export class LeadService {
       });
     } else {
       matchQ.$and.push({ email: { $exists: false } });
+    }
+
+    if (startDate) {
+      matchQ.$and.push({
+        createdAt: { $gt: new Date(startDate) },
+      });
+    }
+
+    if (endDate) {
+      matchQ.$and.push({
+        createdAt: { $lt: new Date(endDate) },
+      });
+    }
+
+    if(selectedCampaign) {
+      matchQ["$and"].push({ campaign: selectedCampaign });
     }
 
     if (searchTerm) {
@@ -226,33 +245,39 @@ export class LeadService {
         $project: projectQ,
       },
       { $sort: { [sortBy]: 1 } },
-      { $skip: skip },
-      { $limit: limit },
       {
-        '$facet': {
-            metadata: [ { $count: "total" }, { $addFields: { page: Number(page) } } ],
-            data: [ { $skip: skip }, { $limit: limit } ] // add projection here wish you re-shape the docs
-        }
-      }
+        $facet: {
+          metadata: [
+            { $count: "total" },
+            { $addFields: { page: Number(page) } },
+          ],
+          data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
+        },
+      },
     ];
     const response = await this.leadModel.aggregate(fq);
     return {
-      total: response[0].metadata[0].total, 
-      page: response[0].metadata[0].page, 
-      data: response[0].data
+      total: response[0]?.metadata[0]?.total,
+      page: response[0]?.metadata[0]?.page,
+      data: response[0]?.data,
     };
   }
 
   async getLeadColumns(campaignType: string = "core") {
     if (campaignType !== "core") {
-      const campaign: any = await this.campaignModel.findOne({ _id: Types.ObjectId(campaignType) }).lean().exec();
+      const campaign: any = await this.campaignModel
+        .findOne({ _id: Types.ObjectId(campaignType) })
+        .lean()
+        .exec();
       campaignType = campaign.campaignName;
     }
     const matchQ: any = { name: campaignType };
-  
-    const paths = await this.campaignConfigModel.aggregate([{ $match: matchQ }]);
-  
-    return { paths: paths }; 
+
+    const paths = await this.campaignConfigModel.aggregate([
+      { $match: matchQ },
+    ]);
+
+    return { paths: paths };
   }
 
   async insertOne(body: any, activeUserEmail: string) {
@@ -562,46 +587,53 @@ export class LeadService {
   }
 
   async leadActivityByUser(startDate: string, endDate: string, email: string) {
-    const updatedAtQuery = this.getUpdatedAtQuery(startDate as string, endDate as string);
+    const updatedAtQuery = this.getUpdatedAtQuery(
+      startDate as string,
+      endDate as string
+    );
     const qb = this.leadModel.aggregate();
     qb.match({
-        email,
-        ...updatedAtQuery
+      email,
+      ...updatedAtQuery,
     });
     qb.group({
-        _id: { leadStatus: "$leadStatus" },
-        myCount: { $sum: 1 },
+      _id: { leadStatus: "$leadStatus" },
+      myCount: { $sum: 1 },
     });
     return qb.exec();
-  }  
-
+  }
 
   async getUpdatedAtQuery(startDate: string, endDate: string) {
-    const uq = { "updatedAt": { "$gt": new Date("1000-01-01T00:00:00.000Z")  } };
+    const uq = { updatedAt: { $gt: new Date("1000-01-01T00:00:00.000Z") } };
     if (startDate) {
-        uq.updatedAt["$gt"] = new Date(startDate);
-    }   
+      uq.updatedAt["$gt"] = new Date(startDate);
+    }
 
     if (endDate) {
-        uq.updatedAt["$lt"] = new Date(endDate);
+      uq.updatedAt["$lt"] = new Date(endDate);
     }
     return uq;
-  } 
+  }
 
-
-  async fetchNextLead(campaignId: string, leadStatus: string, email:string) {
-    const campaign: any = await this.campaignModel.findOne({ _id: campaignId }).lean().exec();
-    const result = await this.leadModel.findOne(
-        {
-            campaign: campaign.campaignName,
-            leadStatus,
-            $or: [
-                { email: email },
-                {
-                    email: { $exists: false }
-                }
-            ]
-        }).sort({ _id: -1 }).lean().exec();
-    return {result}
-  } 
+  async fetchNextLead(campaignId: string, leadStatus: string, email: string) {
+    const campaign: any = await this.campaignModel
+      .findOne({ _id: campaignId })
+      .lean()
+      .exec();
+    const result = await this.leadModel
+      .findOne({
+        campaign: campaign.campaignName,
+        leadStatus,
+        $or: [
+          { email: email },
+          {
+            email: { $exists: false },
+          },
+        ],
+      })
+      .sort({ _id: -1 })
+      .lean()
+      .exec();
+    return { result };
+  }
 }

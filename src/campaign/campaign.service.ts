@@ -65,6 +65,7 @@ export class CampaignService {
       case "campaignName":
         result = await this.campaignModel
           .findOne({ campaignName: campaignId })
+          .sort({updatedAt: -1})
           .lean()
           .exec();
         break;

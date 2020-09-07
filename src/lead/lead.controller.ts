@@ -148,6 +148,7 @@ export class LeadController {
 
   @Get("suggest/:externalId")
   @ApiOperation({ summary: "Get users performance" })
+  @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
   getLeadSuggestions(
     @CurrentUser() user: User,

@@ -8,7 +8,25 @@
 //   } = body;
 
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsString, IsArray, IsJSON } from "class-validator";
+import { IsNumber, IsString, IsArray, IsJSON, IsBoolean, IsDateString, IsEmail, ValidateNested } from "class-validator";
+
+
+
+export class FiltersDto {
+    @IsBoolean()
+    archived: false;
+
+    @IsBoolean()
+    assigned: true;
+
+    @IsArray()
+    dateRange: string[] = [];
+
+    @IsString()
+    selectedCampaign: string = undefined;
+
+}
+
 
 export class FindAllDto {
     @ApiProperty({
@@ -57,7 +75,14 @@ export class FindAllDto {
 
 
     @ApiProperty({
-        example: {}
+        example: {
+            archived: false,
+            assigned: true,
+            dateRange: null,
+            handlerEmail: "seniormanager@gmail.com",
+            moduleTypes: null,
+        }
     })
-    readonly filters: JSON;
+    readonly filters?: FiltersDto
 }
+

@@ -6,6 +6,7 @@ import {
   BadRequestException,
   NotFoundException,
   ConflictException,
+  Logger,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
@@ -151,6 +152,7 @@ export class UserService {
 
     const subordinates = await this.getSubordinates(user);
     const result = await this.userModel.aggregate([
+      // removing subordinates because even telecaller can assign leads to managers
       { $match: { email: { $in: subordinates } } },
       {
         $lookup: {
