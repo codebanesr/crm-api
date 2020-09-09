@@ -14,7 +14,7 @@ import { MulterModule } from '@nestjs/platform-express';
     MongooseModule.forFeature([{ name: 'ForgotPassword', schema: ForgotPasswordSchema}]),
     MongooseModule.forFeature([{ name: 'AdminAction', schema: AdminActionSchema}]),
     MulterModule.register({
-      dest: '~/.upload',
+      dest: '~/.upload/users',
     }),
     AuthModule,
   ],

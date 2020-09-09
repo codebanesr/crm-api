@@ -32,9 +32,11 @@ export class UserService {
 
   constructor(
     @InjectModel("User") private readonly userModel: Model<User>,
-    @InjectModel("ForgotPassword") private readonly forgotPasswordModel: Model<ForgotPassword>,
-    @InjectModel("AdminAction") private readonly adminAction: Model<AdminAction>,
-    private readonly authService: AuthService,
+    @InjectModel("ForgotPassword")
+    private readonly forgotPasswordModel: Model<ForgotPassword>,
+    @InjectModel("AdminAction")
+    private readonly adminAction: Model<AdminAction>,
+    private readonly authService: AuthService
   ) {}
 
   // ┌─┐┬─┐┌─┐┌─┐┌┬┐┌─┐  ┬ ┬┌─┐┌─┐┬─┐
@@ -140,14 +142,18 @@ export class UserService {
   // ┌─┐┬─┐┌┬┐┌─┐┌─┐┌┬┐┌─┐┌┬┐  ┌─┐┌─┐┬─┐┬  ┬┬┌─┐┌─┐
   // ├─┘├┬┘ │ ├┤ │   │ ├┤  ││  └─┐├┤ ├┬┘└┐┌┘││  ├┤
   // ┴  ┴└─ ┴ └─┘└─┘ ┴ └─┘─┴┘  └─┘└─┘┴└─ └┘ ┴└─┘└─┘
-  async getAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any> {
+  async getAll(
+    user: User,
+    assigned: string,
+    findAllDto: FindAllDto
+  ): Promise<any> {
     // if(!assigned) {
     //     const users = await User.aggregate([
     //         { $match: { email: { $exists: false } } }
     //     ]);
     //     return res.status(200).send(users);
     // }
-    const {filters, page, perPage, searchTerm, showCols, sortBy} = findAllDto;
+    const { filters, page, perPage, searchTerm, showCols, sortBy } = findAllDto;
     const skip = (page - 1) * perPage;
 
     const subordinates = await this.getSubordinates(user);
@@ -164,14 +170,17 @@ export class UserService {
       },
       { $unwind: "$managedBy" },
       {
-        '$facet': {
-            metadata: [ { $count: "total" }, { $addFields: { page: Number(page) } } ],
-            users: [ { $skip: skip }, { $limit: perPage } ] // add projection here wish you re-shape the docs
-        }
-      }
+        $facet: {
+          metadata: [
+            { $count: "total" },
+            { $addFields: { page: Number(page) } },
+          ],
+          users: [{ $skip: skip }, { $limit: perPage }], // add projection here wish you re-shape the docs
+        },
+      },
     ]);
 
-    return {users: result[0].users, metadata: result[0].metadata[0]};
+    return { users: result[0].users, metadata: result[0].metadata[0] };
   }
 
   async getSubordinates(user: User): Promise<any> {
@@ -389,26 +398,20 @@ export class UserService {
       u.hierarchyWeight = this.assignHierarchyWeight(u);
       u.email = u.email.toLocaleLowerCase();
 
-      this.userModel.findOne({ email: u.email }, (err, existingUser) => {
-        if (err) {
-          const errorMessage = err.message;
-          erroredUsers.push({ ...u, errorMessage });
-        }
-        if (existingUser) {
-          const errorMessage =
-            "Account with that email address already exists.";
-          erroredUsers.push({ ...existingUser, errorMessage });
-        }
+      let user = await this.userModel.findOne({ email: u.email });
+      let errorMessage = "";
+      if (user) {
+        errorMessage = "Account with that email address already exists.";
+        erroredUsers.push({ ...u, errorMessage });
+        continue;
+      }
 
-        const user = new this.userModel(u);
-        user.save((err) => {
-          if (err) {
-            console.log(err);
-            const errorMessage = err.message;
-            erroredUsers.push({ ...u, errorMessage });
-          }
-        });
-      });
+      try {
+        user = new this.userModel(u);
+      }catch(e) {
+        erroredUsers.push({...u, errorMessage})
+      }
+      
     }
   }
 
@@ -431,13 +434,18 @@ export class UserService {
     }
   }
 
-
-  async managersForReassignment (manages: string[]) {
-    return this.userModel.find({
-        $and: [
+  async managersForReassignment(manages: string[]) {
+    return this.userModel
+      .find(
+        {
+          $and: [
             { email: { $in: manages } },
-            { roleType: { $ne: "frontline" } }
-        ]
-    }, { email: 1 }).lean().exec();
-  };
+            { roleType: { $ne: "frontline" } },
+          ],
+        },
+        { email: 1 }
+      )
+      .lean()
+      .exec();
+  }
 }
