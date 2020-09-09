@@ -23,6 +23,8 @@ import { Request } from "express";
 import parseExcel from "../utils/parseExcel";
 import { AdminAction } from "./interfaces/admin-actions.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
+import { writeFile, utils } from "xlsx";
+import { join } from "path";
 
 @Injectable()
 export class UserService {
@@ -386,6 +388,7 @@ export class UserService {
       fileType: "agentBulk",
     });
 
+
     await this.addNewUsers(jsonRes); //this will send uploaded path to the worker, or aws s3 location
     return adminActions.save();
   }
@@ -408,11 +411,13 @@ export class UserService {
 
       try {
         user = new this.userModel(u);
-      }catch(e) {
-        erroredUsers.push({...u, errorMessage})
+        await user.save();
+      } catch (e) {
+        erroredUsers.push({ ...u, errorMessage });
       }
-      
     }
+
+    this.saveToExcel(erroredUsers);
   }
 
   private parseManages(user: any) {
@@ -447,5 +452,18 @@ export class UserService {
       )
       .lean()
       .exec();
+  }
+
+  saveToExcel(json) {
+    const filename = `users.xlsx`;
+    const filePath = join(__dirname, '..', '..', "uploads", filename);
+    const created_ws = utils.json_to_sheet(json);
+
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, created_ws, filename);
+
+    writeFile(wb, filePath);
+
+    return filePath;
   }
 }
