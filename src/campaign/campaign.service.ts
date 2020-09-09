@@ -235,7 +235,7 @@ export class CampaignService {
     utils.book_append_sheet(wb, created_ws, "tickets created");
 
     const filename = `campaignSchema.xlsx`;
-    const filePath = join(__dirname, '..', '..', "crm_response", filename);
+    const filePath = join(__dirname,'..', '..', "crm_response", filename);
     
     writeFile(wb, filename);
     return filePath;
