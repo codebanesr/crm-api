@@ -6,6 +6,8 @@ import { CampaignConfig } from "../lead/interfaces/campaign-config.interface";
 import parseExcel from "../utils/parseExcel";
 import { writeFile, utils } from "xlsx";
 import { Disposition } from "./interfaces/disposition.interface";
+import { join } from "path";
+import { AdminAction } from "../agent/interface/admin-actions.interface";
 
 @Injectable()
 export class CampaignService {
@@ -15,7 +17,10 @@ export class CampaignService {
     @InjectModel("CampaignConfig")
     private readonly campaignConfigModel: Model<CampaignConfig>,
     @InjectModel("Disposition")
-    private readonly dispositionModel: Model<Disposition>
+    private readonly dispositionModel: Model<Disposition>,
+
+    @InjectModel("AdminAction")
+    private readonly adminActionModel: Model<AdminAction>,
   ) {}
 
 
@@ -168,10 +173,20 @@ export class CampaignService {
       { new: true, upsert: true, rawResult: true }
     );
 
-    const campaignResult = await this.saveCampaignSchema(ccJSON, {
+    const filePath = await this.saveCampaignSchema(ccJSON, {
       schemaName: campaignInfo.campaignName,
     });
 
+
+    const adminActions = new this.adminActionModel({
+      userid: activeUserId,
+      actionType: "error",
+      filePath,
+      savedOn: "disk",
+      fileType: "campaignConfig"
+    });
+
+    adminActions.save();
     let disposition = new this.dispositionModel({
       options: dispositionData,
       campaign: campaign.value.id,
@@ -181,7 +196,7 @@ export class CampaignService {
     return {
       campaign: campaign.value,
       disposition,
-      campaignResult,
+      filePath,
     };
   }
 
@@ -219,14 +234,10 @@ export class CampaignService {
     utils.book_append_sheet(wb, updated_ws, "tickets updated");
     utils.book_append_sheet(wb, created_ws, "tickets created");
 
-    writeFile(wb, "sheetjs.xlsx");
-    console.log(
-      "created: ",
-      created.length,
-      "updated: ",
-      updated.length,
-      "error:",
-      error.length
-    );
+    const filename = `campaignSchema.xlsx`;
+    const filePath = join(__dirname, '..', '..', "crm_response", filename);
+    
+    writeFile(wb, filename);
+    return filePath;
   }
 }

@@ -37,7 +37,7 @@ export class UserService {
     @InjectModel("ForgotPassword")
     private readonly forgotPasswordModel: Model<ForgotPassword>,
     @InjectModel("AdminAction")
-    private readonly adminAction: Model<AdminAction>,
+    private readonly adminActionModel: Model<AdminAction>,
     private readonly authService: AuthService
   ) {}
 
@@ -382,23 +382,23 @@ export class UserService {
 
     const userid = Types.ObjectId(activeUserId);
     // this path comes from multer and is where the original file is stored
-    let adminActions = new this.adminAction({
+    let adminActions = new this.adminActionModel({
       userid,
       actionType: "upload",
       filePath,
       savedOn: "disk",
-      fileType: "agentBulk",
+      fileType: "usersBulk",
     });
 
     await adminActions.save();
     // this will contain the file with errors 
     filePath = await this.addNewUsers(jsonRes); //this will send uploaded path to the worker, or aws s3 location
-    adminActions = new this.adminAction({
+    adminActions = new this.adminActionModel({
       userid,
       actionType: "error",
       filePath,
       savedOn: "disk",
-      fileType: "agentBulk"
+      fileType: "usersBulk"
     });
     
     return adminActions.save();
