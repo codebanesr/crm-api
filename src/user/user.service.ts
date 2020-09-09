@@ -380,20 +380,36 @@ export class UserService {
   async insertMany(activeUserId: string, filePath: string) {
     const jsonRes = parseExcel(filePath);
 
-    const adminActions = new this.adminAction({
-      userid: Types.ObjectId(activeUserId),
+    const userid = Types.ObjectId(activeUserId);
+    // this path comes from multer and is where the original file is stored
+    let adminActions = new this.adminAction({
+      userid,
       actionType: "upload",
-      filePath: filePath,
+      filePath,
       savedOn: "disk",
       fileType: "agentBulk",
     });
 
-
-    await this.addNewUsers(jsonRes); //this will send uploaded path to the worker, or aws s3 location
+    await adminActions.save();
+    // this will contain the file with errors 
+    filePath = await this.addNewUsers(jsonRes); //this will send uploaded path to the worker, or aws s3 location
+    adminActions = new this.adminAction({
+      userid,
+      actionType: "error",
+      filePath,
+      savedOn: "disk",
+      fileType: "agentBulk"
+    });
+    
     return adminActions.save();
   }
 
-  async addNewUsers(users: User[]) {
+
+  /** 
+   * this function first splits up users so that they can be stored in the users collection and then transforms them back 
+   * to their original value so that they can be written in json
+  */
+  async addNewUsers(users: User[]): Promise<string> {
     const erroredUsers: any = [];
     for (const u of users) {
       /** check all users in the manages section exist, even if they dont it won't cause any trouble though */
@@ -405,7 +421,7 @@ export class UserService {
       let errorMessage = "";
       if (user) {
         errorMessage = "Account with that email address already exists.";
-        erroredUsers.push({ ...u, errorMessage });
+        erroredUsers.push({ ...this.withManages(u), errorMessage });
         continue;
       }
 
@@ -413,11 +429,18 @@ export class UserService {
         user = new this.userModel(u);
         await user.save();
       } catch (e) {
-        erroredUsers.push({ ...u, errorMessage });
+        erroredUsers.push({ ...this.withManages(u), errorMessage });
       }
     }
 
-    this.saveToExcel(erroredUsers);
+    return this.saveToExcel(erroredUsers);
+    
+  }
+
+
+  private withManages(u) {
+    u.manages = u.manages.join(",")
+    return u;
   }
 
   private parseManages(user: any) {
@@ -456,7 +479,7 @@ export class UserService {
 
   saveToExcel(json) {
     const filename = `users.xlsx`;
-    const filePath = join(__dirname, '..', '..', "uploads", filename);
+    const filePath = join(__dirname, '..', '..', "crm_response", filename);
     const created_ws = utils.json_to_sheet(json);
 
     const wb = utils.book_new();
