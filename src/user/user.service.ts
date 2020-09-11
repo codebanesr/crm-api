@@ -7,6 +7,7 @@ import {
   NotFoundException,
   ConflictException,
   Logger,
+  HttpException, HttpStatus
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
@@ -25,6 +26,9 @@ import { AdminAction } from "./interfaces/admin-actions.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { writeFile, utils } from "xlsx";
 import { join } from "path";
+import { default as config } from "../config";
+import { createTransport } from "nodemailer";
+import { getForgotPasswordTemplate } from "src/utils/forgot-password-template";
 
 @Injectable()
 export class UserService {
@@ -107,7 +111,10 @@ export class UserService {
     createForgotPasswordDto: CreateForgotPasswordDto
   ) {
     await this.findByEmail(createForgotPasswordDto.email);
-    await this.saveForgotPassword(req, createForgotPasswordDto);
+    const verificationToken = await this.saveForgotPassword(req, createForgotPasswordDto);
+
+    // can keep it async
+    await this.sendEmailForgotPassword(createForgotPasswordDto.email, verificationToken);
     return {
       email: createForgotPasswordDto.email,
       message: "verification sent.",
@@ -311,15 +318,17 @@ export class UserService {
     req: Request,
     createForgotPasswordDto: CreateForgotPasswordDto
   ) {
+    const verificationToken = v4();
     const forgotPassword = await new this.forgotPasswordModel({
       country: this.authService.getCountry(req),
       email: createForgotPasswordDto.email,
-      verification: v4(),
+      verification: verificationToken,
       ip: this.authService.getIp(req),
       browser: this.authService.getBrowserInfo(req),
       expires: addHours(new Date(), this.HOURS_TO_VERIFY),
     });
     await forgotPassword.save();
+    return verificationToken;
   }
 
   private async findForgotPasswordByUuid(
@@ -485,6 +494,58 @@ export class UserService {
     writeFile(wb, filePath);
 
     return filePath;
+  }
+
+  async sendEmailForgotPassword(email: string, token): Promise<boolean> {
+    var userFromDb = await this.userModel.findOne({ email: email });
+    if (!userFromDb)
+      throw new HttpException("LOGIN.USER_NOT_FOUND", HttpStatus.NOT_FOUND);
+
+    if (token) {
+      let transporter = createTransport({
+        service: "Mailgun",
+        auth: {
+          user: config.mail.user,
+          pass: config.mail.pass,
+        },
+      });
+
+
+
+      // "Hi! <br><br> If you requested to reset your password<br><br>" +
+      // "<a href=" +
+      // config.host.url +
+      // ":" +
+      // config.host.port +
+      // "/auth/email/reset-password/" +
+      // token +
+      // ">Click here</a>", // html body
+      let mailOptions = {
+        from: '"Company" <' + config.mail.user + ">",
+        to: [email], // list of receivers (separated by ,)
+        subject: "Frogotten Password",
+        text: "Forgot Password",
+        html: getForgotPasswordTemplate(config.host.url, config.host.port, token)
+      };
+
+      var sended = await new Promise<boolean>(async function(resolve, reject) {
+        return await transporter.sendMail(mailOptions, async (error, info) => {
+          if (error) {
+            console.log("Message sent: %s", error);
+            return reject(false);
+          }
+          console.log("Message sent: %s", info.messageId);
+          resolve(true);
+        });
+      });
+
+      return sended;
+    } else {
+      throw new HttpException(
+        "REGISTER.USER_NOT_REGISTERED",
+        HttpStatus.FORBIDDEN
+      );
+    }
   }
 
   async getAllUsersHack() {
