@@ -38,6 +38,7 @@ import { FileUploadDto } from "./dto/fileUpload.dto";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "./interfaces/user.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
+import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 
 @ApiTags("User")
 @Controller("user")
@@ -55,6 +56,14 @@ export class UserController {
   async register(@Body() createUserDto: CreateUserDto) {
     return await this.userService.create(createUserDto);
   }
+
+
+  @Get()
+  @ApiOperation({ summary: "Get users hack" })
+  async getAllUsersHack() {
+    return await this.userService.getAllUsersHack();
+  }
+
 
   @Post("verify-email")
   @HttpCode(HttpStatus.OK)
@@ -82,13 +91,13 @@ export class UserController {
     return await this.userService.refreshAccessToken(refreshAccessTokenDto);
   }
 
-  // @Post('forgot-password')
-  // @HttpCode(HttpStatus.OK)
-  // @ApiOperation({summary: 'Forgot password',})
-  // @ApiOkResponse({})
-  // async forgotPassword(@Req() req: Request, @Body() createForgotPasswordDto: CreateForgotPasswordDto) {
-  //     return await this.userService.forgotPassword(req, createForgotPasswordDto);
-  // }
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({summary: 'Forgot password',})
+  @ApiOkResponse({})
+  async forgotPassword(@Req() req: IRequest, @Body() createForgotPasswordDto: CreateForgotPasswordDto) {
+      return await this.userService.forgotPassword(req, createForgotPasswordDto);
+  }
 
   @Post("forgot-password-verify")
   @HttpCode(HttpStatus.OK)
@@ -130,8 +139,6 @@ export class UserController {
   ) {
     return this.userService.getAll(user, assigned, findAllDto);
   }
-
-
 
   @Get("managersForReassignment")
   @UseGuards(AuthGuard("jwt"))

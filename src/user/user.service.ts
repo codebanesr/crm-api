@@ -391,24 +391,23 @@ export class UserService {
     });
 
     await adminActions.save();
-    // this will contain the file with errors 
+    // this will contain the file with errors
     filePath = await this.addNewUsers(jsonRes); //this will send uploaded path to the worker, or aws s3 location
     adminActions = new this.adminActionModel({
       userid,
       actionType: "error",
       filePath,
       savedOn: "disk",
-      fileType: "usersBulk"
+      fileType: "usersBulk",
     });
-    
+
     return adminActions.save();
   }
 
-
-  /** 
-   * this function first splits up users so that they can be stored in the users collection and then transforms them back 
+  /**
+   * this function first splits up users so that they can be stored in the users collection and then transforms them back
    * to their original value so that they can be written in json
-  */
+   */
   async addNewUsers(users: User[]): Promise<string> {
     const erroredUsers: any = [];
     for (const u of users) {
@@ -434,12 +433,10 @@ export class UserService {
     }
 
     return this.saveToExcel(erroredUsers);
-    
   }
 
-
   private withManages(u) {
-    u.manages = u.manages.join(",")
+    u.manages = u.manages.join(",");
     return u;
   }
 
@@ -479,7 +476,7 @@ export class UserService {
 
   saveToExcel(json) {
     const filename = `users.xlsx`;
-    const filePath = join(__dirname, '..', '..', "crm_response", filename);
+    const filePath = join(__dirname, "..", "..", "crm_response", filename);
     const created_ws = utils.json_to_sheet(json);
 
     const wb = utils.book_new();
@@ -488,5 +485,30 @@ export class UserService {
     writeFile(wb, filePath);
 
     return filePath;
+  }
+
+  async getAllUsersHack() {
+    const page = 1,
+      perPage = 20,
+      skip = 0;
+    return this.userModel
+      .aggregate([
+        {
+          $match: { verified: true },
+        },
+        {
+          $project: { email: 1, fullName: 1 },
+        },
+        {
+          $facet: {
+            metadata: [
+              { $count: "total" },
+              { $addFields: { page: Number(page) } },
+            ],
+            users: [{ $skip: skip }, { $limit: perPage }], // add projection here wish you re-shape the docs
+          },
+        },
+      ])
+      .exec();
   }
 }

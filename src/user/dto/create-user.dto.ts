@@ -1,4 +1,4 @@
-import { IsNotEmpty, MinLength, MaxLength, IsEmail, IsString, IsEnum, IsIn } from 'class-validator';
+import { IsNotEmpty, MinLength, MaxLength, IsEmail, IsString, IsEnum, IsIn, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
@@ -51,7 +51,7 @@ export class CreateUserDto {
 
 
     @ApiProperty({
-      example: 'manager, seniorManager, frontline!',
+      example: 'manager',
       description: 'Users role type',
       format: 'string',
       minLength: 5,
@@ -63,4 +63,25 @@ export class CreateUserDto {
     @MinLength(5)
     @MaxLength(1024)
     readonly roleType: string;
+
+    @ApiProperty({
+      example: ['user1@gmail.com'],
+      description: 'Every one that this user will manage',
+      type: Array
+    })
+    @ApiProperty()
+    @IsArray()
+    readonly manages: string;
+
+
+
+    @ApiProperty({
+      example: 'seniorManager@gmail.com',
+      description: 'Who will he report to',
+      type: String
+    })
+    @ApiProperty()
+    @IsString()
+    @IsNotEmpty()
+    readonly reportsTo: string;
   }

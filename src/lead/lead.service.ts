@@ -180,11 +180,7 @@ export class LeadService {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
 
-    const {
-      assigned,
-      selectedCampaign,
-      dateRange,
-    } = filters;
+    const { assigned, selectedCampaign, dateRange } = filters;
 
     const [startDate, endDate] = dateRange || [];
     const matchQ = { $and: [] } as any;
@@ -212,7 +208,7 @@ export class LeadService {
       });
     }
 
-    if(selectedCampaign) {
+    if (selectedCampaign) {
       matchQ["$and"].push({ campaign: selectedCampaign });
     }
 
@@ -635,5 +631,25 @@ export class LeadService {
       .lean()
       .exec();
     return { result };
+  }
+
+  getSaleAmountByLeadStatus(campaignName?: string) {
+    const qb = this.leadModel.aggregate();
+    if (campaignName) {
+      qb.match({ campaign: campaignName });
+    }
+    qb.group({
+      _id: "$leadStatus",
+      totalSaleAmount: {
+        $sum: "$amount",
+      },
+    });
+    return qb.exec();
+  }
+
+
+
+  async getFollowUps() {
+    
   }
 }
