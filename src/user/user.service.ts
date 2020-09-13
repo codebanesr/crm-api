@@ -127,6 +127,8 @@ export class UserService {
   async forgotPasswordVerify(req: Request, verifyUuidDto: VerifyUuidDto) {
     const forgotPassword = await this.findForgotPasswordByUuid(verifyUuidDto);
     await this.setForgotPasswordFirstUsed(req, forgotPassword);
+    new Date().toDateString()    
+    // now send the user to reset password page since it is already verified
     return {
       email: forgotPassword.email,
       forgotPassword,
@@ -510,19 +512,9 @@ export class UserService {
         },
       });
 
-
-
-      // "Hi! <br><br> If you requested to reset your password<br><br>" +
-      // "<a href=" +
-      // config.host.url +
-      // ":" +
-      // config.host.port +
-      // "/auth/email/reset-password/" +
-      // token +
-      // ">Click here</a>", // html body
       let mailOptions = {
         from: '"Company" <' + config.mail.user + ">",
-        to: [email], // list of receivers (separated by ,)
+        to: [email],
         subject: "Frogotten Password",
         text: "Forgot Password",
         html: getForgotPasswordTemplate(config.host.url, config.host.port, token)

@@ -14,9 +14,10 @@ import {
   Request,
   UseInterceptors,
   UploadedFile,
-  Get
+  Get,
+  Param,
 } from "@nestjs/common";
-import { Request as IRequest } from 'express';
+import { Request as IRequest } from "express";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { VerifyUuidDto } from "./dto/verify-uuid.dto";
 import { UserService } from "./user.service";
@@ -33,7 +34,7 @@ import {
   ApiBody,
 } from "@nestjs/swagger";
 import { RolesGuard } from "../auth/guards/roles.guard";
-import {FileInterceptor} from "@nestjs/platform-express";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { FileUploadDto } from "./dto/fileUpload.dto";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "./interfaces/user.interface";
@@ -57,19 +58,20 @@ export class UserController {
     return await this.userService.create(createUserDto);
   }
 
-
   @Get()
   @ApiOperation({ summary: "Get users hack" })
   async getAllUsersHack() {
     return await this.userService.getAllUsersHack();
   }
 
-
   @Post("verify-email")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Verify Email" })
   @ApiOkResponse({})
-  async verifyEmail(@Req() req: IRequest, @Body() verifyUuidDto: VerifyUuidDto) {
+  async verifyEmail(
+    @Req() req: IRequest,
+    @Body() verifyUuidDto: VerifyUuidDto
+  ) {
     return await this.userService.verifyEmail(req, verifyUuidDto);
   }
 
@@ -91,23 +93,26 @@ export class UserController {
     return await this.userService.refreshAccessToken(refreshAccessTokenDto);
   }
 
-  @Post('forgot-password')
+  @Post("forgot-password")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({summary: 'Forgot password',})
+  @ApiOperation({ summary: "Forgot password" })
   @ApiOkResponse({})
-  async forgotPassword(@Req() req: IRequest, @Body() createForgotPasswordDto: CreateForgotPasswordDto) {
-      return await this.userService.forgotPassword(req, createForgotPasswordDto);
+  async forgotPassword(
+    @Req() req: IRequest,
+    @Body() createForgotPasswordDto: CreateForgotPasswordDto
+  ) {
+    return await this.userService.forgotPassword(req, createForgotPasswordDto);
   }
 
-  @Post("forgot-password-verify")
+  @Get("forgot-password-verify/:token")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Verfiy forget password code" })
   @ApiOkResponse({})
   async forgotPasswordVerify(
     @Req() req: IRequest,
-    @Body() verifyUuidDto: VerifyUuidDto
+    @Param("token") token: VerifyUuidDto
   ) {
-    return await this.userService.forgotPasswordVerify(req, verifyUuidDto);
+    return await this.userService.forgotPasswordVerify(req, token);
   }
 
   @Post("reset-password")
@@ -133,7 +138,7 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
   findAll(
-    @CurrentUser() user: User, 
+    @CurrentUser() user: User,
     @Query("assigned") assigned: string,
     @Body() findAllDto: FindAllDto
   ) {
@@ -150,14 +155,11 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
   managersForReassignment(
-    @CurrentUser() user: User, 
-    @Query("assigned") assigned: string,
+    @CurrentUser() user: User,
+    @Query("assigned") assigned: string
   ) {
     return this.userService.managersForReassignment(user.manages);
   }
-
-
-
 
   @Post("many")
   @UseGuards(AuthGuard("jwt"))
@@ -167,15 +169,19 @@ export class UserController {
     name: "Bearer",
     description: "the token we need for auth.",
   })
-  @ApiConsumes('multipart/form-data')
+  @ApiConsumes("multipart/form-data")
   @ApiBody({
-    description: 'List of Users',
+    description: "List of Users",
     type: FileUploadDto,
   })
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({})
-  @UseInterceptors(FileInterceptor('file'))
-  add(@Request() req: any, @Query("assigned") assigned: string, @UploadedFile() file) {
+  @UseInterceptors(FileInterceptor("file"))
+  add(
+    @Request() req: any,
+    @Query("assigned") assigned: string,
+    @UploadedFile() file
+  ) {
     return this.userService.insertMany(req.user.id, file.path);
   }
 }

@@ -9,6 +9,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { LeadModule } from './lead/lead.module';
 import { CampaignModule } from './campaign/campaign.module';
 import { AgentModule } from './agent/agent.module';
+import { OrganizationModule } from './organization/organization.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -37,7 +38,8 @@ async function bootstrap() {
       ArticleModule,
       LeadModule,
       CampaignModule,
-      AgentModule
+      AgentModule,
+      OrganizationModule
   ],
   });
   SwaggerModule.setup('api', app, document);

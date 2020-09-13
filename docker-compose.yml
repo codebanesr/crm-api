@@ -1,22 +1,22 @@
 version: '3.7'
 
 services:
-  main:
-    container_name: main
-    build:
-      context: .
-      target: development
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - ${SERVER_PORT}:${SERVER_PORT}
-      - 9229:9229
-    command: npm run start:dev
-    env_file:
-      - .env
-    networks:
-      - webnet
+  # main:
+  #   container_name: main
+  #   build:
+  #     context: .
+  #     target: development
+  #   volumes:
+  #     - .:/usr/src/app
+  #     - /usr/src/app/node_modules
+  #   ports:
+  #     - ${SERVER_PORT}:${SERVER_PORT}
+  #     - 9229:9229
+  #   command: npm run start:dev
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - webnet
 
   mongodb:
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
@@ -24,6 +24,17 @@ services:
       - "27017:27017"
     volumes:
       - 'mongodb_data:/bitnami/mongodb'
+    networks:
+      - webnet
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD=password123
+      - REDIS_USER=shanur
+    command: /opt/bitnami/scripts/redis/run.sh --maxmemory 100mb
+    ports: 
+      - "6379:6379"
     networks:
       - webnet
 

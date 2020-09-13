@@ -22,4 +22,15 @@ export default {
     user: "postmaster@sandboxa1696d63603146bca752bd634e4392b0.mailgun.org",
     pass: "cced296ef54947e7b40028014a04ae2a-0f472795-9d8efe34",
   },
+  twilio: {
+    accountSid: "AC3096988c610ab3d5b05e430650af8e58",
+    authToken: "a11a998f8ac16b5fb04007cbb123cc44",
+  },
+  redisOpts: {
+    host: process.env.REDIS_HOST || "localhost",
+    port: parseInt(process.env.REDIS_PORT) || 6379,
+    db: parseInt(process.env.REDIS_DB) || 4,
+    password: process.env.REDIS_PASSWORD || "password123",
+    // keyPrefix: process.env.REDIS_PRIFIX,
+  },
 };

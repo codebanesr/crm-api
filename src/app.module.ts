@@ -9,6 +9,8 @@ import { LeadModule } from './lead/lead.module';
 import { CampaignModule } from './campaign/campaign.module';
 import { AgentModule } from './agent/agent.module';
 import { APP_INTERCEPTOR } from "@nestjs/core";
+import { OrganizationModule } from './organization/organization.module';
+import { SharedModule } from './shared/shared.module';
 
 
 @Module({
@@ -21,6 +23,8 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
     LeadModule,
     CampaignModule,
     AgentModule,
+    OrganizationModule,
+    SharedModule,
   ],
   controllers: [AppController],
   providers: [
