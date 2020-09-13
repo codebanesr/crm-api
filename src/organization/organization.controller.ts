@@ -2,6 +2,7 @@ import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { GenerateTokenDto } from './dto/generate-token.dto';
+import { ValidateNewOrganizationDto } from './dto/validation.dto';
 import { OrganizationService } from './organization.service';
 
 @Controller('organization')
@@ -25,5 +26,13 @@ export class OrganizationController {
   @ApiCreatedResponse({})
   async generateToken(@Body() generateTokenDto: GenerateTokenDto) {
     return await this.organizationService.generateToken(generateTokenDto);
+  }
+
+
+  @Post("isValid")
+  @ApiOperation({ summary: "Validate create-organization paylod"})
+  @ApiCreatedResponse({})
+  async isValidAttribute(@Body() validateNewOrganizationDto: ValidateNewOrganizationDto) {
+    return this.organizationService.isAttributeValid(validateNewOrganizationDto);
   }
 }
