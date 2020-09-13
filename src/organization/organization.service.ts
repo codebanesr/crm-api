@@ -7,6 +7,7 @@ import { CreateOrganizationDto } from "./dto/create-organization.dto";
 import { GenerateTokenDto } from "./dto/generate-token.dto";
 import { Organization } from "./interface/organization.interface";
 import { RedisService } from "nestjs-redis";
+import config from "../config"
 
 @Injectable()
 export class OrganizationService {
@@ -40,7 +41,7 @@ export class OrganizationService {
     Logger.debug({otp, mobileNumber})
     return this.twilioService.client.messages.create({
       body: `Please use this to confirm your account ${otp}`,
-      from: "+19402203638",
+      from: config.twilio.mobileNumber,
       to: mobileNumber,
     });
   }
