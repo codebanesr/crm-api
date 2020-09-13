@@ -20,7 +20,6 @@ import { SharedModule } from '../shared/shared.module';
     MongooseModule.forFeature([
       { name: "Organization", schema: OrganizationSchema }
     ]),
-
   ],
   providers: [OrganizationService],
   controllers: [OrganizationController]

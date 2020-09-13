@@ -5,13 +5,13 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "type": "node",
+        "name": "Attach by Process ID",
+        "processId": "${command:PickProcess}",
         "request": "attach",
-        "name": "Attach NestJS WS",
-        "port": 9229,
-        "restart": true,
-        "stopOnEntry": false,
-        "protocol": "inspector"
+        "skipFiles": [
+          "<node_internals>/**"
+        ],
+        "type": "pwa-node"
       }
     ]
   }

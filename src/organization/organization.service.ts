@@ -25,16 +25,23 @@ export class OrganizationService {
 
   async generateToken(generateTokenDto: GenerateTokenDto) {
     const { mobileNumber } = generateTokenDto;
-    const otp = this.sharedService.generateOtp();
 
-    Logger.debug({otp})
     const client = await this.redisService.getClient();
-    return client.set(mobileNumber, otp, (err, reply) => {
-      this.twilioService.client.messages.create({
-        body: `Please use this to confirm your account ${otp}`,
-        from: "+19402203638",
-        to: "+919199946568",
-      });
-    })
+    let otp = await client.get(mobileNumber)
+    if(!otp) {
+      otp = this.sharedService.generateOtp();
+      await client.set(mobileNumber, otp, 'EX', 300)
+    }
+
+    return this.sendOtp(otp, mobileNumber);
+  }
+
+  sendOtp(otp, mobileNumber) {
+    Logger.debug({otp, mobileNumber})
+    return this.twilioService.client.messages.create({
+      body: `Please use this to confirm your account ${otp}`,
+      from: "+19402203638",
+      to: mobileNumber,
+    });
   }
 }

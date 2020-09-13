@@ -7,12 +7,12 @@ export class GenerateTokenDto {
         description: 'Mobile number where you want to receive the otp',
         type: String,
         minLength: 8,
-        maxLength: 12,
+        maxLength: 14,
       })
       @IsNotEmpty()
       @IsString()
       @MinLength(8)
-      @MaxLength(12)
+      @MaxLength(14)
       @IsString()
       readonly mobileNumber: string;
 }
