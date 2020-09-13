@@ -1,5 +1,5 @@
 import { TwilioService } from "@lkaric/twilio-nestjs";
-import { ConflictException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { ConflictException, HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { SharedService } from "src/shared/shared.service";
@@ -21,6 +21,7 @@ export class OrganizationService {
   ) {}
 
   async createOrganization(createOrganizationDto: CreateOrganizationDto) {
+    await this.isOrganizationalPayloadValid(createOrganizationDto)
     const organization = new this.organizationalModel(createOrganizationDto);
     return organization.save();
   }
@@ -56,8 +57,18 @@ export class OrganizationService {
     }
   }
 
-  // async isOrganizationalPayloadValid(createOrganizationDto: CreateOrganizationDto) {
-  //   const {email, name} = createOrganizationDto;
-
-  // }
+  async isOrganizationalPayloadValid(createOrganizationDto: CreateOrganizationDto) {
+    const {email, phoneNumber, organizationName} = createOrganizationDto;
+    const count = await this.organizationalModel.count({
+      $or: [
+        {name: organizationName},
+        {email},
+        {phoneNumber}
+      ]
+    });
+    Logger.debug({count});
+    if(count!==0) {
+      throw new ConflictException();
+    }
+  }
 }

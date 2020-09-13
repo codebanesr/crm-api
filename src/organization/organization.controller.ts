@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Logger, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { GenerateTokenDto } from './dto/generate-token.dto';
@@ -16,8 +16,9 @@ export class OrganizationController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Register user" })
   @ApiCreatedResponse({})
-  async register(@Body() createUserDto: CreateOrganizationDto) {
-    return await this.organizationService.createOrganization(createUserDto);
+  async register(@Body() createOrganizationDto: CreateOrganizationDto) {
+    Logger.debug(createOrganizationDto);
+    return await this.organizationService.createOrganization(createOrganizationDto);
   }
 
   @Post("otp")
