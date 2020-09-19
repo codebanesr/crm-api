@@ -16,5 +16,5 @@ export interface User extends Document {
     manages: string[],
     history: string[],
     hierarchyWeight: number,
-    organization: Schema.Types.ObjectId
+    organization: string
 }

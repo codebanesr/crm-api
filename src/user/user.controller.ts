@@ -51,17 +51,24 @@ export class UserController {
   // ╠═╣║ ║ ║ ╠═╣║╣ ║║║ ║ ║║  ╠═╣ ║ ║╣
   // ╩ ╩╚═╝ ╩ ╩ ╩╚═╝╝╚╝ ╩ ╩╚═╝╩ ╩ ╩ ╚═╝
   @Post()
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Register user" })
   @ApiCreatedResponse({})
-  async register(@Body() createUserDto: CreateUserDto) {
-    return await this.userService.create(createUserDto);
+  async register(
+    @Body() createUserDto: CreateUserDto,
+    @CurrentUser() user: User
+  ) {
+    const { organization } = user;
+    return this.userService.create(createUserDto, organization);
   }
 
   @Get()
   @ApiOperation({ summary: "Get users hack" })
-  async getAllUsersHack() {
-    return await this.userService.getAllUsersHack();
+  async getAllUsersHack(@CurrentUser() user: User) {
+    const { organization } = user;
+    return this.userService.getAllUsersHack(organization);
   }
 
   @Post("verify-email")
@@ -70,9 +77,9 @@ export class UserController {
   @ApiOkResponse({})
   async verifyEmail(
     @Req() req: IRequest,
-    @Body() verifyUuidDto: VerifyUuidDto
+    @Body() verifyUuidDto: VerifyUuidDto,
   ) {
-    return await this.userService.verifyEmail(req, verifyUuidDto);
+    return this.userService.verifyEmail(req, verifyUuidDto);
   }
 
   @Post("login")
@@ -80,7 +87,7 @@ export class UserController {
   @ApiOperation({ summary: "Login User" })
   @ApiOkResponse({})
   async login(@Req() req: IRequest, @Body() loginUserDto: LoginUserDto) {
-    return await this.userService.login(req, loginUserDto);
+    return this.userService.login(req, loginUserDto);
   }
 
   @Post("refresh-access-token")
@@ -90,7 +97,7 @@ export class UserController {
   async refreshAccessToken(
     @Body() refreshAccessTokenDto: RefreshAccessTokenDto
   ) {
-    return await this.userService.refreshAccessToken(refreshAccessTokenDto);
+    return this.userService.refreshAccessToken(refreshAccessTokenDto);
   }
 
   @Post("forgot-password")
@@ -101,7 +108,7 @@ export class UserController {
     @Req() req: IRequest,
     @Body() createForgotPasswordDto: CreateForgotPasswordDto
   ) {
-    return await this.userService.forgotPassword(req, createForgotPasswordDto);
+    return this.userService.forgotPassword(req, createForgotPasswordDto);
   }
 
   @Get("forgot-password-verify/:token")
@@ -112,7 +119,7 @@ export class UserController {
     @Req() req: IRequest,
     @Param("token") token: VerifyUuidDto
   ) {
-    return await this.userService.forgotPasswordVerify(req, token);
+    return this.userService.forgotPasswordVerify(req, token);
   }
 
   @Post("reset-password")
@@ -125,7 +132,7 @@ export class UserController {
   })
   @ApiOkResponse({})
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return await this.userService.resetPassword(resetPasswordDto);
+    return this.userService.resetPassword(resetPasswordDto);
   }
 
   @Get("allUsers")
@@ -142,7 +149,8 @@ export class UserController {
     @Query("assigned") assigned: string,
     @Body() findAllDto: FindAllDto
   ) {
-    return this.userService.getAll(user, assigned, findAllDto);
+    const { organization } = user;
+    return this.userService.getAll(user, assigned, findAllDto, organization);
   }
 
   @Get("managersForReassignment")
@@ -158,7 +166,8 @@ export class UserController {
     @CurrentUser() user: User,
     @Query("assigned") assigned: string
   ) {
-    return this.userService.managersForReassignment(user.manages);
+    const { organization } = user;
+    return this.userService.managersForReassignment(user.manages, organization);
   }
 
   @Post("many")
@@ -180,8 +189,10 @@ export class UserController {
   add(
     @Request() req: any,
     @Query("assigned") assigned: string,
-    @UploadedFile() file
+    @UploadedFile() file,
+    @CurrentUser() user: User
   ) {
+    const { organization } = user;
     return this.userService.insertMany(req.user.id, file.path);
   }
 }

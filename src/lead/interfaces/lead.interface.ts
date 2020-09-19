@@ -22,4 +22,5 @@ export interface Lead extends Document {
     bucket: string,
     operationalArea: string,
     pincode: number,
+    organization: string
 }

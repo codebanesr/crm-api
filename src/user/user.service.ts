@@ -7,7 +7,8 @@ import {
   NotFoundException,
   ConflictException,
   Logger,
-  HttpException, HttpStatus
+  HttpException,
+  HttpStatus,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
@@ -29,6 +30,7 @@ import { join } from "path";
 import { default as config } from "../config";
 import { createTransport } from "nodemailer";
 import { getForgotPasswordTemplate } from "src/utils/forgot-password-template";
+import { CurrentUser } from "src/auth/decorators/current-user.decorator";
 
 @Injectable()
 export class UserService {
@@ -48,8 +50,14 @@ export class UserService {
   // ┌─┐┬─┐┌─┐┌─┐┌┬┐┌─┐  ┬ ┬┌─┐┌─┐┬─┐
   // │  ├┬┘├┤ ├─┤ │ ├┤   │ │└─┐├┤ ├┬┘
   // └─┘┴└─└─┘┴ ┴ ┴ └─┘  └─┘└─┘└─┘┴└─
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const user = new this.userModel(createUserDto);
+  // to call from api use this
+  // if we have the organiztion then we call this function directly, to call from some other service
+  async create(createUserDto: CreateUserDto, organization: string) {
+    const user = new this.userModel({
+      ...createUserDto,
+      organization,
+      verified: true,
+    });
     await this.isEmailUnique(user.email);
     this.setRegistrationInfo(user);
     await user.save();
@@ -111,10 +119,16 @@ export class UserService {
     createForgotPasswordDto: CreateForgotPasswordDto
   ) {
     await this.findByEmail(createForgotPasswordDto.email);
-    const verificationToken = await this.saveForgotPassword(req, createForgotPasswordDto);
+    const verificationToken = await this.saveForgotPassword(
+      req,
+      createForgotPasswordDto
+    );
 
     // can keep it async
-    await this.sendEmailForgotPassword(createForgotPasswordDto.email, verificationToken);
+    await this.sendEmailForgotPassword(
+      createForgotPasswordDto.email,
+      verificationToken
+    );
     return {
       email: createForgotPasswordDto.email,
       message: "verification sent.",
@@ -127,7 +141,7 @@ export class UserService {
   async forgotPasswordVerify(req: Request, verifyUuidDto: VerifyUuidDto) {
     const forgotPassword = await this.findForgotPasswordByUuid(verifyUuidDto);
     await this.setForgotPasswordFirstUsed(req, forgotPassword);
-    new Date().toDateString()    
+    new Date().toDateString();
     // now send the user to reset password page since it is already verified
     return {
       email: forgotPassword.email,
@@ -156,7 +170,8 @@ export class UserService {
   async getAll(
     user: User,
     assigned: string,
-    findAllDto: FindAllDto
+    findAllDto: FindAllDto,
+    organization
   ): Promise<any> {
     // if(!assigned) {
     //     const users = await User.aggregate([
@@ -167,10 +182,10 @@ export class UserService {
     const { filters, page, perPage, searchTerm, showCols, sortBy } = findAllDto;
     const skip = (page - 1) * perPage;
 
-    const subordinates = await this.getSubordinates(user);
+    const subordinates = await this.getSubordinates(user, organization);
     const result = await this.userModel.aggregate([
       // removing subordinates because even telecaller can assign leads to managers
-      { $match: { email: { $in: subordinates } } },
+      { $match: { email: { $in: subordinates }, organization } },
       {
         $lookup: {
           from: "users",
@@ -194,7 +209,12 @@ export class UserService {
     return { users: result[0].users, metadata: result[0].metadata[0] };
   }
 
-  async getSubordinates(user: User): Promise<any> {
+  async getSubordinates(user: User, organization: string): Promise<any> {
+    if(user.roleType === 'admin') {
+      const users = await this.userModel.find({organization}, {email: 1, _id: 0})
+      return users.map(u=>u.email)
+    }
+
     if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
       return [user.email];
     }
@@ -470,11 +490,12 @@ export class UserService {
     }
   }
 
-  async managersForReassignment(manages: string[]) {
+  async managersForReassignment(manages: string[], organization: string) {
     return this.userModel
       .find(
         {
           $and: [
+            { organization },
             { email: { $in: manages } },
             { roleType: { $ne: "frontline" } },
           ],
@@ -517,7 +538,11 @@ export class UserService {
         to: [email],
         subject: "Frogotten Password",
         text: "Forgot Password",
-        html: getForgotPasswordTemplate(config.host.url, config.host.port, token)
+        html: getForgotPasswordTemplate(
+          config.host.url,
+          config.host.port,
+          token
+        ),
       };
 
       var sended = await new Promise<boolean>(async function(resolve, reject) {
@@ -540,14 +565,14 @@ export class UserService {
     }
   }
 
-  async getAllUsersHack() {
+  async getAllUsersHack(organization: string) {
     const page = 1,
       perPage = 20,
       skip = 0;
     return this.userModel
       .aggregate([
         {
-          $match: { verified: true },
+          $match: { verified: true, organization },
         },
         {
           $project: { email: 1, fullName: 1 },

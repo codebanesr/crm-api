@@ -1,9 +1,13 @@
-import { Schema } from "mongoose";
+import { Schema, Types } from "mongoose";
 
-export const AdminActionSchema = new Schema({
+export const AdminActionSchema = new Schema(
+  {
     userid: Schema.Types.ObjectId,
     actionType: String,
     filePath: String,
     savedOn: String,
     fileType: String,
-}, { timestamps: true });
+    organization: { type: Types.ObjectId, ref: "Organization" },
+  },
+  { timestamps: true }
+);

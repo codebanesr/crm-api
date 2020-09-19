@@ -6,5 +6,6 @@ export interface CampaignConfig extends Document {
     options: string[],
     readableField: string,
     type: string,
-    checked: boolean
+    checked: boolean,
+    organization: string
 }
