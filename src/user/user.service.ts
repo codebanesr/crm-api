@@ -14,7 +14,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { v4 } from "uuid";
 import { addHours } from "date-fns";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { VerifyUuidDto } from "./dto/verify-uuid.dto";
 import { RefreshAccessTokenDto } from "./dto/refresh-access-token.dto";

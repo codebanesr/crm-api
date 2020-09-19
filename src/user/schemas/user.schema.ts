@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 import * as validator from 'validator';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 export const UserSchema = new mongoose.Schema ({
     fullName: {

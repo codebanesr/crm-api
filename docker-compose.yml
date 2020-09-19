@@ -1,22 +1,22 @@
 version: '3.7'
 
 services:
-  # main:
-  #   container_name: main
-  #   build:
-  #     context: .
-  #     target: development
-  #   volumes:
-  #     - .:/usr/src/app
-  #     - /usr/src/app/node_modules
-  #   ports:
-  #     - ${SERVER_PORT}:${SERVER_PORT}
-  #     - 9229:9229
-  #   command: npm run start:dev
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - webnet
+  main:
+    container_name: main
+    build:
+      context: .
+      target: production
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+      - 9229:9229
+    command: npm start
+    env_file:
+      - .env
+    networks:
+      - webnet
 
   mongodb:
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
