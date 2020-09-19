@@ -4,6 +4,7 @@ export interface Disposition extends Document {
     creator: string,
     campaign: string,
     options: DispositionTree[],
+    organization: string
 }
 
 

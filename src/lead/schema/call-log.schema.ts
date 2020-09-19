@@ -1,4 +1,4 @@
-import { Schema } from "mongoose";
+import { Schema, Types } from "mongoose";
 
 
 export const CallLogSchema = new Schema({
@@ -15,6 +15,8 @@ export const CallLogSchema = new Schema({
     "contact" : String,
     "photo" : String,
     "thumbPhoto" : String,
+    "organization": {type: Types.ObjectId, ref: 'Organization'},
+    "user": {type: Types.ObjectId, ref: 'User'}
 }, {
     strict: false
 });

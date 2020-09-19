@@ -13,4 +13,6 @@ export interface CallLog extends Document {
     "contact" : string,
     "photo" : string,
     "thumbPhoto" : string,
+    "organization": string,
+    "user": string
 }

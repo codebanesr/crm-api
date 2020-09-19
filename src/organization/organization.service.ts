@@ -1,5 +1,12 @@
 import { TwilioService } from "@lkaric/twilio-nestjs";
-import { ConflictException, HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  ImATeapotException,
+  Injectable,
+  Logger,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { SharedService } from "src/shared/shared.service";
@@ -23,18 +30,25 @@ export class OrganizationService {
   ) {}
 
   async createOrganization(createOrganizationDto: CreateOrganizationDto) {
-    const {email, fullName, password} = createOrganizationDto;
-    await this.userService.create({
-      email,
-      fullName,
-      password,
-      roleType: 'admin',
-      manages: [],
-      reportsTo: ''
-    })
-    await this.isOrganizationalPayloadValid(createOrganizationDto)
-    const organization = new this.organizationalModel(createOrganizationDto);
-    return organization.save();
+    const { email, fullName, password } = createOrganizationDto;
+    await this.isOrganizationalPayloadValid(createOrganizationDto);
+    // now save organization information in the user schema...
+    try {
+      const organization = new this.organizationalModel(createOrganizationDto);
+      const result = await organization.save();
+      await this.userService.create({
+        email,
+        fullName,
+        password,
+        roleType: "admin",
+        roles: ["admin", "user"],
+        manages: [],
+        reportsTo: ""
+      }, result._id);
+    }catch(e) {
+      return new ImATeapotException(e.message);
+    }
+    return 
   }
 
   async generateToken(generateTokenDto: GenerateTokenDto) {
@@ -67,27 +81,31 @@ export class OrganizationService {
   async isAttributeValid(validationDto: ValidateNewOrganizationDto) {
     const { label, value } = validationDto;
 
-    const count = await this.organizationalModel.count({[label]: value});
-    if(count!=0) {
-      throw new ConflictException(`An organization with this ${label} ${value} already exists`);
+    const count = await this.organizationalModel.count({ [label]: value });
+    if (count != 0) {
+      throw new ConflictException(
+        `An organization with this ${label} ${value} already exists`
+      );
     }
   }
 
-  async isOrganizationalPayloadValid(createOrganizationDto: CreateOrganizationDto) {
-    const correctOTP = await this.getOTPForNumber(createOrganizationDto.phoneNumberPrefix+""+createOrganizationDto.phoneNumber)
-    const {email, phoneNumber, organizationName} = createOrganizationDto;
+  async isOrganizationalPayloadValid(
+    createOrganizationDto: CreateOrganizationDto
+  ) {
+    const correctOTP = await this.getOTPForNumber(
+      createOrganizationDto.phoneNumberPrefix +
+        "" +
+        createOrganizationDto.phoneNumber
+    );
+    const { email, phoneNumber, organizationName } = createOrganizationDto;
     const count = await this.organizationalModel.count({
-      $or: [
-        {name: organizationName},
-        {email},
-        {phoneNumber}
-      ]
+      $or: [{ name: organizationName }, { email }, { phoneNumber }],
     });
-    Logger.debug({count});
-    if(createOrganizationDto.otp!==correctOTP) {
+    Logger.debug({ count });
+    if (createOrganizationDto.otp !== correctOTP) {
       throw new HttpException("Incorrect otp", 421);
     }
-    if(count!==0) {
+    if (count !== 0) {
       throw new ConflictException();
     }
   }

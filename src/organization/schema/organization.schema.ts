@@ -1,4 +1,3 @@
-import { IsEnum } from 'class-validator';
 import * as mongoose from 'mongoose';
 import { OrganizationalType } from 'src/utils/organizational.enum';
 

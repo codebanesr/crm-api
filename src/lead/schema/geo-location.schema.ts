@@ -6,6 +6,10 @@ export const GeoLocationSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
+    organization: {
+        type: Schema.Types.ObjectId,
+        ref: 'Organization'
+    },
     location: {
         type: { type: String, default: 'Point' },
         coordinates: {type: [Number], default: [0, 0]}

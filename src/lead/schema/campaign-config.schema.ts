@@ -1,4 +1,4 @@
-import { Schema } from "mongoose";
+import { Schema, Types } from "mongoose";
 
 export const CampaignConfigSchema = new Schema({
     name: String,
@@ -6,5 +6,9 @@ export const CampaignConfigSchema = new Schema({
     readableField: String,
     type: String,
     options: [String],
-    checked: Boolean
+    checked: Boolean,
+    organization: {
+        type: Types.ObjectId,
+        ref: 'Organization'
+    }
 });
