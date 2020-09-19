@@ -56,14 +56,19 @@ export class UserController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Register user" })
   @ApiCreatedResponse({})
-  async register(@Body() createUserDto: CreateUserDto, @CurrentUser() user: User) {
-    return this.userService.create(createUserDto, user.organization);
+  async register(
+    @Body() createUserDto: CreateUserDto,
+    @CurrentUser() user: User
+  ) {
+    const { organization } = user;
+    return this.userService.create(createUserDto, organization);
   }
 
   @Get()
   @ApiOperation({ summary: "Get users hack" })
-  async getAllUsersHack() {
-    return this.userService.getAllUsersHack();
+  async getAllUsersHack(@CurrentUser() user: User) {
+    const { organization } = user;
+    return this.userService.getAllUsersHack(organization);
   }
 
   @Post("verify-email")
@@ -72,7 +77,7 @@ export class UserController {
   @ApiOkResponse({})
   async verifyEmail(
     @Req() req: IRequest,
-    @Body() verifyUuidDto: VerifyUuidDto
+    @Body() verifyUuidDto: VerifyUuidDto,
   ) {
     return this.userService.verifyEmail(req, verifyUuidDto);
   }
@@ -144,7 +149,8 @@ export class UserController {
     @Query("assigned") assigned: string,
     @Body() findAllDto: FindAllDto
   ) {
-    return this.userService.getAll(user, assigned, findAllDto);
+    const { organization } = user;
+    return this.userService.getAll(user, assigned, findAllDto, organization);
   }
 
   @Get("managersForReassignment")
@@ -160,7 +166,8 @@ export class UserController {
     @CurrentUser() user: User,
     @Query("assigned") assigned: string
   ) {
-    return this.userService.managersForReassignment(user.manages);
+    const { organization } = user;
+    return this.userService.managersForReassignment(user.manages, organization);
   }
 
   @Post("many")
@@ -182,8 +189,10 @@ export class UserController {
   add(
     @Request() req: any,
     @Query("assigned") assigned: string,
-    @UploadedFile() file
+    @UploadedFile() file,
+    @CurrentUser() user: User
   ) {
+    const { organization } = user;
     return this.userService.insertMany(req.user.id, file.path);
   }
 }

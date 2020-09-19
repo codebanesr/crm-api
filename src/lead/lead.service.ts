@@ -659,4 +659,23 @@ export class LeadService {
   async getFollowUps() {
     
   }
+
+
+
+  async getAllAlarms(body, organization) {
+    const { page = 1, perPage = 20, filters={}, sortBy = 'createdAt' } = body;
+
+    const limit = Number(perPage);
+    const skip = Number((page - 1) * limit);
+
+
+    const fq = [
+        { $match: {organization} },
+        { $sort: { [sortBy]: 1 } },
+        { $skip: skip },
+        { $limit: limit }
+    ];
+
+    return await this.alarmModel.aggregate(fq).exec();
+  }
 }
