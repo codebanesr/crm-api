@@ -23,7 +23,7 @@ export class OrganizationController {
 
   @Post("otp")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Register user" })
+  @ApiOperation({ summary: "Generates an otp for given mobile number and sends it to that number" })
   @ApiCreatedResponse({})
   async generateToken(@Body() generateTokenDto: GenerateTokenDto) {
     return await this.organizationService.generateToken(generateTokenDto);

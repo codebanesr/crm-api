@@ -70,4 +70,17 @@ export class CreateOrganizationDto {
       @MinLength(8)
       @MaxLength(14)
       phoneNumber: String
+
+
+
+      @ApiProperty({
+        example: "11Ads2",
+        description: 'OTP sent to your mobile Number',
+        type: String,
+      })
+      @IsString()
+      @IsNotEmpty()
+      @MinLength(4)
+      @MaxLength(14)
+      otp: String
 }

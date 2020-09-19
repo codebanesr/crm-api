@@ -39,6 +39,11 @@ export class OrganizationService {
     return this.sendOtp(otp, mobileNumber);
   }
 
+  async getOTPForNumber(mobileNumber: string) {
+    const client = this.redisService.getClient();
+    return client.get(mobileNumber);
+  }
+
   sendOtp(otp, mobileNumber) {
     Logger.debug({ otp, mobileNumber });
     return this.twilioService.client.messages.create({
@@ -58,6 +63,7 @@ export class OrganizationService {
   }
 
   async isOrganizationalPayloadValid(createOrganizationDto: CreateOrganizationDto) {
+    const correctOTP = await this.getOTPForNumber(createOrganizationDto.phoneNumberPrefix+""+createOrganizationDto.phoneNumber)
     const {email, phoneNumber, organizationName} = createOrganizationDto;
     const count = await this.organizationalModel.count({
       $or: [
@@ -67,6 +73,9 @@ export class OrganizationService {
       ]
     });
     Logger.debug({count});
+    if(createOrganizationDto.otp!==correctOTP) {
+      throw new HttpException("Incorrect otp", 421);
+    }
     if(count!==0) {
       throw new ConflictException();
     }
