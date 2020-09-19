@@ -23,15 +23,6 @@ export const UserSchema = new mongoose.Schema ({
         maxlength: 1024,
         required: [true, 'PASSWORD_IS_BLANK'],
     },
-    bankAccountNumber: {
-        type: String,
-        maxlength: 32,
-    },
-    bankAccountOwnerName: {
-        type: String,
-        minlength: 6,
-        maxlength: 255,
-    },
     roles: {
         type: [String],
         default: ['user'],
@@ -60,6 +51,7 @@ export const UserSchema = new mongoose.Schema ({
     manages: [String],
     history: {type: Array, default: null},
     hierarchyWeight: Number,
+    organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
 }, {
     versionKey: false,
     timestamps: true,

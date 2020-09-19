@@ -82,5 +82,28 @@ export class CreateOrganizationDto {
       @IsNotEmpty()
       @MinLength(4)
       @MaxLength(14)
-      otp: String
+      otp: string
+
+      @ApiProperty({
+        example: "Shanur Rahman",
+        description: 'Full name of the account holder',
+        type: String,
+      })
+      @IsString()
+      @IsNotEmpty()
+      @MinLength(4)
+      @MaxLength(14)
+      fullName: string
+
+
+      @ApiProperty({
+        example: "Password",
+        description: 'Enter the password you want for your account',
+        type: String,
+      })
+      @IsString()
+      @IsNotEmpty()
+      @MinLength(4)
+      @MaxLength(14)
+      password: string
 }

@@ -7,11 +7,13 @@ import { TwilioModule } from '@lkaric/twilio-nestjs';
 import config from '../config';
 import { RedisModule} from 'nestjs-redis'
 import { SharedModule } from '../shared/shared.module';
+import { UserModule } from '../user/user.module';
 
 
 @Module({
   imports: [
     SharedModule,
+    UserModule,
     RedisModule.register(config.redisOpts),
     TwilioModule.register({
       accountSid: config.twilio.accountSid,

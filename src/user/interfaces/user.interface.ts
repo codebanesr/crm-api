@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Schema } from 'mongoose';
 
 export interface User extends Document {
     fullName: string;
@@ -15,5 +15,6 @@ export interface User extends Document {
     roleType: string;
     manages: string[],
     history: string[],
-    hierarchyWeight: number
+    hierarchyWeight: number,
+    organization: Schema.Types.ObjectId
 }

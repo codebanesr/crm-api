@@ -9,6 +9,7 @@ import { Organization } from "./interface/organization.interface";
 import { RedisService } from "nestjs-redis";
 import config from "../config";
 import { ValidateNewOrganizationDto } from "./dto/validation.dto";
+import { UserService } from "../user/user.service";
 
 @Injectable()
 export class OrganizationService {
@@ -17,10 +18,20 @@ export class OrganizationService {
     private readonly organizationalModel: Model<Organization>,
     private readonly twilioService: TwilioService,
     private readonly sharedService: SharedService,
-    private readonly redisService: RedisService
+    private readonly redisService: RedisService,
+    private userService: UserService
   ) {}
 
   async createOrganization(createOrganizationDto: CreateOrganizationDto) {
+    const {email, fullName, password} = createOrganizationDto;
+    await this.userService.create({
+      email,
+      fullName,
+      password,
+      roleType: 'admin',
+      manages: [],
+      reportsTo: ''
+    })
     await this.isOrganizationalPayloadValid(createOrganizationDto)
     const organization = new this.organizationalModel(createOrganizationDto);
     return organization.save();
