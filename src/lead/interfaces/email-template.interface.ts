@@ -5,7 +5,8 @@ export interface EmailTemplate extends Document {
     email: string,
     content: string,
     subject: string,
-    attachments: attachment[]
+    attachments: attachment[],
+    organization: string
 }
 
 interface attachment {

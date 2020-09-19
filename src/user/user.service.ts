@@ -29,6 +29,7 @@ import { join } from "path";
 import { default as config } from "../config";
 import { createTransport } from "nodemailer";
 import { getForgotPasswordTemplate } from "src/utils/forgot-password-template";
+import { CurrentUser } from "src/auth/decorators/current-user.decorator";
 
 @Injectable()
 export class UserService {
@@ -48,8 +49,10 @@ export class UserService {
   // ┌─┐┬─┐┌─┐┌─┐┌┬┐┌─┐  ┬ ┬┌─┐┌─┐┬─┐
   // │  ├┬┘├┤ ├─┤ │ ├┤   │ │└─┐├┤ ├┬┘
   // └─┘┴└─└─┘┴ ┴ ┴ └─┘  └─┘└─┘└─┘┴└─
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const user = new this.userModel(createUserDto);
+  // to call from api use this
+  // if we have the organiztion then we call this function directly, to call from some other service
+  async create(createUserDto: CreateUserDto, organization: string) {
+    const user = new this.userModel({...createUserDto, organization, verified: true});
     await this.isEmailUnique(user.email);
     this.setRegistrationInfo(user);
     await user.save();

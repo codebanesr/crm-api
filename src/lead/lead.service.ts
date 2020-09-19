@@ -94,7 +94,8 @@ export class LeadService {
     content: any,
     subject: string,
     campaign: string,
-    attachments: any
+    attachments: any,
+    organization: string
   ) {
     let acceptableAttachmentFormat = attachments.map((a: any) => {
       let { originalname: fileName, path: filePath, ...others } = a;
@@ -110,18 +111,17 @@ export class LeadService {
       content: content,
       subject: subject,
       attachments: acceptableAttachmentFormat,
+      organization
     });
 
-    const result = await emailTemplate.save();
-
-    return result;
+    return emailTemplate.save();
   }
 
   // const result = await Campaign.find({type: {$regex: "^"+hint, $options:"I"}}).limit(20);
-  async getAllEmailTemplates(limit, skip, campaign: string) {
+  async getAllEmailTemplates(limit, skip, campaign: string, organization: string) {
     const query = this.emailTemplateModel.aggregate();
     const result = await query
-      .match({ campaign: { $regex: `^${campaign}`, $options: "I" } })
+      .match({ campaign: { $regex: `^${campaign}`, $options: "I" }, organization })
       .sort("type")
       .limit(+limit)
       .skip(+skip)
@@ -130,9 +130,9 @@ export class LeadService {
     return result;
   }
 
-  async getLeadHistoryById(externalId: string) {
+  async getLeadHistoryById(externalId: string, organization) {
     const history = await this.leadModel.findOne(
-      { externalId: externalId },
+      { externalId: externalId, organization },
       { history: 1, externalId }
     );
 
@@ -175,7 +175,8 @@ export class LeadService {
     searchTerm: string,
     filters: FiltersDto,
     activeUserEmail: string,
-    roleType: string
+    roleType: string,
+    organization: string
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
@@ -183,7 +184,7 @@ export class LeadService {
     const { assigned, selectedCampaign, dateRange } = filters;
 
     const [startDate, endDate] = dateRange || [];
-    const matchQ = { $and: [] } as any;
+    const matchQ = { $and: [{organization}] } as any;
     if (assigned) {
       const subordinateEmails = await this.getSubordinates(
         activeUserEmail,
@@ -259,10 +260,10 @@ export class LeadService {
     };
   }
 
-  async getLeadColumns(campaignType: string = "core") {
+  async getLeadColumns(campaignType: string = "core", organization: string) {
     if (campaignType !== "core") {
       const campaign: any = await this.campaignModel
-        .findOne({ _id: Types.ObjectId(campaignType) })
+        .findOne({ _id: Types.ObjectId(campaignType), organization })
         .lean()
         .exec();
       campaignType = campaign.campaignName;
@@ -276,9 +277,10 @@ export class LeadService {
     return { paths: paths };
   }
 
-  async insertOne(body: any, activeUserEmail: string) {
+  async insertOne(body: any, activeUserEmail: string, organization: string) {
     // assiging it to the user that created the lead by default
     body.email = activeUserEmail;
+    body.organization = organization;
 
     const lead = new this.leadModel(body);
     const result = await lead.save();
@@ -294,9 +296,9 @@ export class LeadService {
     return result;
   }
 
-  async findOneById(leadId: string) {
+  async findOneById(leadId: string, organization: string) {
     const lead = await this.leadModel
-      .findOne({ externalId: leadId })
+      .findOne({ externalId: leadId, organization })
       .lean()
       .exec();
     return lead;
@@ -346,7 +348,8 @@ export class LeadService {
     emails: string[],
     subject: string,
     text: string,
-    attachments: any
+    attachments: any,
+    organization: string
   ) {
     emails = isArray(emails) ? emails : [emails];
     const sepEmails = emails.join(",");
@@ -362,10 +365,11 @@ export class LeadService {
     }
   }
 
-  async suggestLeads(activeUserEmail: string, leadId: string, limit = 10) {
+  async suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit = 10) {
     const query = this.leadModel.aggregate();
 
     query.match({
+      organization,
       externalId: { $regex: `^${leadId}` },
       email: activeUserEmail,
     });
@@ -410,9 +414,12 @@ export class LeadService {
     return { files, result };
   }
 
-  async syncPhoneCalls(callLogs: SyncCallLogsDto) {
+  async syncPhoneCalls(callLogs: SyncCallLogsDto[], organization, user) {
     try {
-      return this.callLogModel.insertMany(callLogs);
+      const transformed = callLogs.map(callLog=>{
+        return {...callLog, organization, user}
+      })
+      return this.callLogModel.insertMany(transformed);
     } catch (e) {
       Logger.error(
         "An error occured while syncing phone calls in leadService.ts",
@@ -422,7 +429,7 @@ export class LeadService {
     }
   }
 
-  async addGeolocation(activeUserId: string, lat: number, lng: number) {
+  async addGeolocation(activeUserId: string, lat: number, lng: number, organization: string) {
     var geoObj = new this.geoLocationModel({
       userid: Types.ObjectId(activeUserId),
       location: {
@@ -611,9 +618,9 @@ export class LeadService {
     return uq;
   }
 
-  async fetchNextLead(campaignId: string, leadStatus: string, email: string) {
+  async fetchNextLead(campaignId: string, leadStatus: string, email: string, organization: string) {
     const campaign: any = await this.campaignModel
-      .findOne({ _id: campaignId })
+      .findOne({ _id: campaignId, organization })
       .lean()
       .exec();
     const result = await this.leadModel
