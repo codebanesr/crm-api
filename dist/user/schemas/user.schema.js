@@ -10,15 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserSchema = void 0;
-const mongoose = require("mongoose");
+const mongoose_1 = require("mongoose");
 const validator_1 = require("validator");
 const bcrypt = require("bcryptjs");
-exports.UserSchema = new mongoose.Schema({
+exports.UserSchema = new mongoose_1.Schema({
     fullName: {
         type: String,
         minlength: 6,
         maxlength: 255,
-        required: [true, 'NAME_IS_BLANK'],
+        required: [true, "NAME_IS_BLANK"],
     },
     email: {
         type: String,
@@ -26,17 +26,17 @@ exports.UserSchema = new mongoose.Schema({
         validate: validator_1.default.isEmail,
         maxlength: 255,
         minlength: 6,
-        required: [true, 'EMAIL_IS_BLANK'],
+        required: [true, "EMAIL_IS_BLANK"],
     },
     password: {
         type: String,
         minlength: 5,
         maxlength: 1024,
-        required: [true, 'PASSWORD_IS_BLANK'],
+        required: [true, "PASSWORD_IS_BLANK"],
     },
     roles: {
         type: [String],
-        default: ['user'],
+        default: ["user"],
     },
     verification: {
         type: String,
@@ -62,19 +62,23 @@ exports.UserSchema = new mongoose.Schema({
     manages: [String],
     history: { type: Array, default: null },
     hierarchyWeight: Number,
-    organization: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization', default: null },
+    organization: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "Organization",
+        default: null,
+    },
 }, {
     versionKey: false,
     timestamps: true,
 });
-exports.UserSchema.pre('save', function (next) {
+exports.UserSchema.pre("save", function (next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            if (!this.isModified('password')) {
+            if (!this.isModified("password")) {
                 return next();
             }
-            const hashed = yield bcrypt.hash(this['password'], 10);
-            this['password'] = hashed;
+            const hashed = yield bcrypt.hash(this["password"], 10);
+            this["password"] = hashed;
             return next();
         }
         catch (err) {
