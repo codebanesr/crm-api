@@ -36,7 +36,7 @@
     "date-fns": "^2.16.1",
     "dotenv": "^8.0.0",
     "lodash": "^4.17.20",
-    "mongoose": "^5.6.4",
+    "mongoose": "^5.10.6",
     "nestjs-redis": "^1.2.8",
     "nodemailer": "^6.4.11",
     "otp-generator": "^2.0.0",
