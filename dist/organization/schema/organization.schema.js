@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrganizationSchema = void 0;
 const mongoose = require("mongoose");
-const organizational_enum_1 = require("src/utils/organizational.enum");
+const organizational_enum_1 = require("../../utils/organizational.enum");
 exports.OrganizationSchema = new mongoose.Schema({
     organizationName: {
         type: String,
