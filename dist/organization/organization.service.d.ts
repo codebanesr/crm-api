@@ -1,7 +1,7 @@
 import { TwilioService } from "@lkaric/twilio-nestjs";
 import { ImATeapotException } from "@nestjs/common";
 import { Model } from "mongoose";
-import { SharedService } from "src/shared/shared.service";
+import { SharedService } from "../shared/shared.service";
 import { CreateOrganizationDto } from "./dto/create-organization.dto";
 import { GenerateTokenDto } from "./dto/generate-token.dto";
 import { Organization } from "./interface/organization.interface";

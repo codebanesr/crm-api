@@ -34,7 +34,7 @@ const xlsx_1 = require("xlsx");
 const path_1 = require("path");
 const config_1 = require("../config");
 const nodemailer_1 = require("nodemailer");
-const forgot_password_template_1 = require("src/utils/forgot-password-template");
+const forgot_password_template_1 = require("../utils/forgot-password-template");
 let UserService = class UserService {
     constructor(userModel, forgotPasswordModel, adminActionModel, authService) {
         this.userModel = userModel;

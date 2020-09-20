@@ -29,7 +29,6 @@ import { UploadMultipleFilesDto } from "./dto/generic.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../user/interfaces/user.interface";
-import { Roles } from "src/auth/decorators/roles.decorator";
 
 @ApiTags("Lead")
 @Controller("lead")

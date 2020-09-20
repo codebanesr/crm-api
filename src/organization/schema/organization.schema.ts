@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { OrganizationalType } from 'src/utils/organizational.enum';
+import { OrganizationalType } from '../../utils/organizational.enum';
 
 export const OrganizationSchema = new mongoose.Schema ({
     organizationName: {

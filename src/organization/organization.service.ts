@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { SharedService } from "src/shared/shared.service";
+import { SharedService } from "../shared/shared.service";
 import { CreateOrganizationDto } from "./dto/create-organization.dto";
 import { GenerateTokenDto } from "./dto/generate-token.dto";
 import { Organization } from "./interface/organization.interface";

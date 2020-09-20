@@ -29,8 +29,7 @@ import { writeFile, utils } from "xlsx";
 import { join } from "path";
 import { default as config } from "../config";
 import { createTransport } from "nodemailer";
-import { getForgotPasswordTemplate } from "src/utils/forgot-password-template";
-import { CurrentUser } from "src/auth/decorators/current-user.decorator";
+import { getForgotPasswordTemplate } from "../utils/forgot-password-template";
 
 @Injectable()
 export class UserService {
