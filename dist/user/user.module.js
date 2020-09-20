@@ -7,7 +7,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserModule = void 0;
-const mongoose_1 = require("@nestjs/mongoose");
 const user_schema_1 = require("./schemas/user.schema");
 const common_1 = require("@nestjs/common");
 const user_controller_1 = require("./user.controller");
@@ -16,6 +15,7 @@ const auth_module_1 = require("../auth/auth.module");
 const forgot_password_schema_1 = require("./schemas/forgot-password.schema");
 const admin_action_schema_1 = require("./schemas/admin-action.schema");
 const platform_express_1 = require("@nestjs/platform-express");
+const mongoose_1 = require("@nestjs/mongoose");
 let UserModule = class UserModule {
 };
 UserModule = __decorate([
