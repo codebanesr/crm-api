@@ -18,7 +18,7 @@ services:
     ports:
       - "3000:3000"
     tty: true
-    command: "npm start"
+    command: "yarn start:prod"
     env_file:
       - .env
     networks:
