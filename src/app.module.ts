@@ -11,11 +11,16 @@ import { AgentModule } from './agent/agent.module';
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { OrganizationModule } from './organization/organization.module';
 import { SharedModule } from './shared/shared.module';
+import { ServeStaticModule } from "@nestjs/serve-static/dist/serve-static.module";
+import { join } from "path";
 
 
 @Module({
   imports: [
     CacheModule.register(),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
+    }),
     MongooseModule.forRoot(process.env.MONGODB_URI),
     UserModule,
     AuthModule,

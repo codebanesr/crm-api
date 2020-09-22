@@ -20,12 +20,17 @@ const agent_module_1 = require("./agent/agent.module");
 const core_1 = require("@nestjs/core");
 const organization_module_1 = require("./organization/organization.module");
 const shared_module_1 = require("./shared/shared.module");
+const serve_static_module_1 = require("@nestjs/serve-static/dist/serve-static.module");
+const path_1 = require("path");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     common_1.Module({
         imports: [
             common_1.CacheModule.register(),
+            serve_static_module_1.ServeStaticModule.forRoot({
+                rootPath: path_1.join(__dirname, '..', 'client'),
+            }),
             mongoose_1.MongooseModule.forRoot(process.env.MONGODB_URI),
             user_module_1.UserModule,
             auth_module_1.AuthModule,
