@@ -117,9 +117,9 @@ export class CampaignService {
   }
 
   //   @Query
-  async getCampaignTypes(hint) {
+  async getCampaignTypes(hint, organization) {
     return this.campaignModel
-      .find({ campaignName: { $regex: "^" + hint, $options: "I" } })
+      .find({ campaignName: { $regex: "^" + hint, $options: "I" }, organization })
       .limit(20);
   }
 

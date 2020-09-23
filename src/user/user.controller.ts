@@ -65,6 +65,7 @@ export class UserController {
   }
 
   @Get()
+  @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Get users hack" })
   async getAllUsersHack(@CurrentUser() user: User) {
     const { organization } = user;

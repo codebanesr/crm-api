@@ -14,7 +14,8 @@ import {
   ValidationPipe,
   CacheKey,
   CacheTTL,
-  UseGuards,
+  UseGuards, 
+  Logger
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiConsumes } from "@nestjs/swagger";
 import { CampaignService } from "./campaign.service";
@@ -56,8 +57,10 @@ export class CampaignController {
   @Get("autocomplete/suggestTypes")
   @ApiOperation({ summary: "Sends a list of suggestions for campaigns" })
   @HttpCode(HttpStatus.OK)
-  getCampaignTypes(@Query('hint') hint: string) {
-    return this.campaignService.getCampaignTypes(hint);
+  @UseGuards(AuthGuard('jwt'))
+  getCampaignTypes(@Query('hint') hint: string, @CurrentUser() user: User) {
+    const {organization} = user;
+    return this.campaignService.getCampaignTypes(hint, organization);
   }
 
   @Post("config/upload")
