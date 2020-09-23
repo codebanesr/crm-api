@@ -112,6 +112,7 @@ __decorate([
 ], UserController.prototype, "register", null);
 __decorate([
     common_1.Get(),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Get users hack" }),
     __param(0, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),

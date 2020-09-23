@@ -34,8 +34,9 @@ let CampaignController = class CampaignController {
     getHandlerEmailHints(partialEmail) {
         return this.campaignService.getHandlerEmailHints(partialEmail);
     }
-    getCampaignTypes(hint) {
-        return this.campaignService.getCampaignTypes(hint);
+    getCampaignTypes(hint, user) {
+        const { organization } = user;
+        return this.campaignService.getCampaignTypes(hint, organization);
     }
     uploadConfig(file) {
         return this.campaignService.uploadConfig(file);
@@ -80,9 +81,10 @@ __decorate([
     common_1.Get("autocomplete/suggestTypes"),
     swagger_1.ApiOperation({ summary: "Sends a list of suggestions for campaigns" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Query('hint')),
+    common_1.UseGuards(passport_1.AuthGuard('jwt')),
+    __param(0, common_1.Query('hint')), __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "getCampaignTypes", null);
 __decorate([

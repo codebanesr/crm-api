@@ -15,7 +15,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { User } from "../user/interfaces/user.interface";
-import { Roles } from "dist/auth/decorators/roles.decorator";
+import { Roles } from "../auth/decorators/roles.decorator";
 
 @ApiTags("Agent")
 @Controller("agent")

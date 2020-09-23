@@ -16,7 +16,7 @@ export declare class CampaignController {
         error?: undefined;
     }>;
     getHandlerEmailHints(partialEmail: string): Promise<any[]>;
-    getCampaignTypes(hint: string): Promise<import("./interfaces/campaign.interface").Campaign[]>;
+    getCampaignTypes(hint: string, user: User): Promise<import("./interfaces/campaign.interface").Campaign[]>;
     uploadConfig(file: any): Promise<void>;
     findOneByIdOrName(campaignId: string, identifier: string): Promise<any>;
     createCampaignAndDisposition(currrentUser: User, file: any, body: any): Promise<{

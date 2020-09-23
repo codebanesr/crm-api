@@ -19,13 +19,14 @@ const agent_service_1 = require("./agent.service");
 const passport_1 = require("@nestjs/passport");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const roles_guard_1 = require("../auth/guards/roles.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 let AgentController = class AgentController {
     constructor(agentService) {
         this.agentService = agentService;
     }
     getUsersPerformance(user, skip = 0, fileType, sortBy = 'handler', me) {
-        const { id: activeUserId } = user;
-        return this.agentService.listActions(activeUserId, skip, fileType, sortBy, me);
+        const { id: activeUserId, organization } = user;
+        return this.agentService.listActions(activeUserId, organization, skip, fileType, sortBy, me);
     }
     downloadFile(res, location) {
         this.agentService.downloadFile(location, res);
@@ -35,6 +36,7 @@ __decorate([
     common_1.Get("listActions"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "List all admin actions" }),
+    roles_decorator_1.Roles('admin'),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, current_user_decorator_1.CurrentUser()),
     __param(1, common_1.Query("skip")),

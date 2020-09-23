@@ -22,7 +22,7 @@ export declare class CampaignService {
         deletedCount?: number;
     }>;
     getHandlerEmailHints(partialEmail: string): Promise<any[]>;
-    getCampaignTypes(hint: any): Promise<Campaign[]>;
+    getCampaignTypes(hint: any, organization: any): Promise<Campaign[]>;
     defaultDisposition(): Promise<Disposition | {
         error: string;
         e?: undefined;

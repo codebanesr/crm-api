@@ -119,10 +119,10 @@ let CampaignService = class CampaignService {
             return result.map((r) => r.handler);
         });
     }
-    getCampaignTypes(hint) {
+    getCampaignTypes(hint, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.campaignModel
-                .find({ campaignName: { $regex: "^" + hint, $options: "I" } })
+                .find({ campaignName: { $regex: "^" + hint, $options: "I" }, organization })
                 .limit(20);
         });
     }

@@ -30,12 +30,11 @@ let AgentService = class AgentService {
     constructor(adminActionModel) {
         this.adminActionModel = adminActionModel;
     }
-    listActions(activeUserId, skip, fileType, sortBy = "handler", me) {
+    listActions(activeUserId, organization, skip, fileType, sortBy = "handler", me) {
         return __awaiter(this, void 0, void 0, function* () {
-            const matchQ = {};
-            if (fileType) {
-                matchQ.fileType = fileType;
-            }
+            const matchQ = {
+                organization
+            };
             if (me) {
                 matchQ.userid = new mongoose_2.Types.ObjectId(activeUserId);
             }
