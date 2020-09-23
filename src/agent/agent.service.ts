@@ -14,15 +14,18 @@ export class AgentService {
 
   async listActions(
     activeUserId: string,
+    organization: string,
     skip,
     fileType,
     sortBy = "handler",
     me
   ) {
-    const matchQ = {} as any;
-    if (fileType) {
-      matchQ.fileType = fileType;
-    }
+    const matchQ = {
+      organization
+    } as any;
+    // if (fileType) {
+    //   matchQ.fileType = fileType;
+    // }
 
     if (me) {
       matchQ.userid = new Types.ObjectId(activeUserId);
