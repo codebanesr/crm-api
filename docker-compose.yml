@@ -13,9 +13,9 @@ services:
     environment:
       - NODE_ENV=production
       - VERSION=1.0
-    # volumes:
-    #   - .:/usr/src/app
-    #   - /usr/app/node_modules
+    volumes:
+      - .:/usr/src/app
+      - /usr/app/node_modules
     ports:
       - "3000:3000"
     tty: true

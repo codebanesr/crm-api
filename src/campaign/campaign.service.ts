@@ -240,4 +240,8 @@ export class CampaignService {
     writeFile(wb, filename);
     return filePath;
   }
+
+  getDispositionByCampaignName(campaignId: string, identifier: string) {
+        
+  }
 }

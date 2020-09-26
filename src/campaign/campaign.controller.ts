@@ -97,4 +97,13 @@ export class CampaignController {
     const { dispositionData, campaignInfo } = body;
     return this.campaignService.createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo);
   }
+
+  @Get("disposition/:campaignName")
+  @ApiOperation({ summary: "Get disposition By Campaign Name" })
+  @HttpCode(HttpStatus.OK)
+  @CacheTTL(300)
+  getDispositionByCampaignName(@Param('campaignName') campaignId: string) {
+    const identifier = "odem";
+    return this.campaignService.getDispositionByCampaignName(campaignId, identifier);
+  }  
 }
