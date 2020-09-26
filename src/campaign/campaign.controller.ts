@@ -98,12 +98,14 @@ export class CampaignController {
     return this.campaignService.createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo);
   }
 
-  @Get("disposition/:campaignName")
+  @Get("disposition/campaignName/:campaignName")
   @ApiOperation({ summary: "Get disposition By Campaign Name" })
   @HttpCode(HttpStatus.OK)
   @CacheTTL(300)
-  getDispositionByCampaignName(@Param('campaignName') campaignId: string) {
-    const identifier = "odem";
-    return this.campaignService.getDispositionByCampaignName(campaignId, identifier);
+  getDispositionByCampaignName(@Param('campaignName') campaignName: string) {
+    return this.campaignService.getDispositionByCampaignName(campaignName);
   }  
 }
+
+
+// /campaign/campaignName/disposition

@@ -4,11 +4,9 @@ import {
   MaxLength,
   IsEmail,
   IsString,
-  IsEnum,
   IsIn,
   IsArray,
   ValidateIf,
-  IsOptional,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
@@ -104,6 +102,18 @@ export class CreateUserDto {
     type: String,
   })
   @ApiProperty()
-  @IsArray()
+  @IsString({each: true})
   readonly roles: string[];
+
+
+  @ApiProperty({
+    example: "phoneNumber",
+    description: "Phone number of the user being created",
+    format: "string",
+    minLength: 5,
+    maxLength: 14,
+  })
+  /**@Todo this will be isphonenumber */
+  @IsString()
+  phoneNumber: string
 }

@@ -30,7 +30,7 @@ export class OrganizationService {
   ) {}
 
   async createOrganization(createOrganizationDto: CreateOrganizationDto) {
-    const { email, fullName, password } = createOrganizationDto;
+    const { email, fullName, password, phoneNumber } = createOrganizationDto;
     await this.isOrganizationalPayloadValid(createOrganizationDto);
     // now save organization information in the user schema...
     try {
@@ -43,7 +43,8 @@ export class OrganizationService {
         roleType: "admin",
         roles: ["admin", "user"],
         manages: [],
-        reportsTo: ""
+        reportsTo: "",
+        phoneNumber
       }, result._id);
     }catch(e) {
       return new ImATeapotException(e.message);

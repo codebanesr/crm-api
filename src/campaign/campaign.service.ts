@@ -20,9 +20,8 @@ export class CampaignService {
     private readonly dispositionModel: Model<Disposition>,
 
     @InjectModel("AdminAction")
-    private readonly adminActionModel: Model<AdminAction>,
+    private readonly adminActionModel: Model<AdminAction>
   ) {}
-
 
   // sort by default handler
   async findAll(page, perPage, filters, sortBy) {
@@ -31,31 +30,33 @@ export class CampaignService {
 
     const { createdBy, campaigns = [] } = filters;
 
-
     const matchQ = {} as any;
 
     matchQ.$and = [];
-    if(createdBy) {
-        matchQ.$and.push({createdBy:createdBy});
+    if (createdBy) {
+      matchQ.$and.push({ createdBy: createdBy });
     }
 
-    if(campaigns && campaigns.length > 0) {
-        matchQ.$and.push({ type: { $in: campaigns } });
+    if (campaigns && campaigns.length > 0) {
+      matchQ.$and.push({ type: { $in: campaigns } });
     }
 
     const fq = [
-        { $match: matchQ },
-        { $sort: { [sortBy]: 1 } },
-        {
-            '$facet': {
-                metadata: [ { $count: "total" }, { $addFields: { page: Number(page) } } ],
-                data: [ { $skip: skip }, { $limit: limit } ] // add projection here wish you re-shape the docs
-            }
-        }
+      { $match: matchQ },
+      { $sort: { [sortBy]: 1 } },
+      {
+        $facet: {
+          metadata: [
+            { $count: "total" },
+            { $addFields: { page: Number(page) } },
+          ],
+          data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
+        },
+      },
     ];
 
-    if(fq[0]["$match"]["$and"].length === 0) {
-        delete fq[0]["$match"]["$and"];
+    if (fq[0]["$match"]["$and"].length === 0) {
+      delete fq[0]["$match"]["$and"];
     }
     console.log(JSON.stringify(fq));
     const result = await this.campaignModel.aggregate(fq);
@@ -70,19 +71,15 @@ export class CampaignService {
       case "campaignName":
         result = await this.campaignModel
           .findOne({ campaignName: campaignId })
-          .sort({updatedAt: -1})
+          .sort({ updatedAt: -1 })
           .lean()
           .exec();
         break;
       default:
-        result = await this.campaignModel
-          .findById(campaignId)
-          .lean()
-          .exec();
+        result = await this.campaignModel.findById(campaignId).lean().exec();
     }
     return result;
   }
-
 
   async patch(campaignId, requestBody) {
     const updateOps: { [index: string]: any } = {};
@@ -119,7 +116,10 @@ export class CampaignService {
   //   @Query
   async getCampaignTypes(hint, organization) {
     return this.campaignModel
-      .find({ campaignName: { $regex: "^" + hint, $options: "I" }, organization })
+      .find({
+        campaignName: { $regex: "^" + hint, $options: "I" },
+        organization,
+      })
       .limit(20);
   }
 
@@ -142,12 +142,13 @@ export class CampaignService {
     }
   }
 
-
   async getDispositionForCampaign(campaignId: string) {
     if (campaignId == "core") {
       return this.defaultDisposition();
     } else {
-      return this.dispositionModel.findOne({ campaign: campaignId }).sort({_id: 1});
+      return this.dispositionModel
+        .findOne({ campaign: campaignId })
+        .sort({ _id: 1 });
     }
   }
 
@@ -177,13 +178,12 @@ export class CampaignService {
       schemaName: campaignInfo.campaignName,
     });
 
-
     const adminActions = new this.adminActionModel({
       userid: activeUserId,
       actionType: "error",
       filePath,
       savedOn: "disk",
-      fileType: "campaignConfig"
+      fileType: "campaignConfig",
     });
 
     adminActions.save();
@@ -206,10 +206,13 @@ export class CampaignService {
     const error = [];
 
     for (const cc of ccJSON) {
-      if (cc.type === 'select') {
+      if (cc.type === "select") {
         cc.options = cc.options.split(", ");
       }
-      const { lastErrorObject, value } = await this.campaignConfigModel
+      const {
+        lastErrorObject,
+        value,
+      } = await this.campaignConfigModel
         .findOneAndUpdate(
           { name: others.schemaName, internalField: cc.internalField },
           cc,
@@ -235,13 +238,27 @@ export class CampaignService {
     utils.book_append_sheet(wb, created_ws, "tickets created");
 
     const filename = `campaignSchema.xlsx`;
-    const filePath = join(__dirname,'..', '..', "crm_response", filename);
-    
+    const filePath = join(__dirname, "..", "..", "crm_response", filename);
+
     writeFile(wb, filename);
     return filePath;
   }
 
-  getDispositionByCampaignName(campaignId: string, identifier: string) {
-        
+  async getDispositionByCampaignName(campaignName: string) {
+    Logger.debug({campaignName});
+    const campaignAgg = this.campaignModel.aggregate();
+    campaignAgg.match({ campaignName });
+    campaignAgg.lookup({
+      from: "dispositions",
+      localField: "_id",
+      foreignField: "campaign",
+      as: "disposition",
+    });
+
+    campaignAgg.project({ disposition: "$disposition" });
+
+    const result = await campaignAgg.exec();
+
+    return result[0].disposition[0];
   }
 }

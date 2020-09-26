@@ -209,9 +209,12 @@ export class UserService {
   }
 
   async getSubordinates(user: User, organization: string): Promise<any> {
-    if(user.roleType === 'admin') {
-      const users = await this.userModel.find({organization}, {email: 1, _id: 0})
-      return users.map(u=>u.email)
+    if (user.roleType === "admin") {
+      const users = await this.userModel.find(
+        { organization },
+        { email: 1, _id: 0 }
+      );
+      return users.map((u) => u.email);
     }
 
     if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
@@ -544,7 +547,7 @@ export class UserService {
         ),
       };
 
-      var sended = await new Promise<boolean>(async function(resolve, reject) {
+      var sended = await new Promise<boolean>(async function (resolve, reject) {
         return await transporter.sendMail(mailOptions, async (error, info) => {
           if (error) {
             console.log("Message sent: %s", error);
@@ -587,5 +590,16 @@ export class UserService {
         },
       ])
       .exec();
+  }
+
+  async getUserById(userid: string, organization) {
+    return this.userModel.findOne(
+      { _id: userid },
+      { password: 0 }
+    );
+  }
+
+  async updateUser(userid: string, user: CreateUserDto) {
+    return this.userModel.updateOne({_id: userid }, user);
   }
 }

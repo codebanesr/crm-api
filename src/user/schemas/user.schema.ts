@@ -50,6 +50,10 @@ export const UserSchema = new Schema(
     },
     roleType: { type: String, required: true },
     manages: [String],
+    reportsTo: { type: String, default: null },
+    
+    /**@todo this default has to be removed */
+    phoneNumber: { type: String, required: true, default: "00000" },
     history: { type: Array, default: null },
     hierarchyWeight: Number,
     organization: {

@@ -15,7 +15,8 @@ import {
   UseInterceptors,
   UploadedFile,
   Get,
-  Param,
+  Param, 
+  Logger, Put
 } from "@nestjs/common";
 import { Request as IRequest } from "express";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -66,11 +67,24 @@ export class UserController {
 
   @Get()
   @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Gets all users without filter, quick prototype" })
   @ApiOperation({ summary: "Get users hack" })
   async getAllUsersHack(@CurrentUser() user: User) {
     const { organization } = user;
     return this.userService.getAllUsersHack(organization);
   }
+
+
+  @Get("single/:id")
+  @Roles("admin")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Gets all users without filter, quick prototype" })
+  async getUserById(@CurrentUser() user: User, @Param('id') userid: string) {
+    const {organization} = user;
+    return this.userService.getUserById(userid, organization);
+  }
+
+
 
   @Post("verify-email")
   @HttpCode(HttpStatus.OK)
@@ -195,5 +209,21 @@ export class UserController {
   ) {
     const { organization } = user;
     return this.userService.insertMany(req.user.id, file.path);
+  }
+
+
+  @Put(":id")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Reset password after verify reset password" })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @ApiHeader({
+    name: "Bearer",
+    description: "the token we need for auth.",
+  })
+  @ApiOkResponse({})
+  async updateUser(@Param('id') userid: string ,@Body() user: CreateUserDto) {
+    return this.userService.updateUser(userid, user);
   }
 }

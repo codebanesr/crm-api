@@ -69,7 +69,7 @@ export class CreateOrganizationDto {
       @IsNotEmpty()
       @MinLength(8)
       @MaxLength(14)
-      phoneNumber: String
+      phoneNumber: string
 
 
 
