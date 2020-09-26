@@ -157,9 +157,9 @@ let UserService = class UserService {
     }
     getSubordinates(user, organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (user.roleType === 'admin') {
+            if (user.roleType === "admin") {
                 const users = yield this.userModel.find({ organization }, { email: 1, _id: 0 });
-                return users.map(u => u.email);
+                return users.map((u) => u.email);
             }
             if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
                 return [user.email];
@@ -503,6 +503,16 @@ let UserService = class UserService {
                 },
             ])
                 .exec();
+        });
+    }
+    getUserById(userid, organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.userModel.findOne({ _id: userid }, { password: 0 });
+        });
+    }
+    updateUser(userid, user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.userModel.updateOne({ _id: userid }, user);
         });
     }
 };

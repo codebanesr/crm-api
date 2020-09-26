@@ -118,10 +118,10 @@ export class LeadService {
   }
 
   // const result = await Campaign.find({type: {$regex: "^"+hint, $options:"I"}}).limit(20);
-  async getAllEmailTemplates(limit, skip, campaign: string, organization: string) {
+  async getAllEmailTemplates(limit, skip, searchTerm: string, organization: string, campaignName) {
     const query = this.emailTemplateModel.aggregate();
     const result = await query
-      .match({ campaign: { $regex: `^${campaign}`, $options: "I" }, organization })
+      .match({ subject: { $regex: `^${searchTerm}`, $options: "I" }, organization, campaign: campaignName })
       .sort("type")
       .limit(+limit)
       .skip(+skip)

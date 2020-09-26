@@ -2,7 +2,7 @@ import { Schema, Types } from "mongoose";
 
 export const EmailTemplateSchema = new Schema(
   {
-    campaigns: String,
+    campaign: String,
     email: { type: String },
     content: { type: String, required: true },
     subject: { type: String, required: true },

@@ -107,8 +107,19 @@ __decorate([
         type: String,
     }),
     swagger_1.ApiProperty(),
-    class_validator_1.IsArray(),
+    class_validator_1.IsString({ each: true }),
     __metadata("design:type", Array)
 ], CreateUserDto.prototype, "roles", void 0);
+__decorate([
+    swagger_1.ApiProperty({
+        example: "phoneNumber",
+        description: "Phone number of the user being created",
+        format: "string",
+        minLength: 5,
+        maxLength: 14,
+    }),
+    class_validator_1.IsString(),
+    __metadata("design:type", String)
+], CreateUserDto.prototype, "phoneNumber", void 0);
 exports.CreateUserDto = CreateUserDto;
 //# sourceMappingURL=create-user.dto.js.map

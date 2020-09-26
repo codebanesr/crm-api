@@ -54,6 +54,12 @@ let UserController = class UserController {
             return this.userService.getAllUsersHack(organization);
         });
     }
+    getUserById(user, userid) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { organization } = user;
+            return this.userService.getUserById(userid, organization);
+        });
+    }
     verifyEmail(req, verifyUuidDto) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.userService.verifyEmail(req, verifyUuidDto);
@@ -96,6 +102,11 @@ let UserController = class UserController {
         const { organization } = user;
         return this.userService.insertMany(req.user.id, file.path);
     }
+    updateUser(userid, user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.userService.updateUser(userid, user);
+        });
+    }
 };
 __decorate([
     common_1.Post(),
@@ -113,12 +124,23 @@ __decorate([
 __decorate([
     common_1.Get(),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOperation({ summary: "Gets all users without filter, quick prototype" }),
     swagger_1.ApiOperation({ summary: "Get users hack" }),
     __param(0, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getAllUsersHack", null);
+__decorate([
+    common_1.Get("single/:id"),
+    roles_decorator_1.Roles("admin"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOperation({ summary: "Gets all users without filter, quick prototype" }),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Param('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getUserById", null);
 __decorate([
     common_1.Post("verify-email"),
     common_1.HttpCode(common_1.HttpStatus.OK),
@@ -245,6 +267,23 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, Object, Object]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "add", null);
+__decorate([
+    common_1.Put(":id"),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    swagger_1.ApiOperation({ summary: "Reset password after verify reset password" }),
+    swagger_1.ApiBearerAuth(),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("admin"),
+    swagger_1.ApiHeader({
+        name: "Bearer",
+        description: "the token we need for auth.",
+    }),
+    swagger_1.ApiOkResponse({}),
+    __param(0, common_1.Param('id')), __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, create_user_dto_1.CreateUserDto]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "updateUser", null);
 UserController = __decorate([
     swagger_1.ApiTags("User"),
     common_1.Controller("user"),

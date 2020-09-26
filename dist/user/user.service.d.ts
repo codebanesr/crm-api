@@ -78,4 +78,6 @@ export declare class UserService {
     saveToExcel(json: any): string;
     sendEmailForgotPassword(email: string, token: any): Promise<boolean>;
     getAllUsersHack(organization: string): Promise<any>;
+    getUserById(userid: string, organization: any): Promise<User>;
+    updateUser(userid: string, user: CreateUserDto): Promise<any>;
 }

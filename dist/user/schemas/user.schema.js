@@ -60,6 +60,8 @@ exports.UserSchema = new mongoose_1.Schema({
     },
     roleType: { type: String, required: true },
     manages: [String],
+    reportsTo: { type: String, default: null },
+    phoneNumber: { type: String, required: true, default: "00000" },
     history: { type: Array, default: null },
     hierarchyWeight: Number,
     organization: {

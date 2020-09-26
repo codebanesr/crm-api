@@ -24,7 +24,7 @@ export declare class LeadService {
     saveEmailAttachments(files: any): any;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: any, organization: string): Promise<EmailTemplate>;
-    getAllEmailTemplates(limit: any, skip: any, campaign: string, organization: string): Promise<any>;
+    getAllEmailTemplates(limit: any, skip: any, searchTerm: string, organization: string, campaignName: any): Promise<any>;
     getLeadHistoryById(externalId: string, organization: any): Promise<Lead>;
     getLeadReassignmentHistory(email: string): Promise<any>;
     getBasicOverview(): Promise<{
@@ -40,7 +40,7 @@ export declare class LeadService {
         paths: any[];
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
-    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "phoneNumber" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">>;
+    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">>;
     patch(productId: string, body: any[]): Promise<any>;
     deleteOne(leadId: string, activeUserEmail: string): Promise<Pick<any, string | number | symbol>>;
     createAlarm(alarmObj: Partial<Alarm>): Promise<Alarm>;
@@ -76,7 +76,7 @@ export declare class LeadService {
         };
     }>;
     fetchNextLead(campaignId: string, leadStatus: string, email: string, organization: string): Promise<{
-        result: Pick<Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "phoneNumber" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">;
+        result: Pick<Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">;
     }>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
     getFollowUps(): Promise<void>;

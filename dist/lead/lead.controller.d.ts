@@ -30,7 +30,7 @@ export declare class LeadController {
         result: any[];
         total: number;
     }>;
-    getAllEmailTemplates(user: User, limit: number, skip: number, campaign: string): Promise<any>;
+    getAllEmailTemplates(user: User, limit: number, skip: number, searchTerm: string, campaignName: string): Promise<any>;
     createEmailTemplate(user: User, body: CreateEmailTemplateDto): Promise<import("./interfaces/email-template.interface").EmailTemplate>;
     sendBulkEmails(req: any, body: BulkEmailDto): Promise<{
         success: boolean;
@@ -49,10 +49,10 @@ export declare class LeadController {
         error?: undefined;
     }>;
     saveEmailAttachments(files: any): any;
-    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "phoneNumber" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">>;
+    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;
     fetchNextLead(user: User, campaignId: string, leadStatus: string): Promise<{
-        result: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "phoneNumber" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">;
+        result: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">;
     }>;
     getAllAlarms(user: User, body: any): Promise<any>;
 }

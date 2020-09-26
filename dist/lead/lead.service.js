@@ -100,11 +100,11 @@ let LeadService = class LeadService {
             return emailTemplate.save();
         });
     }
-    getAllEmailTemplates(limit, skip, campaign, organization) {
+    getAllEmailTemplates(limit, skip, searchTerm, organization, campaignName) {
         return __awaiter(this, void 0, void 0, function* () {
             const query = this.emailTemplateModel.aggregate();
             const result = yield query
-                .match({ campaign: { $regex: `^${campaign}`, $options: "I" }, organization })
+                .match({ subject: { $regex: `^${searchTerm}`, $options: "I" }, organization, campaign: campaignName })
                 .sort("type")
                 .limit(+limit)
                 .skip(+skip)

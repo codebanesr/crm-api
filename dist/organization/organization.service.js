@@ -40,7 +40,7 @@ let OrganizationService = class OrganizationService {
     }
     createOrganization(createOrganizationDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { email, fullName, password } = createOrganizationDto;
+            const { email, fullName, password, phoneNumber } = createOrganizationDto;
             yield this.isOrganizationalPayloadValid(createOrganizationDto);
             try {
                 const organization = new this.organizationalModel(createOrganizationDto);
@@ -52,7 +52,8 @@ let OrganizationService = class OrganizationService {
                     roleType: "admin",
                     roles: ["admin", "user"],
                     manages: [],
-                    reportsTo: ""
+                    reportsTo: "",
+                    phoneNumber
                 }, result._id);
             }
             catch (e) {

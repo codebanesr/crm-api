@@ -3,7 +3,7 @@ export interface User extends Document {
     fullName: string;
     email: string;
     password: string;
-    roles: [string];
+    roles: string[];
     verification: string;
     verified: boolean;
     verificationExpires: Date;

@@ -49,6 +49,9 @@ let CampaignController = class CampaignController {
         const { dispositionData, campaignInfo } = body;
         return this.campaignService.createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo);
     }
+    getDispositionByCampaignName(campaignName) {
+        return this.campaignService.getDispositionByCampaignName(campaignName);
+    }
 };
 __decorate([
     common_1.Post("get"),
@@ -123,6 +126,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "createCampaignAndDisposition", null);
+__decorate([
+    common_1.Get("disposition/campaignName/:campaignName"),
+    swagger_1.ApiOperation({ summary: "Get disposition By Campaign Name" }),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    common_1.CacheTTL(300),
+    __param(0, common_1.Param('campaignName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CampaignController.prototype, "getDispositionByCampaignName", null);
 CampaignController = __decorate([
     swagger_1.ApiTags("Campaign"),
     common_1.Controller("campaign"),

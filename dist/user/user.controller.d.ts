@@ -13,6 +13,7 @@ export declare class UserController {
     constructor(userService: UserService);
     register(createUserDto: CreateUserDto, user: User): Promise<any>;
     getAllUsersHack(user: User): Promise<any>;
+    getUserById(user: User, userid: string): Promise<User>;
     verifyEmail(req: IRequest, verifyUuidDto: VerifyUuidDto): Promise<{
         fullName: string;
         email: string;
@@ -44,4 +45,5 @@ export declare class UserController {
     findAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any>;
     managersForReassignment(user: User, assigned: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "history" | "hierarchyWeight" | "organization">[]>;
     add(req: any, assigned: string, file: any, user: User): Promise<import("./interfaces/admin-actions.interface").AdminAction>;
+    updateUser(userid: string, user: CreateUserDto): Promise<any>;
 }

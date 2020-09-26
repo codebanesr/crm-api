@@ -6,4 +6,5 @@ export declare class CreateUserDto {
     readonly manages: string[];
     readonly reportsTo: string;
     readonly roles: string[];
+    phoneNumber: string;
 }

@@ -52,11 +52,14 @@ let CampaignService = class CampaignService {
                 { $match: matchQ },
                 { $sort: { [sortBy]: 1 } },
                 {
-                    '$facet': {
-                        metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
-                        data: [{ $skip: skip }, { $limit: limit }]
-                    }
-                }
+                    $facet: {
+                        metadata: [
+                            { $count: "total" },
+                            { $addFields: { page: Number(page) } },
+                        ],
+                        data: [{ $skip: skip }, { $limit: limit }],
+                    },
+                },
             ];
             if (fq[0]["$match"]["$and"].length === 0) {
                 delete fq[0]["$match"]["$and"];
@@ -78,10 +81,7 @@ let CampaignService = class CampaignService {
                         .exec();
                     break;
                 default:
-                    result = yield this.campaignModel
-                        .findById(campaignId)
-                        .lean()
-                        .exec();
+                    result = yield this.campaignModel.findById(campaignId).lean().exec();
             }
             return result;
         });
@@ -122,7 +122,10 @@ let CampaignService = class CampaignService {
     getCampaignTypes(hint, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.campaignModel
-                .find({ campaignName: { $regex: "^" + hint, $options: "I" }, organization })
+                .find({
+                campaignName: { $regex: "^" + hint, $options: "I" },
+                organization,
+            })
                 .limit(20);
         });
     }
@@ -150,7 +153,9 @@ let CampaignService = class CampaignService {
                 return this.defaultDisposition();
             }
             else {
-                return this.dispositionModel.findOne({ campaign: campaignId }).sort({ _id: 1 });
+                return this.dispositionModel
+                    .findOne({ campaign: campaignId })
+                    .sort({ _id: 1 });
             }
         });
     }
@@ -174,7 +179,7 @@ let CampaignService = class CampaignService {
                 actionType: "error",
                 filePath,
                 savedOn: "disk",
-                fileType: "campaignConfig"
+                fileType: "campaignConfig",
             });
             adminActions.save();
             let disposition = new this.dispositionModel({
@@ -195,10 +200,10 @@ let CampaignService = class CampaignService {
             const updated = [];
             const error = [];
             for (const cc of ccJSON) {
-                if (cc.type === 'select') {
+                if (cc.type === "select") {
                     cc.options = cc.options.split(", ");
                 }
-                const { lastErrorObject, value } = yield this.campaignConfigModel
+                const { lastErrorObject, value, } = yield this.campaignConfigModel
                     .findOneAndUpdate({ name: others.schemaName, internalField: cc.internalField }, cc, { new: true, upsert: true, rawResult: true })
                     .lean()
                     .exec();
@@ -218,9 +223,25 @@ let CampaignService = class CampaignService {
             xlsx_1.utils.book_append_sheet(wb, updated_ws, "tickets updated");
             xlsx_1.utils.book_append_sheet(wb, created_ws, "tickets created");
             const filename = `campaignSchema.xlsx`;
-            const filePath = path_1.join(__dirname, '..', '..', "crm_response", filename);
+            const filePath = path_1.join(__dirname, "..", "..", "crm_response", filename);
             xlsx_1.writeFile(wb, filename);
             return filePath;
+        });
+    }
+    getDispositionByCampaignName(campaignName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            common_1.Logger.debug({ campaignName });
+            const campaignAgg = this.campaignModel.aggregate();
+            campaignAgg.match({ campaignName });
+            campaignAgg.lookup({
+                from: "dispositions",
+                localField: "_id",
+                foreignField: "campaign",
+                as: "disposition",
+            });
+            campaignAgg.project({ disposition: "$disposition" });
+            const result = yield campaignAgg.exec();
+            return result[0].disposition[0];
         });
     }
 };

@@ -44,4 +44,5 @@ export declare class CampaignService {
         filePath: string;
     }>;
     saveCampaignSchema(ccJSON: any[], others: any): Promise<string>;
+    getDispositionByCampaignName(campaignName: string): Promise<any>;
 }

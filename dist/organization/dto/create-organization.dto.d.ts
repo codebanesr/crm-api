@@ -3,7 +3,7 @@ export declare class CreateOrganizationDto {
     readonly email: string;
     readonly type: String;
     phoneNumberPrefix: string;
-    phoneNumber: String;
+    phoneNumber: string;
     otp: string;
     fullName: string;
     password: string;

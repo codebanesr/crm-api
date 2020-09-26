@@ -182,14 +182,16 @@ export class LeadController {
     @CurrentUser() user: User,
     @Query("limit") limit: number = 10,
     @Query("skip") skip: number = 0,
-    @Query("campaign") campaign: string
+    @Query("searchTerm") searchTerm: string,
+    @Query("campaignName") campaignName: string
   ) {
     const {organization} = user;
     return this.leadService.getAllEmailTemplates(
       limit || 20,
       skip || 0,
-      campaign,
-      organization
+      searchTerm,
+      organization,
+      campaignName
     );
   }
 
