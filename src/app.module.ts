@@ -13,6 +13,7 @@ import { OrganizationModule } from './organization/organization.module';
 import { SharedModule } from './shared/shared.module';
 import { ServeStaticModule } from "@nestjs/serve-static/dist/serve-static.module";
 import { join } from "path";
+import { DashboardModule } from './dashboard/dashboard.module';
 
 
 @Module({
@@ -30,6 +31,7 @@ import { join } from "path";
     AgentModule,
     OrganizationModule,
     SharedModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

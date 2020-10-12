@@ -1,0 +1,24 @@
+// fetch lead by states, filter by date Query
+{
+    "_pipeline": [
+        {
+            "$match": {
+                "updatedAt": {
+                    "$gte": "2020-07-09T11:23:45.075Z",
+                    "$lt": "2023-11-25T11:23:45.075Z"
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "leadStatus": "$leadStatus"
+                },
+                "totalAmount": {
+                    "$sum": "$amount"
+                }
+            }
+        }
+    ],
+    "options": {}
+}
