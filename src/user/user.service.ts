@@ -30,6 +30,8 @@ import { join } from "path";
 import { default as config } from "../config";
 import { createTransport } from "nodemailer";
 import { getForgotPasswordTemplate } from "../utils/forgot-password-template";
+import { UserActivityDto } from "./dto/user-activity.dto";
+import { start } from "repl";
 
 @Injectable()
 export class UserService {

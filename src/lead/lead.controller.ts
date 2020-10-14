@@ -29,6 +29,8 @@ import { UploadMultipleFilesDto } from "./dto/generic.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../user/interfaces/user.interface";
+import { Roles } from "dist/auth/decorators/roles.decorator";
+import { UserActivityDto } from "src/user/dto/user-activity.dto";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -318,5 +320,19 @@ export class LeadController {
   ) {
     const {organization} = user;
     return this.leadService.getAllAlarms(body, organization);
+  }
+
+  @Post("/activity/logs")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Register user" })
+  async usersActivityLog(
+    @Body() userActivityDto: UserActivityDto,
+    @CurrentUser() user: User
+  ) {
+    const { organization } = user;
+    const {dateRange, userEmail} = userActivityDto;
+    return this.leadService.getUsersActivity(dateRange, userEmail, organization);
   }
 }

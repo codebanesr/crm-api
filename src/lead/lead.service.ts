@@ -683,4 +683,25 @@ export class LeadService {
 
     return await this.alarmModel.aggregate(fq).exec();
   }
+
+
+    // https://docs.mongodb.com/manual/core/aggregation-pipeline-optimization/#match-match-coalescence, 
+  // it is ok to use consecutive match statements
+  async getUsersActivity(dateRange: Date[], userEmail: string, organization: string) {
+    let startDate, endDate;
+    const userAgg = this.leadModel.aggregate();
+    userAgg.match({email: userEmail, organization});
+    if(dateRange) {
+      [startDate, endDate] = dateRange;
+      userAgg.match({createdAt:{ $gte: startDate, $lt: endDate }});
+    }
+
+    // project fields that we want
+    userAgg.project({amount: "$amount", leadStatus: "$leadStatus"});
+
+    // group by user, preferably return userAgg[0]
+    userAgg.group({_id: "$leadStatus", amount: {$sum: "$amount"}});
+
+    return userAgg.exec();
+  }
 }

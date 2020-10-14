@@ -41,6 +41,7 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "./interfaces/user.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
+import { UserActivityDto } from "./dto/user-activity.dto";
 
 @ApiTags("User")
 @Controller("user")
