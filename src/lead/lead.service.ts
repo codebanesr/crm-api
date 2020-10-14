@@ -699,7 +699,7 @@ export class LeadService {
     // project fields that we want
     userAgg.project({amount: "$amount", leadStatus: "$leadStatus"});
 
-    // group by user, preferably return userAgg[0]
+    // group by lead status
     userAgg.group({_id: "$leadStatus", amount: {$sum: "$amount"}});
 
     return userAgg.exec();
