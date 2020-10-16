@@ -162,31 +162,33 @@ let LeadService = class LeadService {
             const skip = Number((+page - 1) * limit);
             const { assigned, selectedCampaign, dateRange } = filters;
             const [startDate, endDate] = dateRange || [];
-            const matchQ = { $and: [{ organization }] };
+            const leadAgg = this.leadModel.aggregate();
+            leadAgg.match({ organization });
             if (assigned) {
                 const subordinateEmails = yield this.getSubordinates(activeUserEmail, roleType);
-                matchQ.$and.push({
+                leadAgg.match({
                     email: { $in: [...subordinateEmails, activeUserEmail] },
                 });
             }
-            else {
-                matchQ.$and.push({ email: { $exists: false } });
-            }
             if (startDate) {
-                matchQ.$and.push({
+                leadAgg.match({
                     createdAt: { $gt: new Date(startDate) },
                 });
             }
             if (endDate) {
-                matchQ.$and.push({
+                leadAgg.match({
                     createdAt: { $lt: new Date(endDate) },
                 });
             }
             if (selectedCampaign) {
-                matchQ["$and"].push({ campaign: selectedCampaign });
+                const campaign = yield this.campaignModel
+                    .findOne({ _id: selectedCampaign }, { campaignName: 1 })
+                    .lean()
+                    .exec();
+                leadAgg.match({ campaign: campaign.campaignName });
             }
             if (searchTerm) {
-                matchQ["$and"].push({ $text: { $search: searchTerm } });
+                leadAgg.match({ $text: { $search: searchTerm } });
             }
             let flds;
             if (showCols && showCols.length > 0) {
@@ -203,23 +205,13 @@ let LeadService = class LeadService {
                 projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
             });
             projectQ._id = 0;
-            const fq = [
-                { $match: matchQ },
-                {
-                    $project: projectQ,
-                },
-                { $sort: { [sortBy]: 1 } },
-                {
-                    $facet: {
-                        metadata: [
-                            { $count: "total" },
-                            { $addFields: { page: Number(page) } },
-                        ],
-                        data: [{ $skip: skip }, { $limit: limit }],
-                    },
-                },
-            ];
-            const response = yield this.leadModel.aggregate(fq);
+            leadAgg.project(projectQ);
+            leadAgg.sort({ [sortBy]: 1 });
+            leadAgg.facet({
+                metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+                data: [{ $skip: skip }, { $limit: limit }],
+            });
+            const response = yield leadAgg.exec();
             return {
                 total: (_b = (_a = response[0]) === null || _a === void 0 ? void 0 : _a.metadata[0]) === null || _b === void 0 ? void 0 : _b.total,
                 page: (_d = (_c = response[0]) === null || _c === void 0 ? void 0 : _c.metadata[0]) === null || _d === void 0 ? void 0 : _d.page,

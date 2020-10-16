@@ -31,7 +31,7 @@ __decorate([
     __metadata("design:type", Array)
 ], FiltersDto.prototype, "dateRange", void 0);
 __decorate([
-    class_validator_1.IsString(),
+    class_validator_1.IsMongoId(),
     __metadata("design:type", String)
 ], FiltersDto.prototype, "selectedCampaign", void 0);
 exports.FiltersDto = FiltersDto;
@@ -39,53 +39,53 @@ class FindAllDto {
     constructor() {
         this.page = 1;
         this.perPage = 20;
-        this.sortBy = 'createdAt';
+        this.sortBy = "createdAt";
         this.showCols = [];
-        this.searchTerm = '';
+        this.searchTerm = "";
     }
 }
 __decorate([
     swagger_1.ApiProperty({
-        example: '1',
-        description: 'Page Number in paginated view',
-        format: 'number',
-        default: 1
+        example: "1",
+        description: "Page Number in paginated view",
+        format: "number",
+        default: 1,
     }),
     class_validator_1.IsNumber(),
     __metadata("design:type", Number)
 ], FindAllDto.prototype, "page", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: '15',
-        description: 'Number of records you want in selected page',
-        format: 'number',
-        default: 15
+        example: "15",
+        description: "Number of records you want in selected page",
+        format: "number",
+        default: 15,
     }),
     class_validator_1.IsNumber(),
     __metadata("design:type", Number)
 ], FindAllDto.prototype, "perPage", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: '15',
-        description: 'The property you want to sort by',
-        format: 'string',
+        example: "15",
+        description: "The property you want to sort by",
+        format: "string",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], FindAllDto.prototype, "sortBy", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: ['email', 'leadStatus', 'name'],
-        description: 'Cols to show in lead view',
-        format: 'string',
-        default: 'createdAt'
+        example: ["email", "leadStatus", "name"],
+        description: "Cols to show in lead view",
+        format: "string",
+        default: "createdAt",
     }),
     class_validator_1.IsArray(),
     __metadata("design:type", Array)
 ], FindAllDto.prototype, "showCols", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: 'sha'
+        example: "sha",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
@@ -98,7 +98,7 @@ __decorate([
             dateRange: null,
             handlerEmail: "seniormanager@gmail.com",
             moduleTypes: null,
-        }
+        },
     }),
     __metadata("design:type", FiltersDto)
 ], FindAllDto.prototype, "filters", void 0);
