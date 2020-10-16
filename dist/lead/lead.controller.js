@@ -11,6 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadController = void 0;
 const common_1 = require("@nestjs/common");
@@ -25,6 +34,9 @@ const platform_express_1 = require("@nestjs/platform-express");
 const generic_dto_1 = require("./dto/generic.dto");
 const passport_1 = require("@nestjs/passport");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const user_activity_dto_1 = require("../user/dto/user-activity.dto");
+const follow_up_dto_1 = require("./dto/follow-up.dto");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
@@ -88,7 +100,7 @@ let LeadController = class LeadController {
     uploadMultipleLeadFiles(user, body, files) {
         const { email, organization } = user;
         const { campaignName } = body;
-        return this.leadService.uploadMultipleLeadFiles(files, campaignName);
+        return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization);
     }
     saveEmailAttachments(files) {
         return this.leadService.saveEmailAttachments(files);
@@ -108,6 +120,20 @@ let LeadController = class LeadController {
         const { organization } = user;
         return this.leadService.getAllAlarms(body, organization);
     }
+    usersActivityLog(userActivityDto, user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { organization } = user;
+            const { dateRange, userEmail } = userActivityDto;
+            return this.leadService.getUsersActivity(dateRange, userEmail, organization);
+        });
+    }
+    fetchFollowUps(followUpDto, user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { organization } = user;
+            const { interval, userEmail } = followUpDto;
+            return this.leadService.getFollowUps(interval, organization, userEmail);
+        });
+    }
 };
 __decorate([
     common_1.Get("getAllLeadColumns"),
@@ -116,7 +142,8 @@ __decorate([
         summary: "Get lead by id",
     }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    __param(0, common_1.Query("campaignType")), __param(1, current_user_decorator_1.CurrentUser()),
+    __param(0, common_1.Query("campaignType")),
+    __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
@@ -179,7 +206,8 @@ __decorate([
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Sync phone calls from device to database" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Body()), __param(1, current_user_decorator_1.CurrentUser()),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Array, Object]),
     __metadata("design:returntype", void 0)
@@ -191,7 +219,8 @@ __decorate([
     }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Param("externalId")),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(1, common_1.Param("externalId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
@@ -346,12 +375,35 @@ __decorate([
     }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, current_user_decorator_1.CurrentUser()),
-    __param(1, common_1.Body()),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "getAllAlarms", null);
+__decorate([
+    common_1.Post("/activity/logs"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("admin"),
+    common_1.HttpCode(common_1.HttpStatus.CREATED),
+    swagger_1.ApiOperation({ summary: "Register user" }),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [user_activity_dto_1.UserActivityDto, Object]),
+    __metadata("design:returntype", Promise)
+], LeadController.prototype, "usersActivityLog", null);
+__decorate([
+    common_1.Post("/followUp"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("admin"),
+    common_1.HttpCode(common_1.HttpStatus.CREATED),
+    swagger_1.ApiOperation({ summary: "Register user" }),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [follow_up_dto_1.FollowUpDto, Object]),
+    __metadata("design:returntype", Promise)
+], LeadController.prototype, "fetchFollowUps", null);
 LeadController = __decorate([
     swagger_1.ApiTags("Lead"),
     common_1.Controller("lead"),

@@ -43,7 +43,7 @@ export declare class UserController {
         message: string;
     }>;
     findAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any>;
-    managersForReassignment(user: User, assigned: string): Promise<Pick<User, "password" | "_id" | "email" | "history" | "organization" | "verified" | "roles" | "fullName" | "roleType" | "manages" | "verification" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "hierarchyWeight">[]>;
+    managersForReassignment(user: User, assigned: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "history" | "hierarchyWeight" | "organization">[]>;
     add(req: any, assigned: string, file: any, user: User): Promise<import("./interfaces/admin-actions.interface").AdminAction>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
 }

@@ -142,7 +142,8 @@ __decorate([
         summary: "Get lead by id",
     }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    __param(0, common_1.Query("campaignType")), __param(1, current_user_decorator_1.CurrentUser()),
+    __param(0, common_1.Query("campaignType")),
+    __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
@@ -205,7 +206,8 @@ __decorate([
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Sync phone calls from device to database" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Body()), __param(1, current_user_decorator_1.CurrentUser()),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Array, Object]),
     __metadata("design:returntype", void 0)
@@ -217,7 +219,8 @@ __decorate([
     }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Param("externalId")),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(1, common_1.Param("externalId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
@@ -372,8 +375,7 @@ __decorate([
     }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, current_user_decorator_1.CurrentUser()),
-    __param(1, common_1.Body()),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)

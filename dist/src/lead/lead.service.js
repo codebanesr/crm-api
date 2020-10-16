@@ -96,7 +96,7 @@ let LeadService = class LeadService {
                 content: content,
                 subject: subject,
                 attachments: acceptableAttachmentFormat,
-                organization
+                organization,
             });
             return emailTemplate.save();
         });
@@ -104,7 +104,10 @@ let LeadService = class LeadService {
     getAllEmailTemplates(limit, skip, searchTerm, organization, campaignName) {
         return __awaiter(this, void 0, void 0, function* () {
             const query = this.emailTemplateModel.aggregate();
-            const matchQ = { subject: { $regex: `^${searchTerm}`, $options: "I" }, organization };
+            const matchQ = {
+                subject: { $regex: `^${searchTerm}`, $options: "I" },
+                organization,
+            };
             if (campaignName !== "undefined") {
                 matchQ["campaign"] = campaignName;
             }
@@ -234,9 +237,9 @@ let LeadService = class LeadService {
                 campaignType = campaign.campaignName;
             }
             const matchQ = { name: campaignType };
-            const paths = yield this.campaignConfigModel.aggregate([
-                { $match: matchQ },
-            ]);
+            const paths = yield this.campaignConfigModel
+                .aggregate([{ $match: matchQ }])
+                .exec();
             return { paths: paths };
         });
     }
@@ -279,10 +282,7 @@ let LeadService = class LeadService {
     }
     deleteOne(leadId, activeUserEmail) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield this.leadModel
-                .remove({ _id: leadId })
-                .lean()
-                .exec();
+            const result = yield this.leadModel.remove({ _id: leadId }).lean().exec();
             yield this.createAlarm({
                 module: "LEAD",
                 tag: "LEAD_CREATE",
@@ -346,7 +346,7 @@ let LeadService = class LeadService {
     syncPhoneCalls(callLogs, organization, user) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const transformed = callLogs.map(callLog => {
+                const transformed = callLogs.map((callLog) => {
                     return Object.assign(Object.assign({}, callLog), { organization, user });
                 });
                 return this.callLogModel.insertMany(transformed);
@@ -552,28 +552,28 @@ let LeadService = class LeadService {
             todayEnd.setSeconds(59);
             if (duration === follow_up_dto_1.INTERVAL.TODAY) {
                 leadAgg.match({
-                    'followUp': {
-                        '$lte': todayEnd,
-                        '$gte': todayStart
-                    }
+                    followUp: {
+                        $lte: todayEnd,
+                        $gte: todayStart,
+                    },
                 });
             }
             else if (duration === follow_up_dto_1.INTERVAL.THIS_WEEK) {
                 const lastDateOfWeek = new Date(todayStart.setDate(todayStart.getDate() - todayStart.getDay() + 6));
                 leadAgg.match({
-                    'followUp': {
-                        '$lte': lastDateOfWeek,
-                        '$gte': todayStart
-                    }
+                    followUp: {
+                        $lte: lastDateOfWeek,
+                        $gte: todayStart,
+                    },
                 });
             }
             else if (duration === follow_up_dto_1.INTERVAL.THIS_MONTH) {
                 const lastDateOfMonth = new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0, 23, 59, 59);
                 leadAgg.match({
-                    'followUp': {
-                        '$lte': lastDateOfMonth,
-                        '$gte': todayStart
-                    }
+                    followUp: {
+                        $lte: lastDateOfMonth,
+                        $gte: todayStart,
+                    },
                 });
             }
             leadAgg.match({ organization, email });
@@ -584,14 +584,14 @@ let LeadService = class LeadService {
     }
     getAllAlarms(body, organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { page = 1, perPage = 20, filters = {}, sortBy = 'createdAt' } = body;
+            const { page = 1, perPage = 20, filters = {}, sortBy = "createdAt" } = body;
             const limit = Number(perPage);
             const skip = Number((page - 1) * limit);
             const fq = [
                 { $match: { organization } },
                 { $sort: { [sortBy]: 1 } },
                 { $skip: skip },
-                { $limit: limit }
+                { $limit: limit },
             ];
             return yield this.alarmModel.aggregate(fq).exec();
         });

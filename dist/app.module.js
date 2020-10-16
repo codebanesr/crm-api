@@ -22,6 +22,7 @@ const organization_module_1 = require("./organization/organization.module");
 const shared_module_1 = require("./shared/shared.module");
 const serve_static_module_1 = require("@nestjs/serve-static/dist/serve-static.module");
 const path_1 = require("path");
+const dashboard_module_1 = require("./dashboard/dashboard.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -40,6 +41,7 @@ AppModule = __decorate([
             agent_module_1.AgentModule,
             organization_module_1.OrganizationModule,
             shared_module_1.SharedModule,
+            dashboard_module_1.DashboardModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

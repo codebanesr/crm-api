@@ -52,7 +52,7 @@ export declare class LeadService {
         success?: undefined;
     }>;
     suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit?: number): Promise<any>;
-    uploadMultipleLeadFiles(files: any[], campaignName: string): Promise<{
+    uploadMultipleLeadFiles(files: any[], campaignName: string, uploader: string, organization: string): Promise<{
         error: string;
         files?: undefined;
         result?: undefined;
@@ -67,8 +67,8 @@ export declare class LeadService {
     updateLead(externalId: string, lead: Partial<CreateLeadDto>): Promise<Lead>;
     saveLeads(leads: any[], campaignName: string, originalFileName: string): Promise<void>;
     getSubordinates(email: string, roleType: string): Promise<any>;
-    parseLeadFiles(files: any[], ccnfg: IConfig[], campaignName: string): Promise<void>;
-    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string): Promise<void>;
+    parseLeadFiles(files: any[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string): Promise<void>;
+    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string): Promise<void>;
     leadActivityByUser(startDate: string, endDate: string, email: string): Promise<any>;
     getUpdatedAtQuery(startDate: string, endDate: string): Promise<{
         updatedAt: {
@@ -79,6 +79,7 @@ export declare class LeadService {
         result: Pick<Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">;
     }>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
-    getFollowUps(): Promise<void>;
+    getFollowUps(duration: any, organization: any, email: any): Promise<any>;
     getAllAlarms(body: any, organization: any): Promise<any>;
+    getUsersActivity(dateRange: Date[], userEmail: string, organization: string): Promise<any>;
 }

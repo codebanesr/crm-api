@@ -14,8 +14,8 @@ import {
   ValidationPipe,
   CacheKey,
   CacheTTL,
-  UseGuards, 
-  Logger
+  UseGuards,
+  Logger,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiConsumes } from "@nestjs/swagger";
 import { CampaignService } from "./campaign.service";
@@ -36,37 +36,40 @@ export class CampaignController {
   @HttpCode(HttpStatus.OK)
   // @UsePipes(new ValidationPipe({transform: true}))
   findAll(@Body() body: FindCampaignsDto) {
-        const {filters, page, perPage, sortBy} = body;
-      return this.campaignService.findAll(page, perPage, filters, sortBy)
+    const { filters, page, perPage, sortBy } = body;
+    return this.campaignService.findAll(page, perPage, filters, sortBy);
   }
 
   @Get("disposition/:campaignId")
-  @ApiOperation({ summary: "Gets the latest version of disposition from all disposition trees added with campaign" })
+  @ApiOperation({
+    summary:
+      "Gets the latest version of disposition from all disposition trees added with campaign",
+  })
   @HttpCode(HttpStatus.OK)
-  getDispositionForCampaign(@Param('campaignId') campaignId: string) {
+  getDispositionForCampaign(@Param("campaignId") campaignId: string) {
     return this.campaignService.getDispositionForCampaign(campaignId);
   }
 
   @Get("autocomplete/suggestEmails")
   @ApiOperation({ summary: "Get list of emails for suggestion" })
   @HttpCode(HttpStatus.OK)
-  getHandlerEmailHints(@Query('partialEmail') partialEmail: string) {
+  getHandlerEmailHints(@Query("partialEmail") partialEmail: string) {
     return this.campaignService.getHandlerEmailHints(partialEmail);
   }
 
   @Get("autocomplete/suggestTypes")
   @ApiOperation({ summary: "Sends a list of suggestions for campaigns" })
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard('jwt'))
-  getCampaignTypes(@Query('hint') hint: string, @CurrentUser() user: User) {
-    const {organization} = user;
+  @UseGuards(AuthGuard("jwt"))
+  getCampaignTypes(@Query("hint") hint: string, @CurrentUser() user: User) {
+    const { organization } = user;
     return this.campaignService.getCampaignTypes(hint, organization);
   }
 
   @Post("config/upload")
   @UseInterceptors(FileInterceptor("file"))
   @ApiOperation({ summary: "Upload a campaign config file" })
-  @ApiConsumes('multipart/form-data')
+  @ApiConsumes("multipart/form-data")
   @HttpCode(HttpStatus.OK)
   uploadConfig(@UploadedFile() file) {
     // file upload decorators required here
@@ -77,12 +80,15 @@ export class CampaignController {
   @ApiOperation({ summary: "Get one campaign by id" })
   @HttpCode(HttpStatus.OK)
   @CacheTTL(300)
-  findOneByIdOrName(@Param('campaignId') campaignId: string, @Query('identifier') identifier: string) {
+  findOneByIdOrName(
+    @Param("campaignId") campaignId: string,
+    @Query("identifier") identifier: string
+  ) {
     return this.campaignService.findOneByIdOrName(campaignId, identifier);
   }
 
   @Post("createCampaignAndDisposition")
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard("jwt"))
   @UseInterceptors(FileInterceptor("campaignFile"))
   @ApiOperation({
     summary: "Upload a campaign file and also send disposition data",
@@ -93,19 +99,32 @@ export class CampaignController {
     @UploadedFile() file,
     @Body() body
   ) {
-    const { id: activeUserId } = currrentUser;
+    const { id: activeUserId, organization } = currrentUser;
     const { dispositionData, campaignInfo } = body;
-    return this.campaignService.createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo);
+    return this.campaignService.createCampaignAndDisposition(
+      activeUserId,
+      file,
+      dispositionData,
+      campaignInfo,
+      organization
+    );
   }
 
   @Get("disposition/campaignName/:campaignName")
   @ApiOperation({ summary: "Get disposition By Campaign Name" })
   @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard("jwt"))
   @CacheTTL(300)
-  getDispositionByCampaignName(@Param('campaignName') campaignName: string) {
-    return this.campaignService.getDispositionByCampaignName(campaignName);
-  }  
+  getDispositionByCampaignName(
+    @Param("campaignName") campaignName: string,
+    @CurrentUser() user: User
+  ) {
+    const { organization } = user;
+    return this.campaignService.getDispositionByCampaignName(
+      campaignName,
+      organization
+    );
+  }
 }
-
 
 // /campaign/campaignName/disposition

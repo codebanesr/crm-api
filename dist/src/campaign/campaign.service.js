@@ -165,28 +165,32 @@ let CampaignService = class CampaignService {
             const excelObject = parseExcel_1.default(path);
         });
     }
-    createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo) {
+    createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             dispositionData = JSON.parse(dispositionData);
             campaignInfo = JSON.parse(campaignInfo);
-            const ccJSON = parseExcel_1.default(file.path);
-            const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId }), { new: true, upsert: true, rawResult: true });
-            const filePath = yield this.saveCampaignSchema(ccJSON, {
-                schemaName: campaignInfo.campaignName,
-            });
-            const adminActions = new this.adminActionModel({
-                userid: activeUserId,
-                actionType: "error",
-                filePath,
-                savedOn: "disk",
-                fileType: "campaignConfig",
-            });
-            adminActions.save();
+            const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization }), { new: true, upsert: true, rawResult: true });
             let disposition = new this.dispositionModel({
                 options: dispositionData,
                 campaign: campaign.value.id,
             });
             disposition = yield disposition.save();
+            let filePath = "";
+            if (file) {
+                const ccJSON = parseExcel_1.default(file.path);
+                filePath = yield this.saveCampaignSchema(ccJSON, {
+                    schemaName: campaignInfo.campaignName,
+                    organization,
+                });
+                const adminActions = new this.adminActionModel({
+                    userid: activeUserId,
+                    actionType: "error",
+                    filePath,
+                    savedOn: "disk",
+                    fileType: "campaignConfig",
+                });
+                adminActions.save();
+            }
             return {
                 campaign: campaign.value,
                 disposition,
@@ -203,8 +207,12 @@ let CampaignService = class CampaignService {
                 if (cc.type === "select") {
                     cc.options = cc.options.split(", ");
                 }
-                const { lastErrorObject, value, } = yield this.campaignConfigModel
-                    .findOneAndUpdate({ name: others.schemaName, internalField: cc.internalField }, cc, { new: true, upsert: true, rawResult: true })
+                const { lastErrorObject, value } = yield this.campaignConfigModel
+                    .findOneAndUpdate({
+                    name: others.schemaName,
+                    internalField: cc.internalField,
+                    organization: others.schema,
+                }, Object.assign(Object.assign({}, cc), { organization: others.organization }), { new: true, upsert: true, rawResult: true })
                     .lean()
                     .exec();
                 if (lastErrorObject.updatedExisting === true) {
@@ -228,11 +236,11 @@ let CampaignService = class CampaignService {
             return filePath;
         });
     }
-    getDispositionByCampaignName(campaignName) {
+    getDispositionByCampaignName(campaignName, organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            common_1.Logger.debug({ campaignName });
+            common_1.Logger.debug({ campaignName, organization });
             const campaignAgg = this.campaignModel.aggregate();
-            campaignAgg.match({ campaignName });
+            campaignAgg.match({ campaignName, organization });
             campaignAgg.lookup({
                 from: "dispositions",
                 localField: "_id",

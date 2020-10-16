@@ -24,5 +24,5 @@ export declare class CampaignController {
         disposition: import("./interfaces/disposition.interface").Disposition;
         filePath: string;
     }>;
-    getDispositionByCampaignName(campaignName: string): Promise<any>;
+    getDispositionByCampaignName(campaignName: string, user: User): Promise<any>;
 }

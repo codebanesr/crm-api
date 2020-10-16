@@ -109,20 +109,29 @@ export class LeadService {
       content: content,
       subject: subject,
       attachments: acceptableAttachmentFormat,
-      organization
+      organization,
     });
 
     return emailTemplate.save();
   }
 
   // const result = await Campaign.find({type: {$regex: "^"+hint, $options:"I"}}).limit(20);
-  async getAllEmailTemplates(limit, skip, searchTerm: string, organization: string, campaignName) {
+  async getAllEmailTemplates(
+    limit,
+    skip,
+    searchTerm: string,
+    organization: string,
+    campaignName
+  ) {
     const query = this.emailTemplateModel.aggregate();
-    const matchQ = { subject: { $regex: `^${searchTerm}`, $options: "I" }, organization }
-    if(campaignName!=="undefined") {
+    const matchQ = {
+      subject: { $regex: `^${searchTerm}`, $options: "I" },
+      organization,
+    };
+    if (campaignName !== "undefined") {
       matchQ["campaign"] = campaignName;
     }
-    
+
     const result = await query
       .match(matchQ)
       .sort("type")
@@ -183,41 +192,47 @@ export class LeadService {
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
-
     const { assigned, selectedCampaign, dateRange } = filters;
-
     const [startDate, endDate] = dateRange || [];
-    const matchQ = { $and: [{organization}] } as any;
+
+    const leadAgg = this.leadModel.aggregate();
+    leadAgg.match({ organization });
+
     if (assigned) {
       const subordinateEmails = await this.getSubordinates(
         activeUserEmail,
         roleType
       );
-      matchQ.$and.push({
+
+      leadAgg.match({
         email: { $in: [...subordinateEmails, activeUserEmail] },
       });
-    } else {
-      matchQ.$and.push({ email: { $exists: false } });
     }
 
     if (startDate) {
-      matchQ.$and.push({
+      leadAgg.match({
         createdAt: { $gt: new Date(startDate) },
       });
     }
 
     if (endDate) {
-      matchQ.$and.push({
+      leadAgg.match({
         createdAt: { $lt: new Date(endDate) },
       });
     }
 
+    /** Move it into a cached service call */
     if (selectedCampaign) {
-      matchQ["$and"].push({ campaign: selectedCampaign });
+      const campaign = await this.campaignModel
+        .findOne({ _id: selectedCampaign }, { campaignName: 1 })
+        .lean()
+        .exec();
+
+      leadAgg.match({ campaign: campaign.campaignName });
     }
 
     if (searchTerm) {
-      matchQ["$and"].push({ $text: { $search: searchTerm } });
+      leadAgg.match({ $text: { $search: searchTerm } });
     }
 
     let flds;
@@ -239,23 +254,15 @@ export class LeadService {
 
     projectQ._id = 0;
 
-    const fq = [
-      { $match: matchQ },
-      {
-        $project: projectQ,
-      },
-      { $sort: { [sortBy]: 1 } },
-      {
-        $facet: {
-          metadata: [
-            { $count: "total" },
-            { $addFields: { page: Number(page) } },
-          ],
-          data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
-        },
-      },
-    ];
-    const response = await this.leadModel.aggregate(fq);
+    leadAgg.project(projectQ);
+    leadAgg.sort({ [sortBy]: 1 });
+    leadAgg.facet({
+      metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+      data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
+    });
+
+    const response = await leadAgg.exec();
+
     return {
       total: response[0]?.metadata[0]?.total,
       page: response[0]?.metadata[0]?.page,
@@ -273,9 +280,9 @@ export class LeadService {
     }
     const matchQ: any = { name: campaignType };
 
-    const paths = await this.campaignConfigModel.aggregate([
-      { $match: matchQ },
-    ]);
+    const paths = await this.campaignConfigModel
+      .aggregate([{ $match: matchQ }])
+      .exec();
 
     return { paths: paths };
   }
@@ -319,10 +326,7 @@ export class LeadService {
   }
 
   async deleteOne(leadId: string, activeUserEmail: string) {
-    const result = await this.leadModel
-      .remove({ _id: leadId })
-      .lean()
-      .exec();
+    const result = await this.leadModel.remove({ _id: leadId }).lean().exec();
 
     await this.createAlarm({
       module: "LEAD",
@@ -368,7 +372,12 @@ export class LeadService {
     }
   }
 
-  async suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit = 10) {
+  async suggestLeads(
+    activeUserEmail: string,
+    leadId: string,
+    organization: string,
+    limit = 10
+  ) {
     const query = this.leadModel.aggregate();
 
     query.match({
@@ -398,7 +407,12 @@ export class LeadService {
   //   type: 'Lead Generation',
   //   interval: [ '2020-07-24T13:31:02.621Z', '2020-07-04T13:26:07.078Z' ]
   // }
-  async uploadMultipleLeadFiles(files: any[], campaignName: string, uploader: string, organization: string) {
+  async uploadMultipleLeadFiles(
+    files: any[],
+    campaignName: string,
+    uploader: string,
+    organization: string
+  ) {
     const ccnfg = (await this.campaignConfigModel
       .find(
         { name: campaignName, organization },
@@ -412,16 +426,22 @@ export class LeadService {
       };
     }
 
-    const result = await this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader);
+    const result = await this.parseLeadFiles(
+      files,
+      ccnfg,
+      campaignName,
+      organization,
+      uploader
+    );
     // parse data here
     return { files, result };
   }
 
   async syncPhoneCalls(callLogs: SyncCallLogsDto[], organization, user) {
     try {
-      const transformed = callLogs.map(callLog=>{
-        return {...callLog, organization, user}
-      })
+      const transformed = callLogs.map((callLog) => {
+        return { ...callLog, organization, user };
+      });
       return this.callLogModel.insertMany(transformed);
     } catch (e) {
       Logger.error(
@@ -432,7 +452,12 @@ export class LeadService {
     }
   }
 
-  async addGeolocation(activeUserId: string, lat: number, lng: number, organization: string) {
+  async addGeolocation(
+    activeUserId: string,
+    lat: number,
+    lng: number,
+    organization: string
+  ) {
     var geoObj = new this.geoLocationModel({
       userid: Types.ObjectId(activeUserId),
       location: {
@@ -539,10 +564,22 @@ export class LeadService {
     return result[0].subordinates;
   }
 
-  async parseLeadFiles(files: any[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string) {
+  async parseLeadFiles(
+    files: any[],
+    ccnfg: IConfig[],
+    campaignName: string,
+    organization: string,
+    uploader: string
+  ) {
     files.forEach(async (file: any) => {
       const jsonRes = parseExcel(file.path, ccnfg);
-      this.saveLeadsFromExcel(jsonRes, campaignName, file.originalname, organization, uploader);
+      this.saveLeadsFromExcel(
+        jsonRes,
+        campaignName,
+        file.originalname,
+        organization,
+        uploader
+      );
     });
   }
 
@@ -623,7 +660,12 @@ export class LeadService {
     return uq;
   }
 
-  async fetchNextLead(campaignId: string, leadStatus: string, email: string, organization: string) {
+  async fetchNextLead(
+    campaignId: string,
+    leadStatus: string,
+    email: string,
+    organization: string
+  ) {
     const campaign: any = await this.campaignModel
       .findOne({ _id: campaignId, organization })
       .lean()
@@ -659,91 +701,96 @@ export class LeadService {
     return qb.exec();
   }
 
-
-
   // date will always be greater than today
   async getFollowUps(duration, organization, email) {
     const leadAgg = this.leadModel.aggregate();
-    var todayStart= new Date();
+    var todayStart = new Date();
     todayStart.setHours(0);
     todayStart.setMinutes(0);
     todayStart.setSeconds(1);
-
 
     var todayEnd = new Date();
     todayEnd.setHours(23);
     todayEnd.setMinutes(59);
     todayEnd.setSeconds(59);
 
-    if(duration === INTERVAL.TODAY) {
+    if (duration === INTERVAL.TODAY) {
       leadAgg.match({
-        'followUp': {
-          '$lte': todayEnd,
-          '$gte': todayStart
-        }
-      })
-    }else if (duration === INTERVAL.THIS_WEEK) {
-      const lastDateOfWeek = new Date(todayStart.setDate(todayStart.getDate() - todayStart.getDay()+6));
+        followUp: {
+          $lte: todayEnd,
+          $gte: todayStart,
+        },
+      });
+    } else if (duration === INTERVAL.THIS_WEEK) {
+      const lastDateOfWeek = new Date(
+        todayStart.setDate(todayStart.getDate() - todayStart.getDay() + 6)
+      );
       leadAgg.match({
-        'followUp': {
-          '$lte': lastDateOfWeek,
-          '$gte': todayStart
-        }
-      })
-
-    }else if(duration === INTERVAL.THIS_MONTH) {
-      const lastDateOfMonth = new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0, 23, 59, 59);
+        followUp: {
+          $lte: lastDateOfWeek,
+          $gte: todayStart,
+        },
+      });
+    } else if (duration === INTERVAL.THIS_MONTH) {
+      const lastDateOfMonth = new Date(
+        todayStart.getFullYear(),
+        todayStart.getMonth() + 1,
+        0,
+        23,
+        59,
+        59
+      );
       leadAgg.match({
-        'followUp': {
-          '$lte': lastDateOfMonth,
-          '$gte': todayStart
-        }
-      })
+        followUp: {
+          $lte: lastDateOfMonth,
+          $gte: todayStart,
+        },
+      });
     }
 
-    leadAgg.match({organization, email});
-    leadAgg.sort({followUp: 1});
+    leadAgg.match({ organization, email });
+    leadAgg.sort({ followUp: 1 });
 
     Logger.debug(leadAgg);
     return leadAgg.exec();
   }
 
-
-
   async getAllAlarms(body, organization) {
-    const { page = 1, perPage = 20, filters={}, sortBy = 'createdAt' } = body;
+    const { page = 1, perPage = 20, filters = {}, sortBy = "createdAt" } = body;
 
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
 
-
     const fq = [
-        { $match: {organization} },
-        { $sort: { [sortBy]: 1 } },
-        { $skip: skip },
-        { $limit: limit }
+      { $match: { organization } },
+      { $sort: { [sortBy]: 1 } },
+      { $skip: skip },
+      { $limit: limit },
     ];
 
     return await this.alarmModel.aggregate(fq).exec();
   }
 
-
-    // https://docs.mongodb.com/manual/core/aggregation-pipeline-optimization/#match-match-coalescence, 
+  // https://docs.mongodb.com/manual/core/aggregation-pipeline-optimization/#match-match-coalescence,
   // it is ok to use consecutive match statements
-  async getUsersActivity(dateRange: Date[], userEmail: string, organization: string) {
+  async getUsersActivity(
+    dateRange: Date[],
+    userEmail: string,
+    organization: string
+  ) {
     let startDate, endDate;
     const userAgg = this.leadModel.aggregate();
-    userAgg.match({email: userEmail, organization});
-    if(dateRange) {
+    userAgg.match({ email: userEmail, organization });
+    if (dateRange) {
       [startDate, endDate] = dateRange;
-      userAgg.match({createdAt:{ $gte: startDate, $lt: endDate }});
+      userAgg.match({ createdAt: { $gte: startDate, $lt: endDate } });
     }
 
     // project fields that we want
-    userAgg.project({amount: "$amount", leadStatus: "$leadStatus"});
+    userAgg.project({ amount: "$amount", leadStatus: "$leadStatus" });
 
     // group by lead status
-    userAgg.group({_id: "$leadStatus", amount: {$sum: "$amount"}});
+    userAgg.group({ _id: "$leadStatus", amount: { $sum: "$amount" } });
 
     return userAgg.exec();
   }

@@ -10,8 +10,8 @@ exports.CampaignConfigSchema = new mongoose_1.Schema({
     options: [String],
     checked: Boolean,
     organization: {
-        type: mongoose_1.Types.ObjectId,
-        ref: 'Organization'
-    }
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "Organization",
+    },
 });
 //# sourceMappingURL=campaign-config.schema.js.map

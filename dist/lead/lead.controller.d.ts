@@ -7,6 +7,8 @@ import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { CreateEmailTemplateDto, BulkEmailDto } from "./dto/create-email-template.dto";
 import { UploadMultipleFilesDto } from "./dto/generic.dto";
 import { User } from "../user/interfaces/user.interface";
+import { UserActivityDto } from "../user/dto/user-activity.dto";
+import { FollowUpDto } from "./dto/follow-up.dto";
 export declare class LeadController {
     private readonly leadService;
     constructor(leadService: LeadService);
@@ -55,4 +57,6 @@ export declare class LeadController {
         result: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">;
     }>;
     getAllAlarms(user: User, body: any): Promise<any>;
+    usersActivityLog(userActivityDto: UserActivityDto, user: User): Promise<any>;
+    fetchFollowUps(followUpDto: FollowUpDto, user: User): Promise<any>;
 }

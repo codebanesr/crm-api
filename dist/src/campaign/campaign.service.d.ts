@@ -38,11 +38,13 @@ export declare class CampaignService {
         error?: undefined;
     }>;
     uploadConfig(file: any): Promise<void>;
-    createCampaignAndDisposition(activeUserId: string, file: any, dispositionData: any, campaignInfo: any): Promise<{
+    createCampaignAndDisposition(activeUserId: string, file: any, dispositionData: any, campaignInfo: any, organization: string): Promise<{
         campaign: Campaign;
         disposition: Disposition;
         filePath: string;
     }>;
-    saveCampaignSchema(ccJSON: any[], others: any): Promise<string>;
-    getDispositionByCampaignName(campaignName: string): Promise<any>;
+    saveCampaignSchema(ccJSON: any[], others: any & {
+        organization: string;
+    }): Promise<string>;
+    getDispositionByCampaignName(campaignName: string, organization: string): Promise<any>;
 }

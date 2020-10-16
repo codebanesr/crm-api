@@ -27,7 +27,7 @@ exports.LeadSchema = new mongoose_1.Schema({
     bucket: String,
     operationalArea: String,
     pincode: Number,
-    organization: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Organization' },
+    organization: { type: mongoose_1.Schema.Types.ObjectId, ref: "Organization" },
 }, {
     timestamps: true,
     autoIndex: true,

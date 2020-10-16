@@ -41,6 +41,7 @@ const mongoose_3 = require("mongoose");
 const sendMail_1 = require("../utils/sendMail");
 const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
+const follow_up_dto_1 = require("./dto/follow-up.dto");
 let LeadService = class LeadService {
     constructor(leadModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel) {
         this.leadModel = leadModel;
@@ -95,7 +96,7 @@ let LeadService = class LeadService {
                 content: content,
                 subject: subject,
                 attachments: acceptableAttachmentFormat,
-                organization
+                organization,
             });
             return emailTemplate.save();
         });
@@ -103,8 +104,15 @@ let LeadService = class LeadService {
     getAllEmailTemplates(limit, skip, searchTerm, organization, campaignName) {
         return __awaiter(this, void 0, void 0, function* () {
             const query = this.emailTemplateModel.aggregate();
+            const matchQ = {
+                subject: { $regex: `^${searchTerm}`, $options: "I" },
+                organization,
+            };
+            if (campaignName !== "undefined") {
+                matchQ["campaign"] = campaignName;
+            }
             const result = yield query
-                .match({ subject: { $regex: `^${searchTerm}`, $options: "I" }, organization, campaign: campaignName })
+                .match(matchQ)
                 .sort("type")
                 .limit(+limit)
                 .skip(+skip)
@@ -274,10 +282,7 @@ let LeadService = class LeadService {
     }
     deleteOne(leadId, activeUserEmail) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield this.leadModel
-                .remove({ _id: leadId })
-                .lean()
-                .exec();
+            const result = yield this.leadModel.remove({ _id: leadId }).lean().exec();
             yield this.createAlarm({
                 module: "LEAD",
                 tag: "LEAD_CREATE",
@@ -323,10 +328,10 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    uploadMultipleLeadFiles(files, campaignName) {
+    uploadMultipleLeadFiles(files, campaignName, uploader, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             const ccnfg = (yield this.campaignConfigModel
-                .find({ name: campaignName }, { readableField: 1, internalField: 1, _id: 0 })
+                .find({ name: campaignName, organization }, { readableField: 1, internalField: 1, _id: 0 })
                 .lean()
                 .exec());
             if (!ccnfg) {
@@ -334,14 +339,14 @@ let LeadService = class LeadService {
                     error: `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`,
                 };
             }
-            const result = yield this.parseLeadFiles(files, ccnfg, campaignName);
+            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader);
             return { files, result };
         });
     }
     syncPhoneCalls(callLogs, organization, user) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const transformed = callLogs.map(callLog => {
+                const transformed = callLogs.map((callLog) => {
                     return Object.assign(Object.assign({}, callLog), { organization, user });
                 });
                 return this.callLogModel.insertMany(transformed);
@@ -437,22 +442,22 @@ let LeadService = class LeadService {
             return result[0].subordinates;
         });
     }
-    parseLeadFiles(files, ccnfg, campaignName) {
+    parseLeadFiles(files, ccnfg, campaignName, organization, uploader) {
         return __awaiter(this, void 0, void 0, function* () {
             files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
                 const jsonRes = parseExcel_1.default(file.path, ccnfg);
-                this.saveLeadsFromExcel(jsonRes, campaignName, file.originalname);
+                this.saveLeadsFromExcel(jsonRes, campaignName, file.originalname, organization, uploader);
             }));
         });
     }
-    saveLeadsFromExcel(leads, campaignName, originalFileName) {
+    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader) {
         return __awaiter(this, void 0, void 0, function* () {
             const created = [];
             const updated = [];
             const error = [];
             for (const l of leads) {
                 const { lastErrorObject, value } = yield this.leadModel
-                    .findOneAndUpdate({ externalId: l.externalId }, Object.assign(Object.assign({}, l), { campaign: campaignName }), { new: true, upsert: true, rawResult: true })
+                    .findOneAndUpdate({ externalId: l.externalId }, Object.assign(Object.assign({}, l), { campaign: campaignName, organization, uploader }), { new: true, upsert: true, rawResult: true })
                     .lean()
                     .exec();
                 if (lastErrorObject.updatedExisting === true) {
@@ -534,22 +539,75 @@ let LeadService = class LeadService {
         });
         return qb.exec();
     }
-    getFollowUps() {
+    getFollowUps(duration, organization, email) {
         return __awaiter(this, void 0, void 0, function* () {
+            const leadAgg = this.leadModel.aggregate();
+            var todayStart = new Date();
+            todayStart.setHours(0);
+            todayStart.setMinutes(0);
+            todayStart.setSeconds(1);
+            var todayEnd = new Date();
+            todayEnd.setHours(23);
+            todayEnd.setMinutes(59);
+            todayEnd.setSeconds(59);
+            if (duration === follow_up_dto_1.INTERVAL.TODAY) {
+                leadAgg.match({
+                    followUp: {
+                        $lte: todayEnd,
+                        $gte: todayStart,
+                    },
+                });
+            }
+            else if (duration === follow_up_dto_1.INTERVAL.THIS_WEEK) {
+                const lastDateOfWeek = new Date(todayStart.setDate(todayStart.getDate() - todayStart.getDay() + 6));
+                leadAgg.match({
+                    followUp: {
+                        $lte: lastDateOfWeek,
+                        $gte: todayStart,
+                    },
+                });
+            }
+            else if (duration === follow_up_dto_1.INTERVAL.THIS_MONTH) {
+                const lastDateOfMonth = new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0, 23, 59, 59);
+                leadAgg.match({
+                    followUp: {
+                        $lte: lastDateOfMonth,
+                        $gte: todayStart,
+                    },
+                });
+            }
+            leadAgg.match({ organization, email });
+            leadAgg.sort({ followUp: 1 });
+            common_1.Logger.debug(leadAgg);
+            return leadAgg.exec();
         });
     }
     getAllAlarms(body, organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { page = 1, perPage = 20, filters = {}, sortBy = 'createdAt' } = body;
+            const { page = 1, perPage = 20, filters = {}, sortBy = "createdAt" } = body;
             const limit = Number(perPage);
             const skip = Number((page - 1) * limit);
             const fq = [
                 { $match: { organization } },
                 { $sort: { [sortBy]: 1 } },
                 { $skip: skip },
-                { $limit: limit }
+                { $limit: limit },
             ];
             return yield this.alarmModel.aggregate(fq).exec();
+        });
+    }
+    getUsersActivity(dateRange, userEmail, organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let startDate, endDate;
+            const userAgg = this.leadModel.aggregate();
+            userAgg.match({ email: userEmail, organization });
+            if (dateRange) {
+                [startDate, endDate] = dateRange;
+                userAgg.match({ createdAt: { $gte: startDate, $lt: endDate } });
+            }
+            userAgg.project({ amount: "$amount", leadStatus: "$leadStatus" });
+            userAgg.group({ _id: "$leadStatus", amount: { $sum: "$amount" } });
+            return userAgg.exec();
         });
     }
 };

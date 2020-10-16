@@ -45,12 +45,13 @@ let CampaignController = class CampaignController {
         return this.campaignService.findOneByIdOrName(campaignId, identifier);
     }
     createCampaignAndDisposition(currrentUser, file, body) {
-        const { id: activeUserId } = currrentUser;
+        const { id: activeUserId, organization } = currrentUser;
         const { dispositionData, campaignInfo } = body;
-        return this.campaignService.createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo);
+        return this.campaignService.createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo, organization);
     }
-    getDispositionByCampaignName(campaignName) {
-        return this.campaignService.getDispositionByCampaignName(campaignName);
+    getDispositionByCampaignName(campaignName, user) {
+        const { organization } = user;
+        return this.campaignService.getDispositionByCampaignName(campaignName, organization);
     }
 };
 __decorate([
@@ -64,9 +65,11 @@ __decorate([
 ], CampaignController.prototype, "findAll", null);
 __decorate([
     common_1.Get("disposition/:campaignId"),
-    swagger_1.ApiOperation({ summary: "Gets the latest version of disposition from all disposition trees added with campaign" }),
+    swagger_1.ApiOperation({
+        summary: "Gets the latest version of disposition from all disposition trees added with campaign",
+    }),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Param('campaignId')),
+    __param(0, common_1.Param("campaignId")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
@@ -75,7 +78,7 @@ __decorate([
     common_1.Get("autocomplete/suggestEmails"),
     swagger_1.ApiOperation({ summary: "Get list of emails for suggestion" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Query('partialEmail')),
+    __param(0, common_1.Query("partialEmail")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
@@ -84,8 +87,8 @@ __decorate([
     common_1.Get("autocomplete/suggestTypes"),
     swagger_1.ApiOperation({ summary: "Sends a list of suggestions for campaigns" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    common_1.UseGuards(passport_1.AuthGuard('jwt')),
-    __param(0, common_1.Query('hint')), __param(1, current_user_decorator_1.CurrentUser()),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    __param(0, common_1.Query("hint")), __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
@@ -94,7 +97,7 @@ __decorate([
     common_1.Post("config/upload"),
     common_1.UseInterceptors(platform_express_1.FileInterceptor("file")),
     swagger_1.ApiOperation({ summary: "Upload a campaign config file" }),
-    swagger_1.ApiConsumes('multipart/form-data'),
+    swagger_1.ApiConsumes("multipart/form-data"),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, common_1.UploadedFile()),
     __metadata("design:type", Function),
@@ -106,14 +109,15 @@ __decorate([
     swagger_1.ApiOperation({ summary: "Get one campaign by id" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
     common_1.CacheTTL(300),
-    __param(0, common_1.Param('campaignId')), __param(1, common_1.Query('identifier')),
+    __param(0, common_1.Param("campaignId")),
+    __param(1, common_1.Query("identifier")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "findOneByIdOrName", null);
 __decorate([
     common_1.Post("createCampaignAndDisposition"),
-    common_1.UseGuards(passport_1.AuthGuard('jwt')),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.UseInterceptors(platform_express_1.FileInterceptor("campaignFile")),
     swagger_1.ApiOperation({
         summary: "Upload a campaign file and also send disposition data",
@@ -130,10 +134,12 @@ __decorate([
     common_1.Get("disposition/campaignName/:campaignName"),
     swagger_1.ApiOperation({ summary: "Get disposition By Campaign Name" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.CacheTTL(300),
-    __param(0, common_1.Param('campaignName')),
+    __param(0, common_1.Param("campaignName")),
+    __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "getDispositionByCampaignName", null);
 CampaignController = __decorate([

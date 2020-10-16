@@ -162,36 +162,42 @@ export class CampaignService {
     activeUserId: string,
     file,
     dispositionData: any,
-    campaignInfo: any
+    campaignInfo: any,
+    organization: string
   ) {
     dispositionData = JSON.parse(dispositionData);
     campaignInfo = JSON.parse(campaignInfo);
-    const ccJSON = parseExcel(file.path);
 
     const campaign = await this.campaignModel.findOneAndUpdate(
-      { campaignName: campaignInfo.campaignName },
-      { ...campaignInfo, createdBy: activeUserId },
+      { campaignName: campaignInfo.campaignName, organization },
+      { ...campaignInfo, createdBy: activeUserId, organization },
       { new: true, upsert: true, rawResult: true }
     );
 
-    const filePath = await this.saveCampaignSchema(ccJSON, {
-      schemaName: campaignInfo.campaignName,
-    });
-
-    const adminActions = new this.adminActionModel({
-      userid: activeUserId,
-      actionType: "error",
-      filePath,
-      savedOn: "disk",
-      fileType: "campaignConfig",
-    });
-
-    adminActions.save();
     let disposition = new this.dispositionModel({
       options: dispositionData,
       campaign: campaign.value.id,
     });
     disposition = await disposition.save();
+
+    let filePath = "";
+    if (file) {
+      const ccJSON = parseExcel(file.path);
+      filePath = await this.saveCampaignSchema(ccJSON, {
+        schemaName: campaignInfo.campaignName,
+        organization,
+      });
+
+      const adminActions = new this.adminActionModel({
+        userid: activeUserId,
+        actionType: "error",
+        filePath,
+        savedOn: "disk",
+        fileType: "campaignConfig",
+      });
+
+      adminActions.save();
+    }
 
     return {
       campaign: campaign.value,
@@ -200,7 +206,10 @@ export class CampaignService {
     };
   }
 
-  async saveCampaignSchema(ccJSON: any[], others: any) {
+  async saveCampaignSchema(
+    ccJSON: any[],
+    others: any & { organization: string }
+  ) {
     const created = [];
     const updated = [];
     const error = [];
@@ -209,13 +218,14 @@ export class CampaignService {
       if (cc.type === "select") {
         cc.options = cc.options.split(", ");
       }
-      const {
-        lastErrorObject,
-        value,
-      } = await this.campaignConfigModel
+      const { lastErrorObject, value } = await this.campaignConfigModel
         .findOneAndUpdate(
-          { name: others.schemaName, internalField: cc.internalField },
-          cc,
+          {
+            name: others.schemaName,
+            internalField: cc.internalField,
+            organization: others.schema,
+          },
+          { ...cc, organization: others.organization },
           { new: true, upsert: true, rawResult: true }
         )
         .lean()
@@ -244,10 +254,13 @@ export class CampaignService {
     return filePath;
   }
 
-  async getDispositionByCampaignName(campaignName: string) {
-    Logger.debug({campaignName});
+  async getDispositionByCampaignName(
+    campaignName: string,
+    organization: string
+  ) {
+    Logger.debug({ campaignName, organization });
     const campaignAgg = this.campaignModel.aggregate();
-    campaignAgg.match({ campaignName });
+    campaignAgg.match({ campaignName, organization });
     campaignAgg.lookup({
       from: "dispositions",
       localField: "_id",

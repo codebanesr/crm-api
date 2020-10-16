@@ -135,7 +135,7 @@ __decorate([
     common_1.Get("single/:id"),
     roles_decorator_1.Roles("admin"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    swagger_1.ApiOperation({ summary: "Gets all users without filter, quick prototype" }),
+    swagger_1.ApiOperation({ summary: "Gets single user details" }),
     __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Param('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),

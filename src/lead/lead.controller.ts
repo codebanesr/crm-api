@@ -44,8 +44,11 @@ export class LeadController {
     summary: "Get lead by id",
   })
   @UseGuards(AuthGuard("jwt"))
-  getAllLeadColumns(@Query("campaignType") campaignType: string, @CurrentUser() user) {
-    const {organization} = user;
+  getAllLeadColumns(
+    @Query("campaignType") campaignType: string,
+    @CurrentUser() user
+  ) {
+    const { organization } = user;
     return this.leadService.getLeadColumns(campaignType, organization);
   }
 
@@ -53,7 +56,7 @@ export class LeadController {
   @ApiOperation({ summary: "Fetches all lead for the given user" })
   @HttpCode(HttpStatus.OK)
   insertOne(@Body() body: CreateLeadDto, @CurrentUser() user: User) {
-    const {organization, email} = user;
+    const { organization, email } = user;
     return this.leadService.insertOne(body, email, organization);
   }
 
@@ -71,7 +74,6 @@ export class LeadController {
       searchTerm,
       filters,
     } = body;
-
 
     const { email, roleType, organization } = user;
     return this.leadService.findAll(
@@ -129,8 +131,11 @@ export class LeadController {
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Sync phone calls from device to database" })
   @HttpCode(HttpStatus.OK)
-  syncPhoneCalls(@Body() callLogs: SyncCallLogsDto[], @CurrentUser() user: User) {
-    const {organization, _id} = user;
+  syncPhoneCalls(
+    @Body() callLogs: SyncCallLogsDto[],
+    @CurrentUser() user: User
+  ) {
+    const { organization, _id } = user;
     return this.leadService.syncPhoneCalls(callLogs, organization, _id);
   }
 
@@ -140,8 +145,11 @@ export class LeadController {
   })
   @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
-  getLeadHistoryById(@CurrentUser() user: User, @Param("externalId") externalId: string) {
-    const {organization} = user;
+  getLeadHistoryById(
+    @CurrentUser() user: User,
+    @Param("externalId") externalId: string
+  ) {
+    const { organization } = user;
     return this.leadService.getLeadHistoryById(externalId, organization);
   }
 
@@ -162,7 +170,7 @@ export class LeadController {
     @Query("page") page: number = 1,
     @Query("perPage") perPage: number = 20
   ) {
-    const {organization} = user;
+    const { organization } = user;
     return this.leadService.suggestLeads(user.email, externalId, organization);
   }
 
@@ -188,7 +196,7 @@ export class LeadController {
     @Query("searchTerm") searchTerm: string,
     @Query("campaignName") campaignName: string
   ) {
-    const {organization} = user;
+    const { organization } = user;
     return this.leadService.getAllEmailTemplates(
       limit || 20,
       skip || 0,
@@ -231,7 +239,13 @@ export class LeadController {
     const { email: userEmail, organization } = req.user;
     const { emails, subject, text, attachments } = body;
 
-    return this.leadService.sendBulkEmails(emails, subject, text, attachments, organization);
+    return this.leadService.sendBulkEmails(
+      emails,
+      subject,
+      text,
+      attachments,
+      organization
+    );
   }
 
   @Post("uploadMultipleLeadFiles")
@@ -247,11 +261,15 @@ export class LeadController {
     @Body() body: UploadMultipleFilesDto,
     @UploadedFiles() files
   ) {
-
     /** @Todo add organization to lead file uploads also */
-    const {email, organization} = user;
+    const { email, organization } = user;
     const { campaignName } = body;
-    return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization);
+    return this.leadService.uploadMultipleLeadFiles(
+      files,
+      campaignName,
+      email,
+      organization
+    );
   }
 
   @Post("saveAttachments")
@@ -271,7 +289,7 @@ export class LeadController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard("jwt"))
   findOneById(@Param("leadId") leadId: string, @CurrentUser() user: User) {
-    const {organization} = user;
+    const { organization } = user;
     return this.leadService.findOneById(leadId, organization);
   }
 
@@ -303,23 +321,24 @@ export class LeadController {
     @Param("campaignId") campaignId: string,
     @Param("leadStatus") leadStatus: string
   ) {
-    const {organization} = user;
-    return this.leadService.fetchNextLead(campaignId, leadStatus, user.email, organization);
+    const { organization } = user;
+    return this.leadService.fetchNextLead(
+      campaignId,
+      leadStatus,
+      user.email,
+      organization
+    );
   }
 
   @Post("alarms/getAll")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({
-    summary:
-      "Gets all alarms generated for a user in an organization",
+    summary: "Gets all alarms generated for a user in an organization",
   })
   @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
-  getAllAlarms(
-    @CurrentUser() user: User,
-    @Body() body: any
-  ) {
-    const {organization} = user;
+  getAllAlarms(@CurrentUser() user: User, @Body() body: any) {
+    const { organization } = user;
     return this.leadService.getAllAlarms(body, organization);
   }
 
@@ -333,8 +352,12 @@ export class LeadController {
     @CurrentUser() user: User
   ) {
     const { organization } = user;
-    const {dateRange, userEmail} = userActivityDto;
-    return this.leadService.getUsersActivity(dateRange, userEmail, organization);
+    const { dateRange, userEmail } = userActivityDto;
+    return this.leadService.getUsersActivity(
+      dateRange,
+      userEmail,
+      organization
+    );
   }
 
   @Post("/followUp")
