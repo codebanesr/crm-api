@@ -2,9 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Lead } from "./interfaces/lead.interface";
-import { AuthReq } from "./interfaces/auth-request.interface";
 import { isArray } from "lodash";
-import { writeFileSync } from "fs";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
@@ -19,8 +17,8 @@ import { GeoLocation } from "./interfaces/geo-location.interface";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
-import { response } from "express";
 import { FiltersDto } from "./dto/find-all.dto";
+import { INTERVAL } from "./dto/follow-up.dto";
 
 @Injectable()
 export class LeadService {
@@ -400,10 +398,10 @@ export class LeadService {
   //   type: 'Lead Generation',
   //   interval: [ '2020-07-24T13:31:02.621Z', '2020-07-04T13:26:07.078Z' ]
   // }
-  async uploadMultipleLeadFiles(files: any[], campaignName: string) {
+  async uploadMultipleLeadFiles(files: any[], campaignName: string, uploader: string, organization: string) {
     const ccnfg = (await this.campaignConfigModel
       .find(
-        { name: campaignName },
+        { name: campaignName, organization },
         { readableField: 1, internalField: 1, _id: 0 }
       )
       .lean()
@@ -414,7 +412,7 @@ export class LeadService {
       };
     }
 
-    const result = await this.parseLeadFiles(files, ccnfg, campaignName);
+    const result = await this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader);
     // parse data here
     return { files, result };
   }
@@ -541,17 +539,19 @@ export class LeadService {
     return result[0].subordinates;
   }
 
-  async parseLeadFiles(files: any[], ccnfg: IConfig[], campaignName: string) {
+  async parseLeadFiles(files: any[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string) {
     files.forEach(async (file: any) => {
       const jsonRes = parseExcel(file.path, ccnfg);
-      this.saveLeadsFromExcel(jsonRes, campaignName, file.originalname);
+      this.saveLeadsFromExcel(jsonRes, campaignName, file.originalname, organization, uploader);
     });
   }
 
   async saveLeadsFromExcel(
     leads: any[],
     campaignName: string,
-    originalFileName: string
+    originalFileName: string,
+    organization: string,
+    uploader: string
   ) {
     const created = [];
     const updated = [];
@@ -561,7 +561,7 @@ export class LeadService {
       const { lastErrorObject, value } = await this.leadModel
         .findOneAndUpdate(
           { externalId: l.externalId },
-          { ...l, campaign: campaignName },
+          { ...l, campaign: campaignName, organization, uploader },
           { new: true, upsert: true, rawResult: true }
         )
         .lean()
@@ -661,8 +661,51 @@ export class LeadService {
 
 
 
-  async getFollowUps() {
-    
+  // date will always be greater than today
+  async getFollowUps(duration, organization, email) {
+    const leadAgg = this.leadModel.aggregate();
+    var todayStart= new Date();
+    todayStart.setHours(0);
+    todayStart.setMinutes(0);
+    todayStart.setSeconds(1);
+
+
+    var todayEnd = new Date();
+    todayEnd.setHours(23);
+    todayEnd.setMinutes(59);
+    todayEnd.setSeconds(59);
+
+    if(duration === INTERVAL.TODAY) {
+      leadAgg.match({
+        'followUp': {
+          '$lte': todayEnd,
+          '$gte': todayStart
+        }
+      })
+    }else if (duration === INTERVAL.THIS_WEEK) {
+      const lastDateOfWeek = new Date(todayStart.setDate(todayStart.getDate() - todayStart.getDay()+6));
+      leadAgg.match({
+        'followUp': {
+          '$lte': lastDateOfWeek,
+          '$gte': todayStart
+        }
+      })
+
+    }else if(duration === INTERVAL.THIS_MONTH) {
+      const lastDateOfMonth = new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0, 23, 59, 59);
+      leadAgg.match({
+        'followUp': {
+          '$lte': lastDateOfMonth,
+          '$gte': todayStart
+        }
+      })
+    }
+
+    leadAgg.match({organization, email});
+    leadAgg.sort({followUp: 1});
+
+    Logger.debug(leadAgg);
+    return leadAgg.exec();
   }
 
 

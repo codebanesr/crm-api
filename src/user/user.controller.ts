@@ -79,7 +79,7 @@ export class UserController {
   @Get("single/:id")
   @Roles("admin")
   @UseGuards(AuthGuard("jwt"))
-  @ApiOperation({ summary: "Gets all users without filter, quick prototype" })
+  @ApiOperation({ summary: "Gets single user details" })
   async getUserById(@CurrentUser() user: User, @Param('id') userid: string) {
     const {organization} = user;
     return this.userService.getUserById(userid, organization);

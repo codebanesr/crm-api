@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  main:
+    image: "node:14-slim"
+    container_name: main
+    build:
+      context: .
+      dockerfile: Dockerfile.slim
+      target: production
+    user: "node"
+    working_dir: /usr/src/app
+    environment:
+      - NODE_ENV=production
+      - VERSION=1.0
+    volumes:
+      - .:/usr/src/app
+      - /usr/app/node_modules
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    tty: true
+    command: "yarn start:debug"
+    env_file:
+      - .env
+    networks:
+      - webnet
+    restart: always
+
+  mongodb:
+    image: 'docker.io/bitnami/mongodb:4.4-debian-10'
+    ports:
+      - "27017:27017"
+    volumes:
+      - 'mongodb_data:/bitnami/mongodb'
+    networks:
+      - webnet
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD=password123
+      - REDIS_USER=shanur
+    command: /opt/bitnami/scripts/redis/run.sh --maxmemory 100mb
+    ports: 
+      - "6379:6379"
+    networks:
+      - webnet
+
+networks:
+  webnet:
+volumes:
+  pgdata:
+  mongodb_data:
+    driver: local

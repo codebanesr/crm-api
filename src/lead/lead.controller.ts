@@ -29,8 +29,9 @@ import { UploadMultipleFilesDto } from "./dto/generic.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../user/interfaces/user.interface";
-import { Roles } from "dist/auth/decorators/roles.decorator";
-import { UserActivityDto } from "src/user/dto/user-activity.dto";
+import { Roles } from "../auth/decorators/roles.decorator";
+import { UserActivityDto } from "../user/dto/user-activity.dto";
+import { FollowUpDto } from "./dto/follow-up.dto";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -250,7 +251,7 @@ export class LeadController {
     /** @Todo add organization to lead file uploads also */
     const {email, organization} = user;
     const { campaignName } = body;
-    return this.leadService.uploadMultipleLeadFiles(files, campaignName);
+    return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization);
   }
 
   @Post("saveAttachments")
@@ -334,5 +335,19 @@ export class LeadController {
     const { organization } = user;
     const {dateRange, userEmail} = userActivityDto;
     return this.leadService.getUsersActivity(dateRange, userEmail, organization);
+  }
+
+  @Post("/followUp")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Register user" })
+  async fetchFollowUps(
+    @Body() followUpDto: FollowUpDto,
+    @CurrentUser() user: User
+  ) {
+    const { organization } = user;
+    const { interval, userEmail } = followUpDto;
+    return this.leadService.getFollowUps(interval, organization, userEmail);
   }
 }
