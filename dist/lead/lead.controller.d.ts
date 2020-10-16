@@ -13,7 +13,7 @@ export declare class LeadController {
     private readonly leadService;
     constructor(leadService: LeadService);
     getAllLeadColumns(campaignType: string, user: any): Promise<{
-        paths: any[];
+        paths: any;
     }>;
     insertOne(body: CreateLeadDto, user: User): Promise<import("./interfaces/lead.interface").Lead>;
     findAll(body: FindAllDto, user: any): Promise<{
