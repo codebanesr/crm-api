@@ -131,10 +131,13 @@ let LeadController = class LeadController {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization } = user;
             const { interval, userEmail: email, campaignName } = followUpDto;
+            if (email && !user.manages.indexOf(email) && user.roleType !== "admin") {
+                throw new common_1.PreconditionFailedException(null, "You do not manage the user whose followups you want to see");
+            }
             return this.leadService.getFollowUps({
                 interval,
                 organization,
-                email,
+                email: email || user.email,
                 campaignName,
             });
         });

@@ -28,6 +28,7 @@ __decorate([
     __metadata("design:type", Array)
 ], FollowUpDto.prototype, "interval", void 0);
 __decorate([
+    class_validator_1.IsOptional(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], FollowUpDto.prototype, "userEmail", void 0);

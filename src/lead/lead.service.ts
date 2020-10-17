@@ -717,11 +717,17 @@ export class LeadService {
       leadAgg.match({ campaign: campaignName });
     }
 
-    if (interval.length === 2) {
+    if (interval?.length === 2) {
       leadAgg.match({
-        productTimeStamp: {
+        followUp: {
           $gte: new Date(interval[0]),
           $lte: new Date(interval[1]),
+        },
+      });
+    } else {
+      leadAgg.match({
+        followUp: {
+          $gte: todayStart,
         },
       });
     }

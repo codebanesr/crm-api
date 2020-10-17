@@ -15,8 +15,9 @@ export class FollowUpDto {
   @IsString({ each: true })
   readonly interval?: string[];
 
+  @IsOptional()
   @IsString()
-  readonly userEmail: string;
+  readonly userEmail?: string;
 
   @IsOptional()
   @IsString()

@@ -544,17 +544,23 @@ let LeadService = class LeadService {
             if (campaignName) {
                 leadAgg.match({ campaign: campaignName });
             }
-            if (interval.length === 2) {
+            if ((interval === null || interval === void 0 ? void 0 : interval.length) === 2) {
                 leadAgg.match({
-                    productTimeStamp: {
+                    followUp: {
                         $gte: new Date(interval[0]),
                         $lte: new Date(interval[1]),
                     },
                 });
             }
+            else {
+                leadAgg.match({
+                    followUp: {
+                        $gte: todayStart,
+                    },
+                });
+            }
             leadAgg.match({ organization, email });
             leadAgg.sort({ followUp: 1 });
-            common_1.Logger.debug(leadAgg);
             return leadAgg.exec();
         });
     }

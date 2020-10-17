@@ -12,6 +12,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFiles,
+  PreconditionFailedException,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
@@ -371,10 +372,17 @@ export class LeadController {
   ) {
     const { organization } = user;
     const { interval, userEmail: email, campaignName } = followUpDto;
+
+    if (email && !user.manages.indexOf(email) && user.roleType !== "admin") {
+      throw new PreconditionFailedException(
+        null,
+        "You do not manage the user whose followups you want to see"
+      );
+    }
     return this.leadService.getFollowUps({
       interval,
       organization,
-      email,
+      email: email || user.email,
       campaignName,
     });
   }
