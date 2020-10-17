@@ -370,7 +370,12 @@ export class LeadController {
     @CurrentUser() user: User
   ) {
     const { organization } = user;
-    const { interval, userEmail } = followUpDto;
-    return this.leadService.getFollowUps(interval, organization, userEmail);
+    const { interval, userEmail: email, campaignName } = followUpDto;
+    return this.leadService.getFollowUps({
+      interval,
+      organization,
+      email,
+      campaignName,
+    });
   }
 }

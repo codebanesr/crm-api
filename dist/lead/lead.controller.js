@@ -130,8 +130,13 @@ let LeadController = class LeadController {
     fetchFollowUps(followUpDto, user) {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization } = user;
-            const { interval, userEmail } = followUpDto;
-            return this.leadService.getFollowUps(interval, organization, userEmail);
+            const { interval, userEmail: email, campaignName } = followUpDto;
+            return this.leadService.getFollowUps({
+                interval,
+                organization,
+                email,
+                campaignName,
+            });
         });
     }
 };

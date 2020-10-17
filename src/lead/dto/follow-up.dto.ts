@@ -1,32 +1,27 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsString } from "class-validator";
-
-
-export enum INTERVAL {
-    "TODAY" = "TODAY",
-    "THIS_WEEK" = "THIS_WEEK",
-    "THIS_MONTH" = "THIS_MONTH",
-}
-
+import { Type } from "class-transformer";
+import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
 
 export class FollowUpDto {
-    @ApiProperty({
-        example: 'TODAY',
-        description: `
-            Add duration "TODAY", "THIS_WEEK", "THIS_MONTH", returns upcoming leads during
-            that duration. Takes current date as the reference point
+  @ApiProperty({
+    example: "TODAY",
+    description: `
+            Takes date range (startDate, endDate)
         `,
-        format: 'number',
-        default: 1
-    })
-    @IsEnum(INTERVAL)
-    readonly interval: INTERVAL
+    format: "number",
+    default: 1,
+  })
+  @IsOptional()
+  @IsString({ each: true })
+  readonly interval?: string[];
 
-    @IsString()
-    readonly userEmail: string
+  @IsString()
+  readonly userEmail: string;
+
+  @IsOptional()
+  @IsString()
+  campaignName?: string;
 }
-
-
 
 // @IsString()
 // selectedCampaign: string = undefined;

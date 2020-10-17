@@ -18,7 +18,6 @@ import { CreateLeadDto } from "./dto/create-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
-import { INTERVAL } from "./dto/follow-up.dto";
 
 @Injectable()
 export class LeadService {
@@ -702,7 +701,7 @@ export class LeadService {
   }
 
   // date will always be greater than today
-  async getFollowUps(duration, organization, email) {
+  async getFollowUps({ interval, organization, email, campaignName }) {
     const leadAgg = this.leadModel.aggregate();
     var todayStart = new Date();
     todayStart.setHours(0);
@@ -714,36 +713,15 @@ export class LeadService {
     todayEnd.setMinutes(59);
     todayEnd.setSeconds(59);
 
-    if (duration === INTERVAL.TODAY) {
+    if (campaignName) {
+      leadAgg.match({ campaign: campaignName });
+    }
+
+    if (interval.length === 2) {
       leadAgg.match({
-        followUp: {
-          $lte: todayEnd,
-          $gte: todayStart,
-        },
-      });
-    } else if (duration === INTERVAL.THIS_WEEK) {
-      const lastDateOfWeek = new Date(
-        todayStart.setDate(todayStart.getDate() - todayStart.getDay() + 6)
-      );
-      leadAgg.match({
-        followUp: {
-          $lte: lastDateOfWeek,
-          $gte: todayStart,
-        },
-      });
-    } else if (duration === INTERVAL.THIS_MONTH) {
-      const lastDateOfMonth = new Date(
-        todayStart.getFullYear(),
-        todayStart.getMonth() + 1,
-        0,
-        23,
-        59,
-        59
-      );
-      leadAgg.match({
-        followUp: {
-          $lte: lastDateOfMonth,
-          $gte: todayStart,
+        productTimeStamp: {
+          $gte: new Date(interval[0]),
+          $lte: new Date(interval[1]),
         },
       });
     }
@@ -751,7 +729,6 @@ export class LeadService {
     leadAgg.match({ organization, email });
     leadAgg.sort({ followUp: 1 });
 
-    Logger.debug(leadAgg);
     return leadAgg.exec();
   }
 

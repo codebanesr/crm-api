@@ -9,33 +9,32 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FollowUpDto = exports.INTERVAL = void 0;
+exports.FollowUpDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
-var INTERVAL;
-(function (INTERVAL) {
-    INTERVAL["TODAY"] = "TODAY";
-    INTERVAL["THIS_WEEK"] = "THIS_WEEK";
-    INTERVAL["THIS_MONTH"] = "THIS_MONTH";
-})(INTERVAL = exports.INTERVAL || (exports.INTERVAL = {}));
 class FollowUpDto {
 }
 __decorate([
     swagger_1.ApiProperty({
-        example: 'TODAY',
+        example: "TODAY",
         description: `
-            Add duration "TODAY", "THIS_WEEK", "THIS_MONTH", returns upcoming leads during
-            that duration. Takes current date as the reference point
+            Takes date range (startDate, endDate)
         `,
-        format: 'number',
-        default: 1
+        format: "number",
+        default: 1,
     }),
-    class_validator_1.IsEnum(INTERVAL),
-    __metadata("design:type", String)
+    class_validator_1.IsOptional(),
+    class_validator_1.IsString({ each: true }),
+    __metadata("design:type", Array)
 ], FollowUpDto.prototype, "interval", void 0);
 __decorate([
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], FollowUpDto.prototype, "userEmail", void 0);
+__decorate([
+    class_validator_1.IsOptional(),
+    class_validator_1.IsString(),
+    __metadata("design:type", String)
+], FollowUpDto.prototype, "campaignName", void 0);
 exports.FollowUpDto = FollowUpDto;
 //# sourceMappingURL=follow-up.dto.js.map

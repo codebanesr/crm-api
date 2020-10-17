@@ -41,7 +41,6 @@ const mongoose_3 = require("mongoose");
 const sendMail_1 = require("../utils/sendMail");
 const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
-const follow_up_dto_1 = require("./dto/follow-up.dto");
 let LeadService = class LeadService {
     constructor(leadModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel) {
         this.leadModel = leadModel;
@@ -531,7 +530,7 @@ let LeadService = class LeadService {
         });
         return qb.exec();
     }
-    getFollowUps(duration, organization, email) {
+    getFollowUps({ interval, organization, email, campaignName }) {
         return __awaiter(this, void 0, void 0, function* () {
             const leadAgg = this.leadModel.aggregate();
             var todayStart = new Date();
@@ -542,29 +541,14 @@ let LeadService = class LeadService {
             todayEnd.setHours(23);
             todayEnd.setMinutes(59);
             todayEnd.setSeconds(59);
-            if (duration === follow_up_dto_1.INTERVAL.TODAY) {
-                leadAgg.match({
-                    followUp: {
-                        $lte: todayEnd,
-                        $gte: todayStart,
-                    },
-                });
+            if (campaignName) {
+                leadAgg.match({ campaign: campaignName });
             }
-            else if (duration === follow_up_dto_1.INTERVAL.THIS_WEEK) {
-                const lastDateOfWeek = new Date(todayStart.setDate(todayStart.getDate() - todayStart.getDay() + 6));
+            if (interval.length === 2) {
                 leadAgg.match({
-                    followUp: {
-                        $lte: lastDateOfWeek,
-                        $gte: todayStart,
-                    },
-                });
-            }
-            else if (duration === follow_up_dto_1.INTERVAL.THIS_MONTH) {
-                const lastDateOfMonth = new Date(todayStart.getFullYear(), todayStart.getMonth() + 1, 0, 23, 59, 59);
-                leadAgg.match({
-                    followUp: {
-                        $lte: lastDateOfMonth,
-                        $gte: todayStart,
+                    productTimeStamp: {
+                        $gte: new Date(interval[0]),
+                        $lte: new Date(interval[1]),
                     },
                 });
             }

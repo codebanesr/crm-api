@@ -79,7 +79,12 @@ export declare class LeadService {
         result: Pick<Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">;
     }>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
-    getFollowUps(duration: any, organization: any, email: any): Promise<any>;
+    getFollowUps({ interval, organization, email, campaignName }: {
+        interval: any;
+        organization: any;
+        email: any;
+        campaignName: any;
+    }): Promise<any>;
     getAllAlarms(body: any, organization: any): Promise<any>;
     getUsersActivity(dateRange: Date[], userEmail: string, organization: string): Promise<any>;
 }
