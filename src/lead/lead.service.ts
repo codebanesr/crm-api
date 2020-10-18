@@ -195,6 +195,11 @@ export class LeadService {
     const [startDate, endDate] = dateRange || [];
 
     const leadAgg = this.leadModel.aggregate();
+    // match with text is only allowed as the first pipeline stage
+    if (searchTerm) {
+      leadAgg.match({ $text: { $search: searchTerm } });
+    }
+
     leadAgg.match({ organization });
 
     if (assigned) {
@@ -228,10 +233,6 @@ export class LeadService {
         .exec();
 
       leadAgg.match({ campaign: campaign.campaignName });
-    }
-
-    if (searchTerm) {
-      leadAgg.match({ $text: { $search: searchTerm } });
     }
 
     let flds;
