@@ -1,6 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator";
+import {
+  IsDateString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from "class-validator";
 
 export class FollowUpDto {
   @ApiProperty({
@@ -22,6 +28,12 @@ export class FollowUpDto {
   @IsOptional()
   @IsString()
   campaignName?: string;
+
+  @IsNumber()
+  readonly page: number;
+
+  @IsNumber()
+  readonly perPage: number;
 }
 
 // @IsString()

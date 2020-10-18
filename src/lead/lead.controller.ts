@@ -371,7 +371,13 @@ export class LeadController {
     @CurrentUser() user: User
   ) {
     const { organization } = user;
-    const { interval, userEmail: email, campaignName } = followUpDto;
+    const {
+      interval,
+      userEmail: email,
+      campaignName,
+      page,
+      perPage,
+    } = followUpDto;
 
     if (email && !user.manages.indexOf(email) && user.roleType !== "admin") {
       throw new PreconditionFailedException(
@@ -380,9 +386,8 @@ export class LeadController {
       );
     }
 
-    const limit = 20;
-    const skip = 0;
-    const page = 1;
+    const limit = Number(perPage);
+    const skip = Number((+page - 1) * limit);
     return this.leadService.getFollowUps({
       interval,
       organization,
