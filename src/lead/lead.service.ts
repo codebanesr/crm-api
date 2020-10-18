@@ -701,7 +701,15 @@ export class LeadService {
   }
 
   // date will always be greater than today
-  async getFollowUps({ interval, organization, email, campaignName }) {
+  async getFollowUps({
+    interval,
+    organization,
+    email,
+    campaignName,
+    limit,
+    skip,
+    page,
+  }) {
     const leadAgg = this.leadModel.aggregate();
     var todayStart = new Date();
     todayStart.setHours(0);
@@ -734,6 +742,11 @@ export class LeadService {
 
     leadAgg.match({ organization, email });
     leadAgg.sort({ followUp: 1 });
+
+    leadAgg.facet({
+      metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+      data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
+    });
 
     return leadAgg.exec();
   }

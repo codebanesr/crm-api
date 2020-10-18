@@ -5,18 +5,18 @@ const mongoose_1 = require("mongoose");
 exports.GeoLocationSchema = new mongoose_1.Schema({
     userid: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: "User",
     },
     organization: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'Organization'
+        ref: "Organization",
     },
     location: {
-        type: { type: String, default: 'Point' },
-        coordinates: { type: [Number], default: [0, 0] }
-    }
+        type: { type: String, default: "Point" },
+        coordinates: { type: [Number], default: [0, 0] },
+    },
 }, {
-    timestamps: true
+    timestamps: true,
 });
-exports.GeoLocationSchema.index({ "loc": "2dsphere" });
+exports.GeoLocationSchema.index({ loc: "2dsphere" });
 //# sourceMappingURL=geo-location.schema.js.map

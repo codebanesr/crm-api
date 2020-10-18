@@ -80,9 +80,9 @@ let UserController = class UserController {
             return this.userService.forgotPassword(req, createForgotPasswordDto);
         });
     }
-    forgotPasswordVerify(req, token) {
+    forgotPasswordVerify(req, body) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.userService.forgotPasswordVerify(req, token);
+            return this.userService.forgotPasswordVerify(req, body);
         });
     }
     resetPassword(resetPasswordDto) {
@@ -136,7 +136,7 @@ __decorate([
     roles_decorator_1.Roles("admin"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Gets single user details" }),
-    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Param('id')),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Param("id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
@@ -184,12 +184,12 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "forgotPassword", null);
 __decorate([
-    common_1.Get("forgot-password-verify/:token"),
+    common_1.Post("forgot-password-verify"),
     common_1.HttpCode(common_1.HttpStatus.OK),
     swagger_1.ApiOperation({ summary: "Verfiy forget password code" }),
     swagger_1.ApiOkResponse({}),
     __param(0, common_1.Req()),
-    __param(1, common_1.Param("token")),
+    __param(1, common_1.Body()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, verify_uuid_dto_1.VerifyUuidDto]),
     __metadata("design:returntype", Promise)
@@ -279,7 +279,7 @@ __decorate([
         description: "the token we need for auth.",
     }),
     swagger_1.ApiOkResponse({}),
-    __param(0, common_1.Param('id')), __param(1, common_1.Body()),
+    __param(0, common_1.Param("id")), __param(1, common_1.Body()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, create_user_dto_1.CreateUserDto]),
     __metadata("design:returntype", Promise)

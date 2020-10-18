@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getForgotPasswordTemplate = void 0;
-exports.getForgotPasswordTemplate = (hostUrl, hostPort, resetToken) => {
-    const resetVerifyUrl = `http://${hostUrl}:${hostPort}/user/user/forgot-password-verify`;
+exports.getForgotPasswordTemplate = ({ hostUrl, hostPort, resetToken, }) => {
+    const resetVerifyUrl = `http://${hostUrl}:${hostPort}/user/forgot-password-verify/${resetToken}`;
     return `
     <!DOCTYPE html>
     <html>

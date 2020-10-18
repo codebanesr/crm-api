@@ -15,8 +15,9 @@ import {
   UseInterceptors,
   UploadedFile,
   Get,
-  Param, 
-  Logger, Put
+  Param,
+  Logger,
+  Put,
 } from "@nestjs/common";
 import { Request as IRequest } from "express";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -75,17 +76,14 @@ export class UserController {
     return this.userService.getAllUsersHack(organization);
   }
 
-
   @Get("single/:id")
   @Roles("admin")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Gets single user details" })
-  async getUserById(@CurrentUser() user: User, @Param('id') userid: string) {
-    const {organization} = user;
+  async getUserById(@CurrentUser() user: User, @Param("id") userid: string) {
+    const { organization } = user;
     return this.userService.getUserById(userid, organization);
   }
-
-
 
   @Post("verify-email")
   @HttpCode(HttpStatus.OK)
@@ -93,7 +91,7 @@ export class UserController {
   @ApiOkResponse({})
   async verifyEmail(
     @Req() req: IRequest,
-    @Body() verifyUuidDto: VerifyUuidDto,
+    @Body() verifyUuidDto: VerifyUuidDto
   ) {
     return this.userService.verifyEmail(req, verifyUuidDto);
   }
@@ -127,15 +125,15 @@ export class UserController {
     return this.userService.forgotPassword(req, createForgotPasswordDto);
   }
 
-  @Get("forgot-password-verify/:token")
+  @Post("forgot-password-verify")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Verfiy forget password code" })
   @ApiOkResponse({})
   async forgotPasswordVerify(
     @Req() req: IRequest,
-    @Param("token") token: VerifyUuidDto
+    @Body() body: VerifyUuidDto
   ) {
-    return this.userService.forgotPasswordVerify(req, token);
+    return this.userService.forgotPasswordVerify(req, body);
   }
 
   @Post("reset-password")
@@ -212,7 +210,6 @@ export class UserController {
     return this.userService.insertMany(req.user.id, file.path);
   }
 
-
   @Put(":id")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Reset password after verify reset password" })
@@ -224,7 +221,7 @@ export class UserController {
     description: "the token we need for auth.",
   })
   @ApiOkResponse({})
-  async updateUser(@Param('id') userid: string ,@Body() user: CreateUserDto) {
+  async updateUser(@Param("id") userid: string, @Body() user: CreateUserDto) {
     return this.userService.updateUser(userid, user);
   }
 }

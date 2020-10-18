@@ -33,7 +33,7 @@ export declare class UserController {
         email: string;
         message: string;
     }>;
-    forgotPasswordVerify(req: IRequest, token: VerifyUuidDto): Promise<{
+    forgotPasswordVerify(req: IRequest, body: VerifyUuidDto): Promise<{
         email: string;
         forgotPassword: import("./interfaces/forgot-password.interface").ForgotPassword;
         message: string;

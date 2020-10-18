@@ -523,7 +523,10 @@ export class UserService {
     return filePath;
   }
 
-  async sendEmailForgotPassword(email: string, token): Promise<boolean> {
+  async sendEmailForgotPassword(
+    email: string,
+    token: string
+  ): Promise<boolean> {
     var userFromDb = await this.userModel.findOne({ email: email });
     if (!userFromDb)
       throw new HttpException("LOGIN.USER_NOT_FOUND", HttpStatus.NOT_FOUND);
@@ -542,11 +545,11 @@ export class UserService {
         to: [email],
         subject: "Frogotten Password",
         text: "Forgot Password",
-        html: getForgotPasswordTemplate(
-          config.host.url,
-          config.host.port,
-          token
-        ),
+        html: getForgotPasswordTemplate({
+          hostUrl: config.host.url,
+          hostPort: config.host.port,
+          resetToken: token,
+        }),
       };
 
       var sended = await new Promise<boolean>(async function (resolve, reject) {
@@ -595,13 +598,10 @@ export class UserService {
   }
 
   async getUserById(userid: string, organization) {
-    return this.userModel.findOne(
-      { _id: userid },
-      { password: 0 }
-    );
+    return this.userModel.findOne({ _id: userid }, { password: 0 });
   }
 
   async updateUser(userid: string, user: CreateUserDto) {
-    return this.userModel.updateOne({_id: userid }, user);
+    return this.userModel.updateOne({ _id: userid }, user);
   }
 }

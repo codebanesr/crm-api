@@ -1,1 +1,5 @@
-export declare const getForgotPasswordTemplate: (hostUrl: any, hostPort: any, resetToken: any) => string;
+export declare const getForgotPasswordTemplate: ({ hostUrl, hostPort, resetToken, }: {
+    hostUrl: any;
+    hostPort: any;
+    resetToken: any;
+}) => string;

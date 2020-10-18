@@ -460,7 +460,11 @@ let UserService = class UserService {
                     to: [email],
                     subject: "Frogotten Password",
                     text: "Forgot Password",
-                    html: forgot_password_template_1.getForgotPasswordTemplate(config_1.default.host.url, config_1.default.host.port, token),
+                    html: forgot_password_template_1.getForgotPasswordTemplate({
+                        hostUrl: config_1.default.host.url,
+                        hostPort: config_1.default.host.port,
+                        resetToken: token,
+                    }),
                 };
                 var sended = yield new Promise(function (resolve, reject) {
                     return __awaiter(this, void 0, void 0, function* () {

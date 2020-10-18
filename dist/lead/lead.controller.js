@@ -134,11 +134,17 @@ let LeadController = class LeadController {
             if (email && !user.manages.indexOf(email) && user.roleType !== "admin") {
                 throw new common_1.PreconditionFailedException(null, "You do not manage the user whose followups you want to see");
             }
+            const limit = 20;
+            const skip = 0;
+            const page = 1;
             return this.leadService.getFollowUps({
                 interval,
                 organization,
                 email: email || user.email,
                 campaignName,
+                limit,
+                page,
+                skip,
             });
         });
     }

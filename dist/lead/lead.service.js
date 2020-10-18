@@ -530,7 +530,7 @@ let LeadService = class LeadService {
         });
         return qb.exec();
     }
-    getFollowUps({ interval, organization, email, campaignName }) {
+    getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const leadAgg = this.leadModel.aggregate();
             var todayStart = new Date();
@@ -561,6 +561,10 @@ let LeadService = class LeadService {
             }
             leadAgg.match({ organization, email });
             leadAgg.sort({ followUp: 1 });
+            leadAgg.facet({
+                metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+                data: [{ $skip: skip }, { $limit: limit }],
+            });
             return leadAgg.exec();
         });
     }

@@ -76,7 +76,7 @@ export declare class UserService {
     private assignHierarchyWeight;
     managersForReassignment(manages: string[], organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "history" | "hierarchyWeight" | "organization">[]>;
     saveToExcel(json: any): string;
-    sendEmailForgotPassword(email: string, token: any): Promise<boolean>;
+    sendEmailForgotPassword(email: string, token: string): Promise<boolean>;
     getAllUsersHack(organization: string): Promise<any>;
     getUserById(userid: string, organization: any): Promise<User>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
