@@ -165,7 +165,7 @@ let CampaignService = class CampaignService {
             const excelObject = parseExcel_1.default(path);
         });
     }
-    createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo, organization) {
+    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, }) {
         return __awaiter(this, void 0, void 0, function* () {
             dispositionData = JSON.parse(dispositionData);
             campaignInfo = JSON.parse(campaignInfo);

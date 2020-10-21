@@ -158,13 +158,19 @@ export class CampaignService {
   }
 
   //   disposition data and campaign infor from body
-  async createCampaignAndDisposition(
-    activeUserId: string,
+  async createCampaignAndDisposition({
+    activeUserId,
     file,
-    dispositionData: any,
-    campaignInfo: any,
-    organization: string
-  ) {
+    dispositionData,
+    campaignInfo,
+    organization,
+  }: {
+    activeUserId: string;
+    file: any;
+    dispositionData: any;
+    campaignInfo: any;
+    organization: string;
+  }) {
     dispositionData = JSON.parse(dispositionData);
     campaignInfo = JSON.parse(campaignInfo);
 

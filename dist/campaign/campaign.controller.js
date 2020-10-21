@@ -47,7 +47,13 @@ let CampaignController = class CampaignController {
     createCampaignAndDisposition(currrentUser, file, body) {
         const { id: activeUserId, organization } = currrentUser;
         const { dispositionData, campaignInfo } = body;
-        return this.campaignService.createCampaignAndDisposition(activeUserId, file, dispositionData, campaignInfo, organization);
+        return this.campaignService.createCampaignAndDisposition({
+            activeUserId,
+            file,
+            dispositionData,
+            campaignInfo,
+            organization,
+        });
     }
     getDispositionByCampaignName(campaignName, user) {
         const { organization } = user;

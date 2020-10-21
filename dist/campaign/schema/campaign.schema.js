@@ -13,6 +13,7 @@ exports.CampaignSchema = new mongoose_1.Schema({
         required: true,
     },
     interval: [Date],
+    assignees: { type: [String] },
     type: { type: String },
 }, { timestamps: true });
 //# sourceMappingURL=campaign.schema.js.map

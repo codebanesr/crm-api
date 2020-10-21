@@ -7,4 +7,5 @@ export interface Campaign extends Document {
     interval: string[];
     type: string;
     organization: string;
+    assignees: string[];
 }

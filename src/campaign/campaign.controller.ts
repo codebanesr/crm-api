@@ -20,7 +20,7 @@ import {
 import { ApiTags, ApiOperation, ApiConsumes } from "@nestjs/swagger";
 import { CampaignService } from "./campaign.service";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { sortBy } from "lodash";
+import { assign, sortBy } from "lodash";
 import { FindCampaignsDto } from "./dto/find-campaigns.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
@@ -101,13 +101,14 @@ export class CampaignController {
   ) {
     const { id: activeUserId, organization } = currrentUser;
     const { dispositionData, campaignInfo } = body;
-    return this.campaignService.createCampaignAndDisposition(
+
+    return this.campaignService.createCampaignAndDisposition({
       activeUserId,
       file,
       dispositionData,
       campaignInfo,
-      organization
-    );
+      organization,
+    });
   }
 
   @Get("disposition/campaignName/:campaignName")

@@ -38,7 +38,13 @@ export declare class CampaignService {
         error?: undefined;
     }>;
     uploadConfig(file: any): Promise<void>;
-    createCampaignAndDisposition(activeUserId: string, file: any, dispositionData: any, campaignInfo: any, organization: string): Promise<{
+    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, }: {
+        activeUserId: string;
+        file: any;
+        dispositionData: any;
+        campaignInfo: any;
+        organization: string;
+    }): Promise<{
         campaign: Campaign;
         disposition: Disposition;
         filePath: string;
