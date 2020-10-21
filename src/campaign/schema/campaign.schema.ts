@@ -12,7 +12,7 @@ export const CampaignSchema = new Schema(
       required: true,
     },
     interval: [Date],
-    assignees: { type: [String] },
+    assignees: [{ type: Types.ObjectId, ref: "User" }],
     type: { type: String },
   },
   { timestamps: true }

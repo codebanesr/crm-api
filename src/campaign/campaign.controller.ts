@@ -34,10 +34,18 @@ export class CampaignController {
   @Post("get")
   @ApiOperation({ summary: "Fetches all lead for the given user" })
   @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard("jwt"))
   // @UsePipes(new ValidationPipe({transform: true}))
-  findAll(@Body() body: FindCampaignsDto) {
+  findAll(@Body() body: FindCampaignsDto, @CurrentUser() user: User) {
+    const { _id: loggedInUserId } = user;
     const { filters, page, perPage, sortBy } = body;
-    return this.campaignService.findAll(page, perPage, filters, sortBy);
+    return this.campaignService.findAll({
+      page,
+      perPage,
+      filters,
+      sortBy,
+      loggedInUserId,
+    });
   }
 
   @Get("disposition/:campaignId")

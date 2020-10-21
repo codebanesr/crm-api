@@ -24,42 +24,31 @@ export class CampaignService {
   ) {}
 
   // sort by default handler
-  async findAll(page, perPage, filters, sortBy) {
+  async findAll({ page, perPage, filters, sortBy, loggedInUserId }) {
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
 
-    const { createdBy, campaigns = [] } = filters;
+    const campaignAgg = this.campaignModel.aggregate();
 
-    const matchQ = {} as any;
+    const { campaigns = [] } = filters;
 
-    matchQ.$and = [];
-    if (createdBy) {
-      matchQ.$and.push({ createdBy: createdBy });
-    }
+    // mongodb understands that assigness is an array so it will go and check every single value
+    // in the array and if any one of that is a match, it will keep that record
+    campaignAgg.match({
+      $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }],
+    });
 
+    // if campaign filter is applied, @Todo verify if this is still required, i believe that this schema was changed
     if (campaigns && campaigns.length > 0) {
-      matchQ.$and.push({ type: { $in: campaigns } });
+      campaignAgg.match({ type: { $in: campaigns } });
     }
 
-    const fq = [
-      { $match: matchQ },
-      { $sort: { [sortBy]: 1 } },
-      {
-        $facet: {
-          metadata: [
-            { $count: "total" },
-            { $addFields: { page: Number(page) } },
-          ],
-          data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
-        },
-      },
-    ];
+    campaignAgg.facet({
+      metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+      data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
+    });
 
-    if (fq[0]["$match"]["$and"].length === 0) {
-      delete fq[0]["$match"]["$and"];
-    }
-    console.log(JSON.stringify(fq));
-    const result = await this.campaignModel.aggregate(fq);
+    const result = await campaignAgg.exec();
     return { data: result[0].data, metadata: result[0].metadata[0] };
   }
 
