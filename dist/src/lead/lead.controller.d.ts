@@ -9,6 +9,7 @@ import { UploadMultipleFilesDto } from "./dto/generic.dto";
 import { User } from "../user/interfaces/user.interface";
 import { UserActivityDto } from "../user/dto/user-activity.dto";
 import { FollowUpDto } from "./dto/follow-up.dto";
+import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 export declare class LeadController {
     private readonly leadService;
     constructor(leadService: LeadService);
@@ -53,8 +54,8 @@ export declare class LeadController {
     saveEmailAttachments(files: any): any;
     findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;
-    fetchNextLead(user: User, campaignId: string, leadStatus: string): Promise<{
-        result: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">;
+    fetchNextLead(user: User, campaignId: string, body: FetchNextLeadDto): Promise<{
+        result: any;
     }>;
     getAllAlarms(user: User, body: any): Promise<any>;
     usersActivityLog(userActivityDto: UserActivityDto, user: User): Promise<any>;

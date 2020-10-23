@@ -75,8 +75,14 @@ export declare class LeadService {
             $gt: Date;
         };
     }>;
-    fetchNextLead(campaignId: string, leadStatus: string, email: string, organization: string): Promise<{
-        result: Pick<Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">;
+    fetchNextLead({ campaignId, filters, email, organization, typeDict, }: {
+        campaignId: string;
+        filters: Map<string, string>;
+        email: string;
+        organization: string;
+        typeDict: Map<string, any>;
+    }): Promise<{
+        result: any;
     }>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
     getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }: {

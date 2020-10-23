@@ -33,6 +33,7 @@ import { User } from "../user/interfaces/user.interface";
 import { Roles } from "../auth/decorators/roles.decorator";
 import { UserActivityDto } from "../user/dto/user-activity.dto";
 import { FollowUpDto } from "./dto/follow-up.dto";
+import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -309,7 +310,7 @@ export class LeadController {
 
   // router.get("/fetchNextLead/:campaignId/:leadStatus", passportConfig.authenticateJWT, leadController.fetchNextLead);
 
-  @Get("fetchNextLead/:campaignId/:leadStatus")
+  @Post("fetchNextLead/:campaignId")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({
     summary:
@@ -320,15 +321,17 @@ export class LeadController {
   fetchNextLead(
     @CurrentUser() user: User,
     @Param("campaignId") campaignId: string,
-    @Param("leadStatus") leadStatus: string
+    @Body() body: FetchNextLeadDto
   ) {
-    const { organization } = user;
-    return this.leadService.fetchNextLead(
+    const { organization, email } = user;
+    const { filters, typeDict } = body;
+    return this.leadService.fetchNextLead({
       campaignId,
-      leadStatus,
-      user.email,
-      organization
-    );
+      filters,
+      email,
+      organization,
+      typeDict,
+    });
   }
 
   @Post("alarms/getAll")

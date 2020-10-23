@@ -37,6 +37,7 @@ const current_user_decorator_1 = require("../auth/decorators/current-user.decora
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const user_activity_dto_1 = require("../user/dto/user-activity.dto");
 const follow_up_dto_1 = require("./dto/follow-up.dto");
+const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
@@ -112,9 +113,16 @@ let LeadController = class LeadController {
     leadActivityByUser(email, startDate, endDate) {
         return this.leadService.leadActivityByUser(startDate, endDate, email);
     }
-    fetchNextLead(user, campaignId, leadStatus) {
-        const { organization } = user;
-        return this.leadService.fetchNextLead(campaignId, leadStatus, user.email, organization);
+    fetchNextLead(user, campaignId, body) {
+        const { organization, email } = user;
+        const { filters, typeDict } = body;
+        return this.leadService.fetchNextLead({
+            campaignId,
+            filters,
+            email,
+            organization,
+            typeDict,
+        });
     }
     getAllAlarms(user, body) {
         const { organization } = user;
@@ -366,7 +374,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "leadActivityByUser", null);
 __decorate([
-    common_1.Get("fetchNextLead/:campaignId/:leadStatus"),
+    common_1.Post("fetchNextLead/:campaignId"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({
         summary: "Fetches next lead for telecaller operative, always returns one lead in that category, this has to be sorted by last updated at desc",
@@ -375,9 +383,9 @@ __decorate([
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, current_user_decorator_1.CurrentUser()),
     __param(1, common_1.Param("campaignId")),
-    __param(2, common_1.Param("leadStatus")),
+    __param(2, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:paramtypes", [Object, String, fetch_next_lead_dto_1.FetchNextLeadDto]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "fetchNextLead", null);
 __decorate([

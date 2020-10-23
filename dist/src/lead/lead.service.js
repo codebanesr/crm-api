@@ -494,27 +494,45 @@ let LeadService = class LeadService {
             return uq;
         });
     }
-    fetchNextLead(campaignId, leadStatus, email, organization) {
+    fetchNextLead({ campaignId, filters, email, organization, typeDict, }) {
         return __awaiter(this, void 0, void 0, function* () {
+            Object.keys(filters).forEach((k) => {
+                if (!filters[k]) {
+                    delete filters[k];
+                }
+            });
             const campaign = yield this.campaignModel
                 .findOne({ _id: campaignId, organization })
                 .lean()
                 .exec();
-            const result = yield this.leadModel
-                .findOne({
-                campaign: campaign.campaignName,
-                leadStatus,
-                $or: [
-                    { email: email },
-                    {
-                        email: { $exists: false },
-                    },
-                ],
-            })
-                .sort({ _id: -1 })
-                .lean()
-                .exec();
-            return { result };
+            const singleLeadAgg = this.leadModel.aggregate();
+            singleLeadAgg.match({ campaign: campaign.campaignName, email });
+            Object.keys(filters).forEach((key) => {
+                switch (typeDict[key].type) {
+                    case "string":
+                    case "select":
+                    case "tel":
+                        singleLeadAgg.match({ [key]: filters[key] });
+                        break;
+                    case "date":
+                        const dateInput = filters[key].length;
+                        if (dateInput.length === 2) {
+                            const startDate = new Date(dateInput[0]);
+                            const endDate = new Date(dateInput[1]);
+                            singleLeadAgg.match({
+                                [key]: {
+                                    $gte: startDate,
+                                    $lt: endDate,
+                                },
+                            });
+                        }
+                        break;
+                }
+            });
+            singleLeadAgg.limit(1);
+            common_1.Logger.debug(singleLeadAgg);
+            const result = (yield singleLeadAgg.exec())[0];
+            return Promise.resolve({ result });
         });
     }
     getSaleAmountByLeadStatus(campaignName) {
