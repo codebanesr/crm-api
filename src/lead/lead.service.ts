@@ -694,7 +694,8 @@ export class LeadService {
         case "string":
         case "select":
         case "tel":
-          singleLeadAgg.match({ [key]: filters[key] });
+          const expr = new RegExp(filters[key]);
+          singleLeadAgg.match({ [key]: { $regex: expr, $options: "i" } });
           break;
         case "date":
           const dateInput = filters[key].length;
@@ -708,11 +709,19 @@ export class LeadService {
                 $lt: endDate,
               },
             });
+          } else if (dateInput.length === 1) {
+            singleLeadAgg.match({
+              [key]: {
+                $eq: new Date(dateInput[0]),
+              },
+            });
           }
           break;
       }
     });
 
+    // oldest lead first from match queries
+    singleLeadAgg.sort({ _id: 1 });
     singleLeadAgg.limit(1);
     Logger.debug(singleLeadAgg);
     const result = (await singleLeadAgg.exec())[0];

@@ -496,18 +496,23 @@ let LeadService = class LeadService {
     }
     fetchNextLead({ campaignId, filters, email, organization, typeDict, }) {
         return __awaiter(this, void 0, void 0, function* () {
+            Object.keys(filters).forEach((k) => {
+                if (!filters[k]) {
+                    delete filters[k];
+                }
+            });
             const campaign = yield this.campaignModel
                 .findOne({ _id: campaignId, organization })
                 .lean()
                 .exec();
             const singleLeadAgg = this.leadModel.aggregate();
-            singleLeadAgg.match({ campaign: campaign.campaignName, email });
             Object.keys(filters).forEach((key) => {
                 switch (typeDict[key].type) {
                     case "string":
                     case "select":
                     case "tel":
-                        singleLeadAgg.match({ [key]: filters[key] });
+                        const expr = new RegExp(filters[key]);
+                        singleLeadAgg.match({ [key]: { $regex: expr, $options: "i" } });
                         break;
                     case "date":
                         const dateInput = filters[key].length;
@@ -521,9 +526,17 @@ let LeadService = class LeadService {
                                 },
                             });
                         }
+                        else if (dateInput.length === 1) {
+                            singleLeadAgg.match({
+                                [key]: {
+                                    $eq: new Date(dateInput[0]),
+                                },
+                            });
+                        }
                         break;
                 }
             });
+            singleLeadAgg.sort({ _id: 1 });
             singleLeadAgg.limit(1);
             common_1.Logger.debug(singleLeadAgg);
             const result = (yield singleLeadAgg.exec())[0];
