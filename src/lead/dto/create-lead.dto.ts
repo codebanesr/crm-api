@@ -1,4 +1,14 @@
-import { IsString, IsArray, IsEmail, IsNumber, IsDate, Max, Min, IsDateString, IsOptional } from "class-validator";
+import {
+  IsString,
+  IsArray,
+  IsEmail,
+  IsNumber,
+  IsDate,
+  Max,
+  Min,
+  IsDateString,
+  IsOptional,
+} from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 
@@ -69,7 +79,6 @@ export class CreateLeadDto {
   @Type(() => Number)
   amount: number;
 
-
   @ApiProperty({
     example: "shanur@gcsns.com",
     description: "Customer's email ",
@@ -79,16 +88,15 @@ export class CreateLeadDto {
   @IsEmail()
   customerEmail: string;
 
-
   @ApiProperty({
     example: "+91",
     description: "Phone number prefix",
     format: "number",
     default: 1,
   })
+  @IsOptional()
   @IsString()
-  phoneNumberPrefix: string;
-
+  phoneNumberPrefix?: string;
 
   @ApiProperty({
     example: "9199945454",
@@ -99,7 +107,6 @@ export class CreateLeadDto {
   @IsString()
   phoneNumber: string;
 
-
   @ApiProperty({
     example: "Nurturing",
     description: "Describes the status of the lead",
@@ -108,7 +115,6 @@ export class CreateLeadDto {
   })
   @IsString()
   leadStatus: string;
-
 
   @ApiProperty({
     example: "Park view CA",
@@ -119,16 +125,14 @@ export class CreateLeadDto {
   @IsString()
   address: string;
 
-
   @ApiProperty({
     example: new Date(),
     description: "Page Number in paginated view",
     format: "number",
-    default: new Date,
+    default: new Date(),
   })
   @IsDateString()
   followUp: Date;
-
 
   @ApiProperty({
     example: "moleculesns",
@@ -139,7 +143,6 @@ export class CreateLeadDto {
   @IsString()
   companyName: string;
 
-
   @ApiProperty({
     example: "Very nice product",
     description: "Latest remark after disposition",
@@ -149,7 +152,6 @@ export class CreateLeadDto {
   @IsString()
   remarks: string;
 
-
   @ApiProperty({
     example: "CRM",
     description: "Describe the product",
@@ -158,7 +160,6 @@ export class CreateLeadDto {
   })
   @IsString()
   product: string;
-
 
   // @ApiProperty({
   //   example: "coordinates",
@@ -170,7 +171,6 @@ export class CreateLeadDto {
   // @IsString()
   // geoLocation: string;
 
-
   @ApiProperty({
     example: "1",
     description: "Which bucket this product falls into",
@@ -181,7 +181,6 @@ export class CreateLeadDto {
   @IsOptional()
   bucket: string;
 
-
   @ApiProperty({
     example: "New Patliputra",
     description: "Describe the operational area of the customer/company",
@@ -191,7 +190,6 @@ export class CreateLeadDto {
   @IsString()
   @IsOptional()
   operationalArea: string;
-
 
   @ApiProperty({
     example: 808901,

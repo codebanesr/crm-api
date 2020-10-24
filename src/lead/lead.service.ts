@@ -52,7 +52,7 @@ export class LeadService {
     return files;
   }
 
-  async reassignLead(
+async reassignLead(
     activeUserEmail: string,
     oldUserEmail: string,
     newUserEmail: string,

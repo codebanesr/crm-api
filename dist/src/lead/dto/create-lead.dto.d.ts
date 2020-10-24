@@ -7,7 +7,7 @@ export declare class CreateLeadDto {
     source: string;
     amount: number;
     customerEmail: string;
-    phoneNumberPrefix: string;
+    phoneNumberPrefix?: string;
     phoneNumber: string;
     leadStatus: string;
     address: string;

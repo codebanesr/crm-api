@@ -4,7 +4,19 @@ exports.LeadSchema = void 0;
 const mongoose_1 = require("mongoose");
 exports.LeadSchema = new mongoose_1.Schema({
     externalId: { type: String, required: true },
-    history: { type: Array, default: [] },
+    history: [
+        {
+            type: new mongoose_1.Schema({
+                oldUser: String,
+                newUser: String,
+                note: String,
+                callRecordUrl: String,
+                location: { lat: String, lon: String },
+                callStatus: String,
+                attachment: String,
+            }, { timestamps: { createdAt: true, updatedAt: false } }),
+        },
+    ],
     email: {
         type: String,
         required: true,

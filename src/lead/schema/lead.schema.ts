@@ -1,9 +1,24 @@
-import { Schema } from "mongoose";
+import { Mongoose, Schema } from "mongoose";
 
 export const LeadSchema = new Schema(
   {
     externalId: { type: String, required: true },
-    history: { type: Array, default: [] },
+    history: [
+      {
+        type: new Schema(
+          {
+            oldUser: String,
+            newUser: String,
+            note: String,
+            callRecordUrl: String,
+            location: { lat: String, lon: String },
+            callStatus: String,
+            attachment: String,
+          },
+          { timestamps: { createdAt: true, updatedAt: false } }
+        ),
+      },
+    ],
     email: {
       type: String,
       required: true,
@@ -35,4 +50,5 @@ export const LeadSchema = new Schema(
   }
 );
 
+/** Remove the text indexing from here */
 LeadSchema.index({ "$**": "text" });

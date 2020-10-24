@@ -105,6 +105,7 @@ __decorate([
         format: "number",
         default: 1,
     }),
+    class_validator_1.IsOptional(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "phoneNumberPrefix", void 0);
@@ -143,7 +144,7 @@ __decorate([
         example: new Date(),
         description: "Page Number in paginated view",
         format: "number",
-        default: new Date,
+        default: new Date(),
     }),
     class_validator_1.IsDateString(),
     __metadata("design:type", Date)
