@@ -516,7 +516,7 @@ let LeadService = class LeadService {
                         singleLeadAgg.match({ [key]: { $regex: expr, $options: "i" } });
                         break;
                     case "date":
-                        const dateInput = filters[key].length;
+                        const dateInput = filters[key];
                         if (dateInput.length === 2) {
                             const startDate = new Date(dateInput[0]);
                             const endDate = new Date(dateInput[1]);
