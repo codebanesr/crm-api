@@ -374,7 +374,7 @@ let LeadService = class LeadService {
             }
             keysToUpdate.forEach((key) => {
                 if (!!lead[key]) {
-                    obj[key] = lead[key].trim();
+                    obj[key] = lead[key];
                 }
             });
             const oldLead = yield this.leadModel.findOne({ externalId, organization });

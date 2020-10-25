@@ -481,6 +481,7 @@ export class LeadService {
 
   async getPerformance() {}
 
+  /** @Todo trim all string fields otherwise they will give trouble with equality later on */
   async updateLead({
     organization,
     externalId,
@@ -497,6 +498,7 @@ export class LeadService {
     reassignmentInfo: ReassignmentInfo;
   }) {
     let obj = {} as Partial<Lead>;
+    Logger.debug({ geoLocation, reassignmentInfo });
     const keysToUpdate = Object.keys(lead);
 
     if (keys.length > 25) {
@@ -507,7 +509,7 @@ export class LeadService {
     }
     keysToUpdate.forEach((key) => {
       if (!!lead[key]) {
-        obj[key] = lead[key].trim();
+        obj[key] = lead[key];
       }
     });
 
