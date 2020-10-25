@@ -211,6 +211,7 @@ __decorate([
 __decorate([
     common_1.Put(":externalId"),
     swagger_1.ApiOperation({ summary: "Adds users location emitted from the device" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, current_user_decorator_1.CurrentUser()),
     __param(1, common_1.Body()),

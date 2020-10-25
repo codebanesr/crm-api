@@ -103,6 +103,7 @@ export class LeadController {
 
   @Put(":externalId")
   @ApiOperation({ summary: "Adds users location emitted from the device" })
+  @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
   updateLead(
     @CurrentUser() user: User,
