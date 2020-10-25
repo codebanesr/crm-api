@@ -5,21 +5,17 @@ export const LeadSchema = new Schema(
     externalId: { type: String, required: true },
     history: [
       {
-        type: new Schema(
-          {
-            oldUser: String,
-            newUser: String,
-            note: String,
-            callRecordUrl: String,
-            geoLocation: {
-              coordinates: [Number],
-            },
-            leadStatus: String,
-            attachment: String,
-            phoneNumber: String,
-          },
-          { timestamps: { createdAt: true, updatedAt: false } }
-        ),
+        oldUser: String,
+        newUser: String,
+        note: String,
+        callRecordUrl: String,
+        geoLocation: {
+          coordinates: [Number],
+        },
+        leadStatus: String,
+        attachment: String,
+        phoneNumber: String,
+        createdAt: { type: Date, default: new Date() },
       },
     ],
     email: {

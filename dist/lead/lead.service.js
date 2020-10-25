@@ -368,6 +368,7 @@ let LeadService = class LeadService {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
+            common_1.Logger.debug({ geoLocation, reassignmentInfo });
             const keysToUpdate = Object.keys(lead);
             if (lodash_1.keys.length > 25) {
                 throw new common_1.PreconditionFailedException(null, "Cannot have more than 25 fields in the lead schema");
