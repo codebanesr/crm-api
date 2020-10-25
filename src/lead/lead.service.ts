@@ -548,9 +548,10 @@ export class LeadService {
 
     nextEntryInHistory.geoLocation = geoLocation;
 
+    let { history, ...filteredObj } = obj;
     const result = await this.leadModel.findOneAndUpdate(
       { externalId: externalId, organization },
-      { $set: obj, $push: { history: nextEntryInHistory } }
+      { $set: filteredObj, $push: { history: nextEntryInHistory } }
     );
 
     return result;
