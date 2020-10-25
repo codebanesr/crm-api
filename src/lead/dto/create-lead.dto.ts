@@ -16,7 +16,6 @@ class GeoLocation {
 }
 
 export class ReassignmentInfo {
-  oldUser: string;
   newUser: string;
 }
 

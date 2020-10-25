@@ -533,7 +533,7 @@ export class LeadService {
       nextEntryInHistory["oldUser"] = "Unassigned";
       nextEntryInHistory["newUser"] = lead.email || "Unassigned";
       nextEntryInHistory[
-        "Notes"
+        "notes"
       ] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
     }
 
@@ -542,6 +542,9 @@ export class LeadService {
       prevHistory.oldUser !== reassignmentInfo.oldUser &&
       prevHistory.newUser !== reassignmentInfo.newUser
     ) {
+      nextEntryInHistory[
+        "notes"
+      ] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
       nextEntryInHistory["oldUser"] = reassignmentInfo.oldUser;
       nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
     }
