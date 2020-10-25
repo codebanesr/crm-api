@@ -105,11 +105,20 @@ export class LeadController {
   @ApiOperation({ summary: "Adds users location emitted from the device" })
   @HttpCode(HttpStatus.OK)
   updateLead(
+    @CurrentUser() user: User,
     @Body() body: CreateLeadDto,
-    @Request() req,
     @Param("externalId") externalId: string
   ) {
-    return this.leadService.updateLead(externalId, body);
+    const { organization, email: loggedInUserEmail } = user;
+    const { geoLocation, lead, reassignmentInfo } = body;
+    return this.leadService.updateLead({
+      organization,
+      externalId,
+      lead,
+      geoLocation,
+      loggedInUserEmail,
+      reassignmentInfo,
+    });
   }
 
   @Post("reassignLead")

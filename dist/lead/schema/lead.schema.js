@@ -4,7 +4,22 @@ exports.LeadSchema = void 0;
 const mongoose_1 = require("mongoose");
 exports.LeadSchema = new mongoose_1.Schema({
     externalId: { type: String, required: true },
-    history: { type: Array, default: [] },
+    history: [
+        {
+            type: new mongoose_1.Schema({
+                oldUser: String,
+                newUser: String,
+                note: String,
+                callRecordUrl: String,
+                geoLocation: {
+                    coordinates: [Number],
+                },
+                leadStatus: String,
+                attachment: String,
+                phoneNumber: String,
+            }, { timestamps: { createdAt: true, updatedAt: false } }),
+        },
+    ],
     email: {
         type: String,
         required: true,
@@ -13,7 +28,7 @@ exports.LeadSchema = new mongoose_1.Schema({
     firstName: String,
     lastName: String,
     source: String,
-    amount: String,
+    amount: Number,
     customerEmail: String,
     phoneNumberPrefix: String,
     phoneNumber: String,
@@ -23,7 +38,6 @@ exports.LeadSchema = new mongoose_1.Schema({
     companyName: String,
     remarks: String,
     product: String,
-    geoLocation: String,
     bucket: String,
     operationalArea: String,
     pincode: Number,

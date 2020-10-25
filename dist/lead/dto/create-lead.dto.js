@@ -9,11 +9,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateLeadDto = void 0;
+exports.CreateLeadDto = exports.Lead = exports.ReassignmentInfo = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
-class CreateLeadDto {
+class GeoLocation {
+}
+__decorate([
+    class_validator_1.IsNumber({}, { each: true }),
+    __metadata("design:type", Array)
+], GeoLocation.prototype, "coordinates", void 0);
+class ReassignmentInfo {
+}
+exports.ReassignmentInfo = ReassignmentInfo;
+class Lead {
 }
 __decorate([
     swagger_1.ApiProperty({
@@ -24,7 +33,7 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "externalId", void 0);
+], Lead.prototype, "externalId", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "shanur@gmail.com",
@@ -35,7 +44,7 @@ __decorate([
     }),
     class_validator_1.IsEmail(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "email", void 0);
+], Lead.prototype, "email", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "Campaign-spec-v1",
@@ -45,7 +54,7 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "campaign", void 0);
+], Lead.prototype, "campaign", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "john",
@@ -55,7 +64,7 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "firstName", void 0);
+], Lead.prototype, "firstName", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "doe",
@@ -65,7 +74,7 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "lastName", void 0);
+], Lead.prototype, "lastName", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "1",
@@ -75,7 +84,7 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "source", void 0);
+], Lead.prototype, "source", void 0);
 __decorate([
     class_validator_1.IsNumber(),
     class_validator_1.Min(0),
@@ -87,7 +96,7 @@ __decorate([
     }),
     class_transformer_1.Type(() => Number),
     __metadata("design:type", Number)
-], CreateLeadDto.prototype, "amount", void 0);
+], Lead.prototype, "amount", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "shanur@gcsns.com",
@@ -97,7 +106,7 @@ __decorate([
     }),
     class_validator_1.IsEmail(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "customerEmail", void 0);
+], Lead.prototype, "customerEmail", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "+91",
@@ -105,9 +114,10 @@ __decorate([
         format: "number",
         default: 1,
     }),
+    class_validator_1.IsOptional(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "phoneNumberPrefix", void 0);
+], Lead.prototype, "phoneNumberPrefix", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "9199945454",
@@ -117,7 +127,7 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "phoneNumber", void 0);
+], Lead.prototype, "phoneNumber", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "Nurturing",
@@ -127,7 +137,7 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "leadStatus", void 0);
+], Lead.prototype, "leadStatus", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "Park view CA",
@@ -137,17 +147,17 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "address", void 0);
+], Lead.prototype, "address", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: new Date(),
         description: "Page Number in paginated view",
         format: "number",
-        default: new Date,
+        default: new Date(),
     }),
     class_validator_1.IsDateString(),
     __metadata("design:type", Date)
-], CreateLeadDto.prototype, "followUp", void 0);
+], Lead.prototype, "followUp", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "moleculesns",
@@ -157,7 +167,7 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "companyName", void 0);
+], Lead.prototype, "companyName", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "Very nice product",
@@ -167,7 +177,7 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "remarks", void 0);
+], Lead.prototype, "remarks", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "CRM",
@@ -177,7 +187,18 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "product", void 0);
+], Lead.prototype, "product", void 0);
+__decorate([
+    swagger_1.ApiProperty({
+        example: "coordinates",
+        required: false,
+        description: "User's geo location",
+        type: JSON,
+        default: 1,
+    }),
+    class_validator_1.ValidateNested(),
+    __metadata("design:type", GeoLocation)
+], Lead.prototype, "geoLocation", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "1",
@@ -188,7 +209,7 @@ __decorate([
     class_validator_1.IsString(),
     class_validator_1.IsOptional(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "bucket", void 0);
+], Lead.prototype, "bucket", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "New Patliputra",
@@ -199,7 +220,7 @@ __decorate([
     class_validator_1.IsString(),
     class_validator_1.IsOptional(),
     __metadata("design:type", String)
-], CreateLeadDto.prototype, "operationalArea", void 0);
+], Lead.prototype, "operationalArea", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: 808901,
@@ -210,6 +231,13 @@ __decorate([
     class_validator_1.IsNumber(),
     class_validator_1.IsOptional(),
     __metadata("design:type", Number)
-], CreateLeadDto.prototype, "pincode", void 0);
+], Lead.prototype, "pincode", void 0);
+exports.Lead = Lead;
+class CreateLeadDto {
+}
+__decorate([
+    class_validator_1.IsOptional(),
+    __metadata("design:type", ReassignmentInfo)
+], CreateLeadDto.prototype, "reassignmentInfo", void 0);
 exports.CreateLeadDto = CreateLeadDto;
 //# sourceMappingURL=create-lead.dto.js.map

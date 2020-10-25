@@ -1,4 +1,11 @@
-export declare class CreateLeadDto {
+declare class GeoLocation {
+    coordinates: number[];
+}
+export declare class ReassignmentInfo {
+    oldUser: string;
+    newUser: string;
+}
+export declare class Lead {
     externalId: string;
     email: string;
     campaign: string;
@@ -15,7 +22,14 @@ export declare class CreateLeadDto {
     companyName: string;
     remarks: string;
     product: string;
+    geoLocation: GeoLocation;
     bucket: string;
     operationalArea: string;
     pincode: number;
 }
+export declare class CreateLeadDto {
+    lead: Lead;
+    geoLocation: GeoLocation;
+    reassignmentInfo?: ReassignmentInfo;
+}
+export {};

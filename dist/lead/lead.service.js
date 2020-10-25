@@ -364,15 +364,44 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead(externalId, lead) {
+    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, }) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
-            Object.keys(lead).forEach((key) => {
+            const keysToUpdate = Object.keys(lead);
+            if (lodash_1.keys.length > 25) {
+                throw new common_1.PreconditionFailedException(null, "Cannot have more than 25 fields in the lead schema");
+            }
+            keysToUpdate.forEach((key) => {
                 if (!!lead[key]) {
-                    obj[key] = lead[key];
+                    obj[key] = lead[key].trim();
                 }
             });
-            const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId }, { $set: obj });
+            const oldLead = yield this.leadModel.findOne({ externalId, organization });
+            const len = (_a = oldLead.history) === null || _a === void 0 ? void 0 : _a.length;
+            const nextEntryInHistory = {
+                geoLocation: {},
+            };
+            const prevHistory = oldLead.history[len - 1];
+            if (len) {
+                if (obj.leadStatus && obj.leadStatus !== prevHistory.leadStatus) {
+                    nextEntryInHistory["leadStatus"] = obj.leadStatus;
+                }
+            }
+            else {
+                nextEntryInHistory["leadStatus"] = obj.leadStatus;
+                nextEntryInHistory["oldUser"] = "Unassigned";
+                nextEntryInHistory["newUser"] = lead.email || "Unassigned";
+                nextEntryInHistory["Notes"] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
+            }
+            if (reassignmentInfo &&
+                prevHistory.oldUser !== reassignmentInfo.oldUser &&
+                prevHistory.newUser !== reassignmentInfo.newUser) {
+                nextEntryInHistory["oldUser"] = reassignmentInfo.oldUser;
+                nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
+            }
+            nextEntryInHistory.geoLocation = geoLocation;
+            const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: obj, $push: { history: nextEntryInHistory } });
             return result;
         });
     }

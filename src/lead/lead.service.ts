@@ -1,8 +1,16 @@
-import { Injectable, Logger } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  PreconditionFailedException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { Lead } from "./interfaces/lead.interface";
-import { isArray } from "lodash";
+import {
+  Lead,
+  LeadHistory,
+  leadHistoryGeoLocation,
+} from "./interfaces/lead.interface";
+import { isArray, keys } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
@@ -14,11 +22,10 @@ import { EmailTemplate } from "./interfaces/email-template.interface";
 import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
-import { CreateLeadDto } from "./dto/create-lead.dto";
+import { CreateLeadDto, ReassignmentInfo } from "./dto/create-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
-import { type } from "os";
 
 @Injectable()
 export class LeadService {
@@ -52,7 +59,7 @@ export class LeadService {
     return files;
   }
 
-async reassignLead(
+  async reassignLead(
     activeUserEmail: string,
     oldUserEmail: string,
     newUserEmail: string,
@@ -70,7 +77,7 @@ async reassignLead(
         oldUser: oldUserEmail,
         newUser: newUserEmail,
         note,
-      };
+      } as LeadHistory;
 
       const result = await this.leadModel
         .updateOne(
@@ -474,17 +481,74 @@ async reassignLead(
 
   async getPerformance() {}
 
-  async updateLead(externalId: string, lead: Partial<CreateLeadDto>) {
-    let obj = {} as any;
-    Object.keys(lead).forEach((key) => {
+  async updateLead({
+    organization,
+    externalId,
+    lead,
+    geoLocation,
+    loggedInUserEmail,
+    reassignmentInfo,
+  }: {
+    organization: string;
+    externalId: string;
+    lead: Partial<Lead>;
+    geoLocation: leadHistoryGeoLocation;
+    loggedInUserEmail: string;
+    reassignmentInfo: ReassignmentInfo;
+  }) {
+    let obj = {} as Partial<Lead>;
+    const keysToUpdate = Object.keys(lead);
+
+    if (keys.length > 25) {
+      throw new PreconditionFailedException(
+        null,
+        "Cannot have more than 25 fields in the lead schema"
+      );
+    }
+    keysToUpdate.forEach((key) => {
       if (!!lead[key]) {
-        obj[key] = lead[key];
+        obj[key] = lead[key].trim();
       }
     });
 
+    const oldLead = await this.leadModel.findOne({ externalId, organization });
+    const len = oldLead.history?.length;
+    const nextEntryInHistory = {
+      geoLocation: {},
+    } as LeadHistory;
+
+    // this len condition maybe unnecessary if mongoose itself handles
+    // this condition being an array since that is what we defined in
+    // the schema, also try
+    const prevHistory = oldLead.history[len - 1];
+    if (len) {
+      // if lead status changed
+      if (obj.leadStatus && obj.leadStatus !== prevHistory.leadStatus) {
+        nextEntryInHistory["leadStatus"] = obj.leadStatus;
+      }
+    } else {
+      nextEntryInHistory["leadStatus"] = obj.leadStatus;
+      nextEntryInHistory["oldUser"] = "Unassigned";
+      nextEntryInHistory["newUser"] = lead.email || "Unassigned";
+      nextEntryInHistory[
+        "Notes"
+      ] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
+    }
+
+    if (
+      reassignmentInfo &&
+      prevHistory.oldUser !== reassignmentInfo.oldUser &&
+      prevHistory.newUser !== reassignmentInfo.newUser
+    ) {
+      nextEntryInHistory["oldUser"] = reassignmentInfo.oldUser;
+      nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
+    }
+
+    nextEntryInHistory.geoLocation = geoLocation;
+
     const result = await this.leadModel.findOneAndUpdate(
-      { externalId: externalId },
-      { $set: obj }
+      { externalId: externalId, organization },
+      { $set: obj, $push: { history: nextEntryInHistory } }
     );
 
     return result;

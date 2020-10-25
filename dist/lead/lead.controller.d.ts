@@ -23,7 +23,7 @@ export declare class LeadController {
         data: any;
     }>;
     addGeoLocation(body: GeoLocationDto, user: any): Promise<import("./interfaces/geo-location.interface").GeoLocation>;
-    updateLead(body: CreateLeadDto, req: any, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
+    updateLead(user: User, body: CreateLeadDto, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
     reassignLead(body: ReassignLeadDto, user: User, externalId: string): Promise<any>;
     syncPhoneCalls(callLogs: SyncCallLogsDto[], user: User): Promise<any>;
     getLeadHistoryById(user: User, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
@@ -52,7 +52,7 @@ export declare class LeadController {
         error?: undefined;
     }>;
     saveEmailAttachments(files: any): any;
-    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "geoLocation">>;
+    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode">>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;
     fetchNextLead(user: User, campaignId: string, body: FetchNextLeadDto): Promise<{
         result: any;

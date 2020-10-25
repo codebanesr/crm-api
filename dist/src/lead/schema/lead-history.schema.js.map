@@ -1,1 +1,0 @@
-{"version":3,"file":"lead-history.schema.js","sourceRoot":"","sources":["../../../../src/lead/schema/lead-history.schema.ts"],"names":[],"mappings":";;;AACA,uCAAkC;AAErB,QAAA,iBAAiB,GAAG,IAAI,iBAAM,CACzC;IACE,UAAU,EAAE,CAAC,MAAM,CAAC;IACpB,eAAe,EAAE,MAAM;CAGxB,EACD;IACE,UAAU,EAAE,IAAI;CACjB,CACF,CAAC"}

@@ -60,8 +60,17 @@ let LeadController = class LeadController {
         const { _id, organization } = user;
         return this.leadService.addGeolocation(_id, lat, lng, organization);
     }
-    updateLead(body, req, externalId) {
-        return this.leadService.updateLead(externalId, body);
+    updateLead(user, body, externalId) {
+        const { organization, email: loggedInUserEmail } = user;
+        const { geoLocation, lead, reassignmentInfo } = body;
+        return this.leadService.updateLead({
+            organization,
+            externalId,
+            lead,
+            geoLocation,
+            loggedInUserEmail,
+            reassignmentInfo,
+        });
     }
     reassignLead(body, user, externalId) {
         return this.leadService.reassignLead(user.email, body.oldUserEmail, body.newUserEmail, body.lead);
@@ -203,11 +212,11 @@ __decorate([
     common_1.Put(":externalId"),
     swagger_1.ApiOperation({ summary: "Adds users location emitted from the device" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Body()),
-    __param(1, common_1.Request()),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(1, common_1.Body()),
     __param(2, common_1.Param("externalId")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_lead_dto_1.CreateLeadDto, Object, String]),
+    __metadata("design:paramtypes", [Object, create_lead_dto_1.CreateLeadDto, String]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "updateLead", null);
 __decorate([

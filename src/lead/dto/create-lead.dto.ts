@@ -1,18 +1,26 @@
 import {
   IsString,
-  IsArray,
   IsEmail,
   IsNumber,
-  IsDate,
-  Max,
   Min,
   IsDateString,
   IsOptional,
+  ValidateNested,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 
-export class CreateLeadDto {
+class GeoLocation {
+  @IsNumber({}, { each: true })
+  coordinates: number[];
+}
+
+export class ReassignmentInfo {
+  oldUser: string;
+  newUser: string;
+}
+
+export class Lead {
   @ApiProperty({
     example: "1",
     description: "The id coming from external system",
@@ -161,15 +169,15 @@ export class CreateLeadDto {
   @IsString()
   product: string;
 
-  // @ApiProperty({
-  //   example: "coordinates",
-  //   required: false,
-  //   description: "User's geo location",
-  //   type: JSON,
-  //   default: 1,
-  // })
-  // @IsString()
-  // geoLocation: string;
+  @ApiProperty({
+    example: "coordinates",
+    required: false,
+    description: "User's geo location",
+    type: JSON,
+    default: 1,
+  })
+  @ValidateNested()
+  geoLocation: GeoLocation;
 
   @ApiProperty({
     example: "1",
@@ -200,4 +208,12 @@ export class CreateLeadDto {
   @IsNumber()
   @IsOptional()
   pincode: number;
+}
+
+export class CreateLeadDto {
+  lead: Lead;
+  geoLocation: GeoLocation;
+
+  @IsOptional()
+  reassignmentInfo?: ReassignmentInfo;
 }
