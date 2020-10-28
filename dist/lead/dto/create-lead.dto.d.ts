@@ -2,7 +2,6 @@ declare class GeoLocation {
     coordinates: number[];
 }
 export declare class ReassignmentInfo {
-    oldUser: string;
     newUser: string;
 }
 export declare class Lead {

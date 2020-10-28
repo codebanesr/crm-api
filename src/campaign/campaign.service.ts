@@ -137,7 +137,9 @@ export class CampaignService {
     } else {
       return this.dispositionModel
         .findOne({ campaign: campaignId })
-        .sort({ _id: 1 });
+        .sort({ _id: -1 })
+        .lean()
+        .exec();
     }
   }
 

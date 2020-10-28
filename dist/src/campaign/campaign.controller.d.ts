@@ -8,7 +8,7 @@ export declare class CampaignController {
         data: any;
         metadata: any;
     }>;
-    getDispositionForCampaign(campaignId: string): Promise<import("./interfaces/disposition.interface").Disposition | {
+    getDispositionForCampaign(campaignId: string): Promise<Pick<import("./interfaces/disposition.interface").Disposition, "options" | "_id" | "organization" | "campaign" | "creator"> | {
         error: string;
         e?: undefined;
     } | {

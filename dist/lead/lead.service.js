@@ -395,13 +395,6 @@ let LeadService = class LeadService {
                 nextEntryInHistory["newUser"] = lead.email || "Unassigned";
                 nextEntryInHistory["notes"] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
             }
-            if (reassignmentInfo &&
-                prevHistory.oldUser !== reassignmentInfo.oldUser &&
-                prevHistory.newUser !== reassignmentInfo.newUser) {
-                nextEntryInHistory["notes"] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
-                nextEntryInHistory["oldUser"] = reassignmentInfo.oldUser;
-                nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
-            }
             nextEntryInHistory.geoLocation = geoLocation;
             let { history } = obj, filteredObj = __rest(obj, ["history"]);
             const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: filteredObj, $push: { history: nextEntryInHistory } });

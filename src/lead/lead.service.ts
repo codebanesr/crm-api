@@ -537,17 +537,17 @@ export class LeadService {
       ] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
     }
 
-    if (
-      reassignmentInfo &&
-      prevHistory.oldUser !== reassignmentInfo.oldUser &&
-      prevHistory.newUser !== reassignmentInfo.newUser
-    ) {
-      nextEntryInHistory[
-        "notes"
-      ] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
-      nextEntryInHistory["oldUser"] = reassignmentInfo.oldUser;
-      nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
-    }
+    // if (
+    //   reassignmentInfo &&
+    //   prevHistory.oldUser !== reassignmentInfo.oldUser &&
+    //   prevHistory.newUser !== reassignmentInfo.newUser
+    // ) {
+    //   nextEntryInHistory[
+    //     "notes"
+    //   ] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
+    //   nextEntryInHistory["oldUser"] = reassignmentInfo.oldUser;
+    //   nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
+    // }
 
     nextEntryInHistory.geoLocation = geoLocation;
 

@@ -36,7 +36,7 @@ export declare class CampaignService {
         e: any;
         error?: undefined;
     }>;
-    getDispositionForCampaign(campaignId: string): Promise<Disposition | {
+    getDispositionForCampaign(campaignId: string): Promise<Pick<Disposition, "options" | "_id" | "organization" | "campaign" | "creator"> | {
         error: string;
         e?: undefined;
     } | {
