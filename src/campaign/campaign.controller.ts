@@ -84,6 +84,21 @@ export class CampaignController {
     return this.campaignService.uploadConfig(file);
   }
 
+  @Post("/campaignForm")
+  @UseInterceptors(FileInterceptor("file"))
+  @ApiOperation({ summary: "Upload a campaign config file" })
+  @UseGuards(AuthGuard("jwt"))
+  @HttpCode(HttpStatus.OK)
+  createCampaignForm(@CurrentUser() user: User, @Body() body) {
+    const { organization } = user;
+    const { payload, campaign } = body;
+    return this.campaignService.updateCampaignForm({
+      payload,
+      organization,
+      campaign,
+    });
+  }
+
   @Get(":campaignId")
   @ApiOperation({ summary: "Get one campaign by id" })
   @HttpCode(HttpStatus.OK)

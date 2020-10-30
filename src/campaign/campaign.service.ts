@@ -8,6 +8,7 @@ import { writeFile, utils } from "xlsx";
 import { Disposition } from "./interfaces/disposition.interface";
 import { join } from "path";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
+import { CampaignForm } from "./interfaces/campaign-form.interface";
 
 @Injectable()
 export class CampaignService {
@@ -20,7 +21,10 @@ export class CampaignService {
     private readonly dispositionModel: Model<Disposition>,
 
     @InjectModel("AdminAction")
-    private readonly adminActionModel: Model<AdminAction>
+    private readonly adminActionModel: Model<AdminAction>,
+
+    @InjectModel("CampaignForm")
+    private readonly campaignFormModel: Model<CampaignForm>
   ) {}
 
   // sort by default handler
@@ -132,7 +136,7 @@ export class CampaignService {
   }
 
   async getDispositionForCampaign(campaignId: string) {
-    if (campaignId == "core") {
+    if (!campaignId || campaignId == "core") {
       return this.defaultDisposition();
     } else {
       return this.dispositionModel
@@ -270,5 +274,13 @@ export class CampaignService {
     const result = await campaignAgg.exec();
 
     return result[0].disposition[0];
+  }
+
+  async updateCampaignForm({ organization, payload, campaign }) {
+    return this.campaignFormModel.updateOne(
+      { organization, campaign },
+      { $set: { payload } },
+      { upsert: true }
+    );
   }
 }
