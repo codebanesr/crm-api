@@ -4,6 +4,9 @@ services:
   main:
     image: "node:14-slim"
     container_name: main
+    depends_on:
+      - "mongodb"
+      - "redis"
     build:
       context: .
       dockerfile: Dockerfile.slim

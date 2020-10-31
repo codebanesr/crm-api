@@ -22,7 +22,7 @@ export declare class CampaignController {
     findOneByIdOrName(campaignId: string, identifier: string): Promise<any>;
     createCampaignAndDisposition(currrentUser: User, file: any, body: any): Promise<{
         campaign: import("./interfaces/campaign.interface").Campaign;
-        disposition: import("./interfaces/disposition.interface").Disposition;
+        disposition: import("mongodb").FindAndModifyWriteOpResultObject<import("./interfaces/disposition.interface").Disposition>;
         filePath: string;
     }>;
     getDispositionByCampaignName(campaignName: string, user: User): Promise<any>;

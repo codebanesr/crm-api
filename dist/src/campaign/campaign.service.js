@@ -154,16 +154,21 @@ let CampaignService = class CampaignService {
             const excelObject = parseExcel_1.default(path);
         });
     }
-    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, }) {
+    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, }) {
         return __awaiter(this, void 0, void 0, function* () {
             dispositionData = JSON.parse(dispositionData);
             campaignInfo = JSON.parse(campaignInfo);
-            const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization }), { new: true, upsert: true, rawResult: true });
-            let disposition = new this.dispositionModel({
+            editableCols = JSON.parse(editableCols);
+            browsableCols = JSON.parse(browsableCols);
+            formModel = JSON.parse(formModel);
+            const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
+                browsableCols,
+                editableCols,
+                formModel }), { new: true, upsert: true, rawResult: true });
+            const disposition = yield this.dispositionModel.findOneAndUpdate({ campaign: campaign.value.id, organization }, {
                 options: dispositionData,
                 campaign: campaign.value.id,
-            });
-            disposition = yield disposition.save();
+            }, { new: true, upsert: true, rawResult: true });
             let filePath = "";
             if (file) {
                 const ccJSON = parseExcel_1.default(file.path);

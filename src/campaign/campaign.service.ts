@@ -159,27 +159,52 @@ export class CampaignService {
     dispositionData,
     campaignInfo,
     organization,
+    editableCols,
+    browsableCols,
+    formModel,
   }: {
     activeUserId: string;
     file: any;
     dispositionData: any;
     campaignInfo: any;
     organization: string;
+    editableCols: string;
+    browsableCols: string;
+    formModel: any;
   }) {
     dispositionData = JSON.parse(dispositionData);
     campaignInfo = JSON.parse(campaignInfo);
+    editableCols = JSON.parse(editableCols);
+    browsableCols = JSON.parse(browsableCols);
+    formModel = JSON.parse(formModel);
 
     const campaign = await this.campaignModel.findOneAndUpdate(
       { campaignName: campaignInfo.campaignName, organization },
-      { ...campaignInfo, createdBy: activeUserId, organization },
+      {
+        ...campaignInfo,
+        createdBy: activeUserId,
+        organization,
+        browsableCols,
+        editableCols,
+        formModel,
+      },
       { new: true, upsert: true, rawResult: true }
     );
 
-    let disposition = new this.dispositionModel({
-      options: dispositionData,
-      campaign: campaign.value.id,
-    });
-    disposition = await disposition.save();
+    // let disposition = new this.dispositionModel({
+    //   options: dispositionData,
+    //   campaign: campaign.value.id,
+    // });
+    // disposition = await disposition.save();
+
+    const disposition = await this.dispositionModel.findOneAndUpdate(
+      { campaign: campaign.value.id, organization },
+      {
+        options: dispositionData,
+        campaign: campaign.value.id,
+      },
+      { new: true, upsert: true, rawResult: true }
+    );
 
     let filePath = "";
     if (file) {

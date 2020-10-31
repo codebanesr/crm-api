@@ -14,6 +14,9 @@ export const CampaignSchema = new Schema(
     interval: [Date],
     assignees: [{ type: Types.ObjectId, ref: "User" }],
     type: { type: String },
+    browsableCols: [String],
+    editableCols: [String],
+    formModel: Object,
   },
   { timestamps: true }
 );

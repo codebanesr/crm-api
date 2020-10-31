@@ -48,18 +48,30 @@ let CampaignController = class CampaignController {
     uploadConfig(file) {
         return this.campaignService.uploadConfig(file);
     }
+    createCampaignForm(user, body) {
+        const { organization } = user;
+        const { payload, campaign } = body;
+        return this.campaignService.updateCampaignForm({
+            payload,
+            organization,
+            campaign,
+        });
+    }
     findOneByIdOrName(campaignId, identifier) {
         return this.campaignService.findOneByIdOrName(campaignId, identifier);
     }
     createCampaignAndDisposition(currrentUser, file, body) {
         const { id: activeUserId, organization } = currrentUser;
-        const { dispositionData, campaignInfo } = body;
+        const { dispositionData, campaignInfo, editableCols, browsableCols, formModel, } = body;
         return this.campaignService.createCampaignAndDisposition({
             activeUserId,
             file,
             dispositionData,
             campaignInfo,
             organization,
+            editableCols,
+            browsableCols,
+            formModel,
         });
     }
     getDispositionByCampaignName(campaignName, user) {
@@ -118,6 +130,17 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "uploadConfig", null);
+__decorate([
+    common_1.Post("/campaignForm"),
+    common_1.UseInterceptors(platform_express_1.FileInterceptor("file")),
+    swagger_1.ApiOperation({ summary: "Upload a campaign config file" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], CampaignController.prototype, "createCampaignForm", null);
 __decorate([
     common_1.Get(":campaignId"),
     swagger_1.ApiOperation({ summary: "Get one campaign by id" }),

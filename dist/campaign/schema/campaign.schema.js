@@ -15,5 +15,8 @@ exports.CampaignSchema = new mongoose_1.Schema({
     interval: [Date],
     assignees: [{ type: mongoose_1.Types.ObjectId, ref: "User" }],
     type: { type: String },
+    browsableCols: [String],
+    editableCols: [String],
+    formModel: Object,
 }, { timestamps: true });
 //# sourceMappingURL=campaign.schema.js.map

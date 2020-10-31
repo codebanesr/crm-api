@@ -8,4 +8,7 @@ export interface Campaign extends Document {
     type: string;
     organization: string;
     assignees: string[];
+    editableCols: string[];
+    browsableCols: string[];
+    formModel: any;
 }

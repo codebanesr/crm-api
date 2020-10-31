@@ -123,7 +123,13 @@ export class CampaignController {
     @Body() body
   ) {
     const { id: activeUserId, organization } = currrentUser;
-    const { dispositionData, campaignInfo } = body;
+    const {
+      dispositionData,
+      campaignInfo,
+      editableCols,
+      browsableCols,
+      formModel,
+    } = body;
 
     return this.campaignService.createCampaignAndDisposition({
       activeUserId,
@@ -131,6 +137,9 @@ export class CampaignController {
       dispositionData,
       campaignInfo,
       organization,
+      editableCols,
+      browsableCols,
+      formModel,
     });
   }
 

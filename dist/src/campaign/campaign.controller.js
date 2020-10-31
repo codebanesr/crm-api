@@ -62,13 +62,16 @@ let CampaignController = class CampaignController {
     }
     createCampaignAndDisposition(currrentUser, file, body) {
         const { id: activeUserId, organization } = currrentUser;
-        const { dispositionData, campaignInfo } = body;
+        const { dispositionData, campaignInfo, editableCols, browsableCols, formModel, } = body;
         return this.campaignService.createCampaignAndDisposition({
             activeUserId,
             file,
             dispositionData,
             campaignInfo,
             organization,
+            editableCols,
+            browsableCols,
+            formModel,
         });
     }
     getDispositionByCampaignName(campaignName, user) {

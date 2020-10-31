@@ -29,11 +29,12 @@ const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
 const path_1 = require("path");
 let CampaignService = class CampaignService {
-    constructor(campaignModel, campaignConfigModel, dispositionModel, adminActionModel) {
+    constructor(campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel) {
         this.campaignModel = campaignModel;
         this.campaignConfigModel = campaignConfigModel;
         this.dispositionModel = dispositionModel;
         this.adminActionModel = adminActionModel;
+        this.campaignFormModel = campaignFormModel;
     }
     findAll({ page, perPage, filters, sortBy, loggedInUserId }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -135,7 +136,7 @@ let CampaignService = class CampaignService {
     }
     getDispositionForCampaign(campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (campaignId == "core") {
+            if (!campaignId || campaignId == "core") {
                 return this.defaultDisposition();
             }
             else {
@@ -153,16 +154,21 @@ let CampaignService = class CampaignService {
             const excelObject = parseExcel_1.default(path);
         });
     }
-    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, }) {
+    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, }) {
         return __awaiter(this, void 0, void 0, function* () {
             dispositionData = JSON.parse(dispositionData);
             campaignInfo = JSON.parse(campaignInfo);
-            const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization }), { new: true, upsert: true, rawResult: true });
-            let disposition = new this.dispositionModel({
+            editableCols = JSON.parse(editableCols);
+            browsableCols = JSON.parse(browsableCols);
+            formModel = JSON.parse(formModel);
+            const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
+                browsableCols,
+                editableCols,
+                formModel }), { new: true, upsert: true, rawResult: true });
+            const disposition = yield this.dispositionModel.findOneAndUpdate({ campaign: campaign.value.id, organization }, {
                 options: dispositionData,
                 campaign: campaign.value.id,
-            });
-            disposition = yield disposition.save();
+            }, { new: true, upsert: true, rawResult: true });
             let filePath = "";
             if (file) {
                 const ccJSON = parseExcel_1.default(file.path);
@@ -240,6 +246,11 @@ let CampaignService = class CampaignService {
             return result[0].disposition[0];
         });
     }
+    updateCampaignForm({ organization, payload, campaign }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.campaignFormModel.updateOne({ organization, campaign }, { $set: { payload } }, { upsert: true });
+        });
+    }
 };
 CampaignService = __decorate([
     common_1.Injectable(),
@@ -247,7 +258,9 @@ CampaignService = __decorate([
     __param(1, mongoose_1.InjectModel("CampaignConfig")),
     __param(2, mongoose_1.InjectModel("Disposition")),
     __param(3, mongoose_1.InjectModel("AdminAction")),
+    __param(4, mongoose_1.InjectModel("CampaignForm")),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model])
