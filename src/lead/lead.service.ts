@@ -26,7 +26,9 @@ import { CreateLeadDto, ReassignmentInfo } from "./dto/create-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
-
+import { AttachmentDto } from "./dto/create-email-template.dto";
+import { createTransport, SendMailOptions } from "nodemailer";
+import { default as config } from "../config";
 @Injectable()
 export class LeadService {
   constructor(
@@ -99,11 +101,11 @@ export class LeadService {
     content: any,
     subject: string,
     campaign: string,
-    attachments: any,
+    attachments: AttachmentDto[],
     organization: string
   ) {
-    let acceptableAttachmentFormat = attachments.map((a: any) => {
-      let { originalname: fileName, path: filePath, ...others } = a;
+    let acceptableAttachmentFormat = attachments.map((a) => {
+      let { key: fileName, Location: filePath, ...others } = a;
       return {
         fileName,
         filePath,
@@ -489,6 +491,7 @@ export class LeadService {
     geoLocation,
     loggedInUserEmail,
     reassignmentInfo,
+    emailForm,
   }: {
     organization: string;
     externalId: string;
@@ -496,6 +499,7 @@ export class LeadService {
     geoLocation: leadHistoryGeoLocation;
     loggedInUserEmail: string;
     reassignmentInfo: ReassignmentInfo;
+    emailForm: any;
   }) {
     let obj = {} as Partial<Lead>;
     Logger.debug({ geoLocation, reassignmentInfo });
@@ -557,6 +561,15 @@ export class LeadService {
       { $set: filteredObj, $push: { history: nextEntryInHistory } }
     );
 
+    if (emailForm) {
+      const { subject, attachments, content } = emailForm;
+      this.sendEmailToLead({
+        content,
+        subject,
+        attachments,
+        email: lead.email,
+      });
+    }
     return result;
   }
 
@@ -751,7 +764,7 @@ export class LeadService {
       }
     });
 
-    const campaign: any = await this.campaignModel
+    const campaign = await this.campaignModel
       .findOne({ _id: campaignId, organization })
       .lean()
       .exec();
@@ -793,7 +806,14 @@ export class LeadService {
     // oldest lead first from match queries
     singleLeadAgg.sort({ _id: 1 });
     singleLeadAgg.limit(1);
-    Logger.debug(singleLeadAgg);
+
+    let projection = {};
+
+    campaign.browsableCols.forEach((c) => {
+      projection[c] = 1;
+    });
+
+    singleLeadAgg.project(projection);
     const result = (await singleLeadAgg.exec())[0];
     return Promise.resolve({ result });
   }
@@ -901,5 +921,44 @@ export class LeadService {
     userAgg.group({ _id: "$leadStatus", amount: { $sum: "$amount" } });
 
     return userAgg.exec();
+  }
+
+  async sendEmailToLead({ content, subject, attachments, email }) {
+    let transporter = createTransport({
+      service: "Mailgun",
+      auth: {
+        user: config.mail.user,
+        pass: config.mail.pass,
+      },
+    });
+
+    let mailOptions: SendMailOptions = {
+      from: '"Company" <' + config.mail.user + ">",
+      to: ["shanur.cse.nitap@gmail.com"],
+      subject: subject,
+      text: content,
+      replyTo: {
+        name: "shanur",
+        address: "mnsh0203@gmail.com",
+      },
+      attachments: attachments.map((a) => {
+        return {
+          filename: a.fileName,
+          path: a.filePath,
+        };
+      }),
+    };
+
+    var sended = await new Promise<boolean>(async function (resolve, reject) {
+      return await transporter.sendMail(mailOptions, async (error, info) => {
+        if (error) {
+          console.log("Message sent: %s", error);
+          return reject(false);
+        }
+        console.log("Message sent: %s", info.messageId);
+        resolve(true);
+      });
+    });
+    return sended;
   }
 }

@@ -9,6 +9,8 @@ import {
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
+import { EmailTemplate } from "../interfaces/email-template.interface";
+import { AttachmentDto } from "./create-email-template.dto";
 
 class GeoLocation {
   @IsNumber({}, { each: true })
@@ -215,4 +217,14 @@ export class CreateLeadDto {
 
   @IsOptional()
   reassignmentInfo?: ReassignmentInfo;
+
+  @IsOptional()
+  emailForm: {
+    attachments: {
+      filePath: string;
+      fileName: string;
+    };
+    content: string;
+    subject: string;
+  };
 }

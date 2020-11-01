@@ -111,7 +111,7 @@ export class LeadController {
     @Param("externalId") externalId: string
   ) {
     const { organization, email: loggedInUserEmail } = user;
-    const { geoLocation, lead, reassignmentInfo } = body;
+    const { geoLocation, lead, reassignmentInfo, emailForm } = body;
     return this.leadService.updateLead({
       organization,
       externalId,
@@ -119,6 +119,7 @@ export class LeadController {
       geoLocation,
       loggedInUserEmail,
       reassignmentInfo,
+      emailForm,
     });
   }
 

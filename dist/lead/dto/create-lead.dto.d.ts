@@ -30,5 +30,13 @@ export declare class CreateLeadDto {
     lead: Lead;
     geoLocation: GeoLocation;
     reassignmentInfo?: ReassignmentInfo;
+    emailForm: {
+        attachments: {
+            filePath: string;
+            fileName: string;
+        };
+        content: string;
+        subject: string;
+    };
 }
 export {};

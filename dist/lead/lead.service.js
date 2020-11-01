@@ -41,6 +41,8 @@ const mongoose_3 = require("mongoose");
 const sendMail_1 = require("../utils/sendMail");
 const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
+const nodemailer_1 = require("nodemailer");
+const config_1 = require("../config");
 let LeadService = class LeadService {
     constructor(leadModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel) {
         this.leadModel = leadModel;
@@ -85,7 +87,7 @@ let LeadService = class LeadService {
     createEmailTemplate(userEmail, content, subject, campaign, attachments, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             let acceptableAttachmentFormat = attachments.map((a) => {
-                let { originalname: fileName, path: filePath } = a, others = __rest(a, ["originalname", "path"]);
+                let { key: fileName, Location: filePath } = a, others = __rest(a, ["key", "Location"]);
                 return Object.assign({ fileName,
                     filePath }, others);
             });
@@ -364,7 +366,7 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, }) {
+    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, }) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
@@ -398,6 +400,15 @@ let LeadService = class LeadService {
             nextEntryInHistory.geoLocation = geoLocation;
             let { history } = obj, filteredObj = __rest(obj, ["history"]);
             const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: filteredObj, $push: { history: nextEntryInHistory } });
+            if (emailForm) {
+                const { subject, attachments, content } = emailForm;
+                this.sendEmailToLead({
+                    content,
+                    subject,
+                    attachments,
+                    email: lead.email,
+                });
+            }
             return result;
         });
     }
@@ -564,7 +575,11 @@ let LeadService = class LeadService {
             });
             singleLeadAgg.sort({ _id: 1 });
             singleLeadAgg.limit(1);
-            common_1.Logger.debug(singleLeadAgg);
+            let projection = {};
+            campaign.browsableCols.forEach((c) => {
+                projection[c] = 1;
+            });
+            singleLeadAgg.project(projection);
             const result = (yield singleLeadAgg.exec())[0];
             return Promise.resolve({ result });
         });
@@ -646,6 +661,46 @@ let LeadService = class LeadService {
             userAgg.project({ amount: "$amount", leadStatus: "$leadStatus" });
             userAgg.group({ _id: "$leadStatus", amount: { $sum: "$amount" } });
             return userAgg.exec();
+        });
+    }
+    sendEmailToLead({ content, subject, attachments, email }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let transporter = nodemailer_1.createTransport({
+                service: "Mailgun",
+                auth: {
+                    user: config_1.default.mail.user,
+                    pass: config_1.default.mail.pass,
+                },
+            });
+            let mailOptions = {
+                from: '"Company" <' + config_1.default.mail.user + ">",
+                to: ["shanur.cse.nitap@gmail.com"],
+                subject: subject,
+                text: content,
+                replyTo: {
+                    name: "shanur",
+                    address: "mnsh0203@gmail.com",
+                },
+                attachments: attachments.map((a) => {
+                    return {
+                        filename: a.fileName,
+                        path: a.filePath,
+                    };
+                }),
+            };
+            var sended = yield new Promise(function (resolve, reject) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    return yield transporter.sendMail(mailOptions, (error, info) => __awaiter(this, void 0, void 0, function* () {
+                        if (error) {
+                            console.log("Message sent: %s", error);
+                            return reject(false);
+                        }
+                        console.log("Message sent: %s", info.messageId);
+                        resolve(true);
+                    }));
+                });
+            });
+            return sended;
         });
     }
 };

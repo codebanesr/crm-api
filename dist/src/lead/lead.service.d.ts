@@ -11,6 +11,7 @@ import { ReassignmentInfo } from "./dto/create-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
+import { AttachmentDto } from "./dto/create-email-template.dto";
 export declare class LeadService {
     private readonly leadModel;
     private readonly userModel;
@@ -23,7 +24,7 @@ export declare class LeadService {
     constructor(leadModel: Model<Lead>, userModel: Model<User>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, callLogModel: Model<CallLog>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>);
     saveEmailAttachments(files: any): any;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
-    createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: any, organization: string): Promise<EmailTemplate>;
+    createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string): Promise<EmailTemplate>;
     getAllEmailTemplates(limit: any, skip: any, searchTerm: string, organization: string, campaignName: any): Promise<any>;
     getLeadHistoryById(externalId: string, organization: any): Promise<Lead>;
     getLeadReassignmentHistory(email: string): Promise<any>;
@@ -40,7 +41,7 @@ export declare class LeadService {
         paths: any;
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
-    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode">>;
+    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "campaign" | "externalId" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode">>;
     patch(productId: string, body: any[]): Promise<any>;
     deleteOne(leadId: string, activeUserEmail: string): Promise<Pick<any, string | number | symbol>>;
     createAlarm(alarmObj: Partial<Alarm>): Promise<Alarm>;
@@ -64,13 +65,14 @@ export declare class LeadService {
     syncPhoneCalls(callLogs: SyncCallLogsDto[], organization: any, user: any): Promise<any>;
     addGeolocation(activeUserId: string, lat: number, lng: number, organization: string): Promise<GeoLocation>;
     getPerformance(): Promise<void>;
-    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, }: {
+    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, }: {
         organization: string;
         externalId: string;
         lead: Partial<Lead>;
         geoLocation: leadHistoryGeoLocation;
         loggedInUserEmail: string;
         reassignmentInfo: ReassignmentInfo;
+        emailForm: any;
     }): Promise<Lead>;
     saveLeads(leads: any[], campaignName: string, originalFileName: string): Promise<void>;
     getSubordinates(email: string, roleType: string): Promise<any>;
@@ -103,4 +105,10 @@ export declare class LeadService {
     }): Promise<any>;
     getAllAlarms(body: any, organization: any): Promise<any>;
     getUsersActivity(dateRange: Date[], userEmail: string, organization: string): Promise<any>;
+    sendEmailToLead({ content, subject, attachments, email }: {
+        content: any;
+        subject: any;
+        attachments: any;
+        email: any;
+    }): Promise<boolean>;
 }

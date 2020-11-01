@@ -1,6 +1,6 @@
 export declare class AttachmentDto {
-    filename: string;
-    path: string;
+    key: string;
+    Location: string;
 }
 export declare class CreateEmailTemplateDto {
     content: string;

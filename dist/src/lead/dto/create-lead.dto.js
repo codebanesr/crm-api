@@ -239,5 +239,9 @@ __decorate([
     class_validator_1.IsOptional(),
     __metadata("design:type", ReassignmentInfo)
 ], CreateLeadDto.prototype, "reassignmentInfo", void 0);
+__decorate([
+    class_validator_1.IsOptional(),
+    __metadata("design:type", Object)
+], CreateLeadDto.prototype, "emailForm", void 0);
 exports.CreateLeadDto = CreateLeadDto;
 //# sourceMappingURL=create-lead.dto.js.map

@@ -17,51 +17,54 @@ class AttachmentDto {
 }
 __decorate([
     swagger_1.ApiProperty({
-        example: "somefilename"
+        example: "This is the filename",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], AttachmentDto.prototype, "filename", void 0);
+], AttachmentDto.prototype, "key", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: "somefilepath"
+        example: "This is the location inside aws where the file is stored",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], AttachmentDto.prototype, "path", void 0);
+], AttachmentDto.prototype, "Location", void 0);
 exports.AttachmentDto = AttachmentDto;
 class CreateEmailTemplateDto {
 }
 __decorate([
     swagger_1.ApiProperty({
-        example: "some content which goes into the body of the email"
+        example: "some content which goes into the body of the email",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], CreateEmailTemplateDto.prototype, "content", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: "This is a sample subject"
+        example: "This is a sample subject",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], CreateEmailTemplateDto.prototype, "subject", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: "This will become the subject of the email template"
+        example: "This will become the subject of the email template",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], CreateEmailTemplateDto.prototype, "campaign", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        examples: [{
+        examples: [
+            {
                 filename: "somefilename",
-                path: "somefilepath"
-            }, {
+                path: "somefilepath",
+            },
+            {
                 filename: "somefilename",
-                path: "somefilepath"
-            }]
+                path: "somefilepath",
+            },
+        ],
     }),
     class_validator_1.IsArray(),
     class_transformer_1.Type(() => AttachmentDto),
@@ -73,7 +76,7 @@ class BulkEmailDto {
 }
 __decorate([
     swagger_1.ApiProperty({
-        example: ""
+        example: "",
     }),
     class_validator_1.IsArray(),
     class_transformer_1.Type(() => String),
@@ -81,14 +84,14 @@ __decorate([
 ], BulkEmailDto.prototype, "emails", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: "This will become the subject of the email template"
+        example: "This will become the subject of the email template",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], BulkEmailDto.prototype, "subject", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: "Email content, body of email"
+        example: "Email content, body of email",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
@@ -97,8 +100,8 @@ __decorate([
     swagger_1.ApiProperty({
         example: {
             filename: "somefilename",
-            path: "somefilepath"
-        }
+            path: "somefilepath",
+        },
     }),
     class_validator_1.IsArray(),
     class_transformer_1.Type(() => AttachmentDto),
