@@ -372,7 +372,7 @@ let LeadService = class LeadService {
             let obj = {};
             common_1.Logger.debug({ geoLocation, reassignmentInfo });
             const keysToUpdate = Object.keys(lead);
-            if (lodash_1.keys.length > 25) {
+            if (keysToUpdate.length > 25) {
                 throw new common_1.PreconditionFailedException(null, "Cannot have more than 25 fields in the lead schema");
             }
             keysToUpdate.forEach((key) => {
@@ -380,22 +380,23 @@ let LeadService = class LeadService {
                     obj[key] = lead[key];
                 }
             });
-            const oldLead = yield this.leadModel.findOne({ externalId, organization });
+            const oldLead = yield this.leadModel
+                .findOne({ externalId, organization })
+                .lean()
+                .exec();
             const len = (_a = oldLead.history) === null || _a === void 0 ? void 0 : _a.length;
             const nextEntryInHistory = {
                 geoLocation: {},
             };
             const prevHistory = oldLead.history[len - 1];
-            if (len) {
-                if (obj.leadStatus && obj.leadStatus !== prevHistory.leadStatus) {
-                    nextEntryInHistory["leadStatus"] = obj.leadStatus;
-                }
+            if (len === 0 && !reassignmentInfo) {
+                nextEntryInHistory["notes"] = `Lead has been assigned to ${loggedInUserEmail} by default`;
+                nextEntryInHistory["newUser"] = loggedInUserEmail;
             }
-            else {
-                nextEntryInHistory["leadStatus"] = obj.leadStatus;
-                nextEntryInHistory["oldUser"] = "Unassigned";
-                nextEntryInHistory["newUser"] = lead.email || "Unassigned";
-                nextEntryInHistory["notes"] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
+            if (reassignmentInfo && prevHistory.newUser !== reassignmentInfo.newUser) {
+                nextEntryInHistory["notes"] = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
+                nextEntryInHistory["oldUser"] = prevHistory.newUser;
+                nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
             }
             nextEntryInHistory.geoLocation = geoLocation;
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
@@ -582,6 +583,7 @@ let LeadService = class LeadService {
             campaign.browsableCols.forEach((c) => {
                 projection[c] = 1;
             });
+            projection["history"] = 1;
             singleLeadAgg.project(projection);
             const result = (yield singleLeadAgg.exec())[0];
             return Promise.resolve({ result });
@@ -684,7 +686,7 @@ let LeadService = class LeadService {
                     name: "shanur",
                     address: "mnsh0203@gmail.com",
                 },
-                attachments: attachments.map((a) => {
+                attachments: attachments === null || attachments === void 0 ? void 0 : attachments.map((a) => {
                     return {
                         filename: a.fileName,
                         path: a.filePath,

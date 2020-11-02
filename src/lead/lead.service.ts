@@ -502,7 +502,7 @@ export class LeadService {
     Logger.debug({ geoLocation, reassignmentInfo });
     const keysToUpdate = Object.keys(lead);
 
-    if (keys.length > 25) {
+    if (keysToUpdate.length > 25) {
       throw new PreconditionFailedException(
         null,
         "Cannot have more than 25 fields in the lead schema"
@@ -514,7 +514,11 @@ export class LeadService {
       }
     });
 
-    const oldLead = await this.leadModel.findOne({ externalId, organization });
+    const oldLead = await this.leadModel
+      .findOne({ externalId, organization })
+      .lean()
+      .exec();
+
     const len = oldLead.history?.length;
     const nextEntryInHistory = {
       geoLocation: {},
@@ -524,34 +528,25 @@ export class LeadService {
     // this condition being an array since that is what we defined in
     // the schema, also try
     const prevHistory = oldLead.history[len - 1];
-    if (len) {
-      // if lead status changed
-      if (obj.leadStatus && obj.leadStatus !== prevHistory.leadStatus) {
-        nextEntryInHistory["leadStatus"] = obj.leadStatus;
-      }
-    } else {
-      nextEntryInHistory["leadStatus"] = obj.leadStatus;
-      nextEntryInHistory["oldUser"] = "Unassigned";
-      nextEntryInHistory["newUser"] = lead.email || "Unassigned";
+    if (len === 0 && !reassignmentInfo) {
+      // assign to logged in user and notes will be lead was created by
       nextEntryInHistory[
         "notes"
-      ] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
+      ] = `Lead has been assigned to ${loggedInUserEmail} by default`;
+      nextEntryInHistory["newUser"] = loggedInUserEmail;
     }
 
-    // if (
-    //   reassignmentInfo &&
-    //   prevHistory.oldUser !== reassignmentInfo.oldUser &&
-    //   prevHistory.newUser !== reassignmentInfo.newUser
-    // ) {
-    //   nextEntryInHistory[
-    //     "notes"
-    //   ] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
-    //   nextEntryInHistory["oldUser"] = reassignmentInfo.oldUser;
-    //   nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
-    // }
+    if (reassignmentInfo && prevHistory.newUser !== reassignmentInfo.newUser) {
+      nextEntryInHistory[
+        "notes"
+      ] = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
+      nextEntryInHistory["oldUser"] = prevHistory.newUser;
+      nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
+    }
 
     nextEntryInHistory.geoLocation = geoLocation;
     if (requestedInformation && Object.keys(requestedInformation).length > 0) {
+      /** @Todo this filter should be removed, checkbox is currently returning empty object, please remove that */
       nextEntryInHistory["requestedInformation"] = requestedInformation.filter(
         (ri) => Object.keys(ri).length > 0
       );
@@ -815,6 +810,9 @@ export class LeadService {
       projection[c] = 1;
     });
 
+    // other information that should always show up, one is history
+    projection["history"] = 1;
+
     singleLeadAgg.project(projection);
     const result = (await singleLeadAgg.exec())[0];
     return Promise.resolve({ result });
@@ -943,7 +941,7 @@ export class LeadService {
         name: "shanur",
         address: "mnsh0203@gmail.com",
       },
-      attachments: attachments.map((a) => {
+      attachments: attachments?.map((a) => {
         return {
           filename: a.fileName,
           path: a.filePath,
