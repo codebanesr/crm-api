@@ -227,4 +227,6 @@ export class CreateLeadDto {
     content: string;
     subject: string;
   };
+
+  requestedInformation?: { [key: string]: string }[];
 }

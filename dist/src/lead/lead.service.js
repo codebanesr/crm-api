@@ -366,7 +366,7 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, }) {
+    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
@@ -398,6 +398,9 @@ let LeadService = class LeadService {
                 nextEntryInHistory["notes"] = `Lead has been assigned to ${lead.email} by ${loggedInUserEmail}`;
             }
             nextEntryInHistory.geoLocation = geoLocation;
+            if (requestedInformation && Object.keys(requestedInformation).length > 0) {
+                nextEntryInHistory["requestedInformation"] = requestedInformation.filter((ri) => Object.keys(ri).length > 0);
+            }
             let { history } = obj, filteredObj = __rest(obj, ["history"]);
             const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: filteredObj, $push: { history: nextEntryInHistory } });
             if (emailForm) {

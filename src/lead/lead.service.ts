@@ -492,14 +492,11 @@ export class LeadService {
     loggedInUserEmail,
     reassignmentInfo,
     emailForm,
-  }: {
-    organization: string;
+    requestedInformation,
+  }: CreateLeadDto & {
     externalId: string;
-    lead: Partial<Lead>;
-    geoLocation: leadHistoryGeoLocation;
+    organization: string;
     loggedInUserEmail: string;
-    reassignmentInfo: ReassignmentInfo;
-    emailForm: any;
   }) {
     let obj = {} as Partial<Lead>;
     Logger.debug({ geoLocation, reassignmentInfo });
@@ -554,6 +551,11 @@ export class LeadService {
     // }
 
     nextEntryInHistory.geoLocation = geoLocation;
+    if (requestedInformation && Object.keys(requestedInformation).length > 0) {
+      nextEntryInHistory["requestedInformation"] = requestedInformation.filter(
+        (ri) => Object.keys(ri).length > 0
+      );
+    }
 
     let { history, ...filteredObj } = obj;
     const result = await this.leadModel.findOneAndUpdate(

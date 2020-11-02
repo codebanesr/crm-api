@@ -21,6 +21,9 @@ export interface Lead extends Document {
     operationalArea: string;
     pincode: number;
     organization: string;
+    requestedInformation?: {
+        [key: string]: string;
+    }[];
 }
 export interface LeadHistory {
     oldUser: string;
@@ -31,6 +34,9 @@ export interface LeadHistory {
     leadStatus: string;
     attachment: string;
     phoneNumber: string;
+    requestedInformation?: {
+        [key: string]: string;
+    }[];
 }
 export declare class leadHistoryGeoLocation {
     coordinates: number[];

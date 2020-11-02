@@ -16,6 +16,7 @@ export const LeadSchema = new Schema(
         attachment: String,
         phoneNumber: String,
         createdAt: { type: Date, default: new Date() },
+        requestedInformation: Object,
       },
     ],
     email: {

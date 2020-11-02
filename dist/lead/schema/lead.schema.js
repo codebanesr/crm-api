@@ -17,6 +17,7 @@ exports.LeadSchema = new mongoose_1.Schema({
             attachment: String,
             phoneNumber: String,
             createdAt: { type: Date, default: new Date() },
+            requestedInformation: Object,
         },
     ],
     email: {

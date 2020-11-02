@@ -62,7 +62,7 @@ let LeadController = class LeadController {
     }
     updateLead(user, body, externalId) {
         const { organization, email: loggedInUserEmail } = user;
-        const { geoLocation, lead, reassignmentInfo, emailForm } = body;
+        const { geoLocation, lead, reassignmentInfo, emailForm, requestedInformation, } = body;
         return this.leadService.updateLead({
             organization,
             externalId,
@@ -71,6 +71,7 @@ let LeadController = class LeadController {
             loggedInUserEmail,
             reassignmentInfo,
             emailForm,
+            requestedInformation,
         });
     }
     reassignLead(body, user, externalId) {
