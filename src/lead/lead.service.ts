@@ -553,6 +553,12 @@ export class LeadService {
     }
 
     let { history, ...filteredObj } = obj;
+
+    // if reassignment is required, change that in the lead
+    if (reassignmentInfo.newUser) {
+      obj.email = reassignmentInfo.newUser;
+    }
+
     const result = await this.leadModel.findOneAndUpdate(
       { externalId: externalId, organization },
       { $set: filteredObj, $push: { history: nextEntryInHistory } }
