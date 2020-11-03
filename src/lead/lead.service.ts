@@ -4,7 +4,7 @@ import {
   PreconditionFailedException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, NativeError } from "mongoose";
 import {
   Lead,
   LeadHistory,
@@ -29,6 +29,8 @@ import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";
 import { createTransport, SendMailOptions } from "nodemailer";
 import { default as config } from "../config";
+import { AssertionError } from "assert";
+import { ValidationError } from "class-validator";
 @Injectable()
 export class LeadService {
   constructor(
@@ -771,6 +773,12 @@ export class LeadService {
       .findOne({ _id: campaignId, organization })
       .lean()
       .exec();
+
+    if (!campaign.browsableCols || !campaign.editableCols) {
+      throw new NativeError(
+        "Please add browsable and editable columns for this campaign"
+      );
+    }
 
     const singleLeadAgg = this.leadModel.aggregate();
     singleLeadAgg.match({ campaign: campaign.campaignName, email });

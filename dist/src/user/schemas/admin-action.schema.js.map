@@ -1,1 +1,0 @@
-{"version":3,"file":"admin-action.schema.js","sourceRoot":"","sources":["../../../../src/user/schemas/admin-action.schema.ts"],"names":[],"mappings":";;;AAAA,uCAAkC;AAErB,QAAA,iBAAiB,GAAG,IAAI,iBAAM,CAAC;IACxC,MAAM,EAAE,iBAAM,CAAC,KAAK,CAAC,QAAQ;IAC7B,UAAU,EAAE,MAAM;IAClB,QAAQ,EAAE,MAAM;IAChB,OAAO,EAAE,MAAM;IACf,QAAQ,EAAE,MAAM;CACnB,EAAE,EAAE,UAAU,EAAE,IAAI,EAAE,CAAC,CAAC"}

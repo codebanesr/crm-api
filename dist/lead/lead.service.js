@@ -403,6 +403,9 @@ let LeadService = class LeadService {
                 nextEntryInHistory["requestedInformation"] = requestedInformation.filter((ri) => Object.keys(ri).length > 0);
             }
             let { history } = obj, filteredObj = __rest(obj, ["history"]);
+            if (reassignmentInfo.newUser) {
+                obj.email = reassignmentInfo.newUser;
+            }
             const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: filteredObj, $push: { history: nextEntryInHistory } });
             if (emailForm) {
                 const { subject, attachments, content } = emailForm;
@@ -545,6 +548,9 @@ let LeadService = class LeadService {
                 .findOne({ _id: campaignId, organization })
                 .lean()
                 .exec();
+            if (!campaign.browsableCols || !campaign.editableCols) {
+                throw new mongoose_2.NativeError("Please add browsable and editable columns for this campaign");
+            }
             const singleLeadAgg = this.leadModel.aggregate();
             singleLeadAgg.match({ campaign: campaign.campaignName, email });
             Object.keys(filters).forEach((key) => {
