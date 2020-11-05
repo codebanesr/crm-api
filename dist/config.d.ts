@@ -1,4 +1,9 @@
 declare const _default: {
+    s3: {
+        accessKeyId: string;
+        secretAccessKey: string;
+        region: string;
+    };
     db: {
         user: any;
         pass: any;

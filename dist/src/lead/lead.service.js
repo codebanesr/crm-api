@@ -328,9 +328,7 @@ let LeadService = class LeadService {
                 .lean()
                 .exec());
             if (!ccnfg) {
-                return {
-                    error: `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`,
-                };
+                throw new Error(`Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`);
             }
             const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader);
             return { files, result };
@@ -398,16 +396,19 @@ let LeadService = class LeadService {
                 nextEntryInHistory["oldUser"] = prevHistory.newUser;
                 nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
             }
+            if (lead.leadStatus !== oldLead.leadStatus) {
+                nextEntryInHistory["notes"] = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+            }
             nextEntryInHistory.geoLocation = geoLocation;
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
                 nextEntryInHistory["requestedInformation"] = requestedInformation.filter((ri) => Object.keys(ri).length > 0);
             }
             let { history } = obj, filteredObj = __rest(obj, ["history"]);
-            if (reassignmentInfo.newUser) {
+            if (lodash_1.get(reassignmentInfo, "newUser")) {
                 obj.email = reassignmentInfo.newUser;
             }
             const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: filteredObj, $push: { history: nextEntryInHistory } });
-            if (emailForm) {
+            if (!lodash_1.values(emailForm).every(lodash_1.isEmpty)) {
                 const { subject, attachments, content } = emailForm;
                 this.sendEmailToLead({
                     content,
@@ -479,8 +480,8 @@ let LeadService = class LeadService {
     parseLeadFiles(files, ccnfg, campaignName, organization, uploader) {
         return __awaiter(this, void 0, void 0, function* () {
             files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
-                const jsonRes = parseExcel_1.default(file.path, ccnfg);
-                this.saveLeadsFromExcel(jsonRes, campaignName, file.originalname, organization, uploader);
+                const jsonRes = yield parseExcel_1.default(file.Location, ccnfg);
+                this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader);
             }));
         });
     }

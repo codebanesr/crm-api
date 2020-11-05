@@ -12,6 +12,7 @@ import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";
+import { S3UploadedFiles } from "./dto/generic.dto";
 export declare class LeadService {
     private readonly leadModel;
     private readonly userModel;
@@ -53,14 +54,9 @@ export declare class LeadService {
         success?: undefined;
     }>;
     suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit?: number): Promise<any>;
-    uploadMultipleLeadFiles(files: any[], campaignName: string, uploader: string, organization: string): Promise<{
-        error: string;
-        files?: undefined;
-        result?: undefined;
-    } | {
-        files: any[];
+    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string): Promise<{
+        files: S3UploadedFiles[];
         result: void;
-        error?: undefined;
     }>;
     syncPhoneCalls(callLogs: SyncCallLogsDto[], organization: any, user: any): Promise<any>;
     addGeolocation(activeUserId: string, lat: number, lng: number, organization: string): Promise<GeoLocation>;
@@ -72,7 +68,7 @@ export declare class LeadService {
     }): Promise<Lead>;
     saveLeads(leads: any[], campaignName: string, originalFileName: string): Promise<void>;
     getSubordinates(email: string, roleType: string): Promise<any>;
-    parseLeadFiles(files: any[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string): Promise<void>;
+    parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string): Promise<void>;
     saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string): Promise<void>;
     leadActivityByUser(startDate: string, endDate: string, email: string): Promise<any>;
     getUpdatedAtQuery(startDate: string, endDate: string): Promise<{

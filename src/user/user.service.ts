@@ -413,7 +413,7 @@ export class UserService {
   }
 
   async insertMany(activeUserId: string, filePath: string) {
-    const jsonRes = parseExcel(filePath);
+    const jsonRes = await parseExcel(filePath);
 
     const userid = Types.ObjectId(activeUserId);
     // this path comes from multer and is where the original file is stored

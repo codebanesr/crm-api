@@ -272,18 +272,15 @@ export class LeadController {
   @ApiOperation({
     summary: "Upload multiple lead files",
   })
-  /**If things fail try using files[] */
-  @UseInterceptors(FilesInterceptor("files[]"))
   @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
   uploadMultipleLeadFiles(
     @CurrentUser() user: User,
-    @Body() body: UploadMultipleFilesDto,
-    @UploadedFiles() files
+    @Body() body: UploadMultipleFilesDto
   ) {
     /** @Todo add organization to lead file uploads also */
     const { email, organization } = user;
-    const { campaignName } = body;
+    const { campaignName, files } = body;
     return this.leadService.uploadMultipleLeadFiles(
       files,
       campaignName,

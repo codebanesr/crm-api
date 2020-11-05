@@ -13,13 +13,13 @@ exports.RolesGuard = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const passport_1 = require("@nestjs/passport");
-let RolesGuard = class RolesGuard extends passport_1.AuthGuard('jwt') {
+let RolesGuard = class RolesGuard extends passport_1.AuthGuard("jwt") {
     constructor(reflector) {
         super();
         this.reflector = reflector;
     }
     handleRequest(err, user, info, context) {
-        const roles = this.reflector.get('roles', context.getHandler());
+        const roles = this.reflector.get("roles", context.getHandler());
         if (!roles) {
             return true;
         }
@@ -28,7 +28,7 @@ let RolesGuard = class RolesGuard extends passport_1.AuthGuard('jwt') {
             throw new common_1.UnauthorizedException();
         }
         if (!(user.roles && hasRole())) {
-            throw new common_1.ForbiddenException('Forbidden');
+            throw new common_1.ForbiddenException("Forbidden");
         }
         return user && user.roles && hasRole();
     }

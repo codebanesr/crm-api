@@ -351,7 +351,7 @@ let UserService = class UserService {
     }
     insertMany(activeUserId, filePath) {
         return __awaiter(this, void 0, void 0, function* () {
-            const jsonRes = parseExcel_1.default(filePath);
+            const jsonRes = yield parseExcel_1.default(filePath);
             const userid = mongoose_2.Types.ObjectId(activeUserId);
             let adminActions = new this.adminActionModel({
                 userid,

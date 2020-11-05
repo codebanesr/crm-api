@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UploadMultipleFilesDto = void 0;
+exports.S3UploadedFiles = exports.UploadMultipleFilesDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 class UploadMultipleFilesDto {
@@ -17,10 +17,13 @@ class UploadMultipleFilesDto {
 __decorate([
     swagger_1.ApiProperty({
         example: "campaignName",
-        description: "If upload fails then change the backend code from files[] to files"
+        description: "If upload fails then change the backend code from files[] to files",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], UploadMultipleFilesDto.prototype, "campaignName", void 0);
 exports.UploadMultipleFilesDto = UploadMultipleFilesDto;
+class S3UploadedFiles {
+}
+exports.S3UploadedFiles = S3UploadedFiles;
 //# sourceMappingURL=generic.dto.js.map

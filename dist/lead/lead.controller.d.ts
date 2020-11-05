@@ -42,14 +42,9 @@ export declare class LeadController {
         error: any;
         success?: undefined;
     }>;
-    uploadMultipleLeadFiles(user: User, body: UploadMultipleFilesDto, files: any): Promise<{
-        error: string;
-        files?: undefined;
-        result?: undefined;
-    } | {
-        files: any[];
+    uploadMultipleLeadFiles(user: User, body: UploadMultipleFilesDto): Promise<{
+        files: import("./dto/generic.dto").S3UploadedFiles[];
         result: void;
-        error?: undefined;
     }>;
     saveEmailAttachments(files: any): any;
     findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "campaign" | "externalId" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "requestedInformation">>;

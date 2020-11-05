@@ -1,6 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
+    s3: {
+        accessKeyId: "AKIARGBOXP35BONONB4J",
+        secretAccessKey: "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",
+        region: "ap-south-1",
+    },
     db: {
         user: null,
         pass: null,
@@ -27,7 +32,7 @@ exports.default = {
     twilio: {
         accountSid: "AC3096988c610ab3d5b05e430650af8e58",
         authToken: "a11a998f8ac16b5fb04007cbb123cc44",
-        mobileNumber: "+19402203638"
+        mobileNumber: "+19402203638",
     },
     redisOpts: {
         host: process.env.REDIS_HOST || "localhost",

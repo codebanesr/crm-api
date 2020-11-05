@@ -10,7 +10,7 @@ import {
   LeadHistory,
   leadHistoryGeoLocation,
 } from "./interfaces/lead.interface";
-import { isArray, keys } from "lodash";
+import { get, isArray, isEmpty, keys, values } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
@@ -31,6 +31,7 @@ import { createTransport, SendMailOptions } from "nodemailer";
 import { default as config } from "../config";
 import { AssertionError } from "assert";
 import { ValidationError } from "class-validator";
+import { S3UploadedFiles } from "./dto/generic.dto";
 @Injectable()
 export class LeadService {
   constructor(
@@ -420,7 +421,7 @@ export class LeadService {
   //   interval: [ '2020-07-24T13:31:02.621Z', '2020-07-04T13:26:07.078Z' ]
   // }
   async uploadMultipleLeadFiles(
-    files: any[],
+    files: S3UploadedFiles[],
     campaignName: string,
     uploader: string,
     organization: string
@@ -433,9 +434,9 @@ export class LeadService {
       .lean()
       .exec()) as IConfig[];
     if (!ccnfg) {
-      return {
-        error: `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`,
-      };
+      throw new Error(
+        `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`
+      );
     }
 
     const result = await this.parseLeadFiles(
@@ -546,6 +547,12 @@ export class LeadService {
       nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
     }
 
+    if (lead.leadStatus !== oldLead.leadStatus) {
+      nextEntryInHistory[
+        "notes"
+      ] = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+    }
+
     nextEntryInHistory.geoLocation = geoLocation;
     if (requestedInformation && Object.keys(requestedInformation).length > 0) {
       /** @Todo this filter should be removed, checkbox is currently returning empty object, please remove that */
@@ -557,7 +564,7 @@ export class LeadService {
     let { history, ...filteredObj } = obj;
 
     // if reassignment is required, change that in the lead
-    if (reassignmentInfo.newUser) {
+    if (get(reassignmentInfo, "newUser")) {
       obj.email = reassignmentInfo.newUser;
     }
 
@@ -566,7 +573,7 @@ export class LeadService {
       { $set: filteredObj, $push: { history: nextEntryInHistory } }
     );
 
-    if (emailForm) {
+    if (!values(emailForm).every(isEmpty)) {
       const { subject, attachments, content } = emailForm;
       this.sendEmailToLead({
         content,
@@ -654,18 +661,18 @@ export class LeadService {
   }
 
   async parseLeadFiles(
-    files: any[],
+    files: S3UploadedFiles[],
     ccnfg: IConfig[],
     campaignName: string,
     organization: string,
     uploader: string
   ) {
-    files.forEach(async (file: any) => {
-      const jsonRes = parseExcel(file.path, ccnfg);
+    files.forEach(async (file) => {
+      const jsonRes = await parseExcel(file.Location, ccnfg);
       this.saveLeadsFromExcel(
         jsonRes,
         campaignName,
-        file.originalname,
+        file.Key,
         organization,
         uploader
       );

@@ -208,7 +208,7 @@ export class CampaignService {
 
     let filePath = "";
     if (file) {
-      const ccJSON = parseExcel(file.path);
+      const ccJSON = await parseExcel(file.path);
       filePath = await this.saveCampaignSchema(ccJSON, {
         schemaName: campaignInfo.campaignName,
         organization,

@@ -1,4 +1,9 @@
 export default {
+  s3: {
+    accessKeyId: process.env.accessKeyId,
+    secretAccessKey: process.env.secretAccessKey,
+    region: process.env.region,
+  },
   db: {
     user: null,
     pass: null,
@@ -25,7 +30,7 @@ export default {
   twilio: {
     accountSid: "AC3096988c610ab3d5b05e430650af8e58",
     authToken: "a11a998f8ac16b5fb04007cbb123cc44",
-    mobileNumber: "+19402203638"
+    mobileNumber: "+19402203638",
   },
   redisOpts: {
     host: process.env.REDIS_HOST || "localhost",

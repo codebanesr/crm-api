@@ -171,7 +171,7 @@ let CampaignService = class CampaignService {
             }, { new: true, upsert: true, rawResult: true });
             let filePath = "";
             if (file) {
-                const ccJSON = parseExcel_1.default(file.path);
+                const ccJSON = yield parseExcel_1.default(file.path);
                 filePath = yield this.saveCampaignSchema(ccJSON, {
                     schemaName: campaignInfo.campaignName,
                     organization,
