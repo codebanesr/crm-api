@@ -11,21 +11,23 @@ import { GeoLocationSchema } from "./schema/geo-location.schema";
 import { AlarmSchema } from "./schema/alarm.schema";
 import { CampaignSchema } from "../campaign/schema/campaign.schema";
 import { MulterModule } from "@nestjs/platform-express";
+import { AdminActionSchema } from "../user/schemas/admin-action.schema";
 
 @Module({
   imports: [
     MulterModule.register({
-      dest: '~/.upload',
+      dest: "~/.upload",
     }),
     MongooseModule.forFeature([
       { name: "Alarm", schema: AlarmSchema },
-      { name: "Campaign", schema: CampaignSchema},
+      { name: "Campaign", schema: CampaignSchema },
       { name: "GeoLocation", schema: GeoLocationSchema },
       { name: "CallLog", schema: CallLogSchema },
       { name: "EmailTemplate", schema: EmailTemplateSchema },
       { name: "CampaignConfig", schema: CampaignConfigSchema },
       { name: "User", schema: UserSchema },
-      { name: "Lead", schema: LeadSchema }
+      { name: "Lead", schema: LeadSchema },
+      { name: "AdminAction", schema: AdminActionSchema },
     ]),
   ],
   providers: [LeadService],

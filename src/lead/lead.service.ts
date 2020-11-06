@@ -5,11 +5,7 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, NativeError } from "mongoose";
-import {
-  Lead,
-  LeadHistory,
-  leadHistoryGeoLocation,
-} from "./interfaces/lead.interface";
+import { Lead, LeadHistory } from "./interfaces/lead.interface";
 import { get, isArray, isEmpty, keys, values } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
@@ -29,14 +25,16 @@ import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";
 import { createTransport, SendMailOptions } from "nodemailer";
 import { default as config } from "../config";
-import { AssertionError } from "assert";
-import { ValidationError } from "class-validator";
 import { S3UploadedFiles } from "./dto/generic.dto";
+import { AdminAction } from "../user/interfaces/admin-actions.interface";
 @Injectable()
 export class LeadService {
   constructor(
     @InjectModel("Lead")
     private readonly leadModel: Model<Lead>,
+
+    @InjectModel("AdminAction")
+    private readonly adminActionModel: Model<AdminAction>,
 
     @InjectModel("User")
     private readonly userModel: Model<User>,
@@ -424,7 +422,8 @@ export class LeadService {
     files: S3UploadedFiles[],
     campaignName: string,
     uploader: string,
-    organization: string
+    organization: string,
+    userId: string
   ) {
     const ccnfg = (await this.campaignConfigModel
       .find(
@@ -438,6 +437,17 @@ export class LeadService {
         `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`
       );
     }
+
+    const adminActions = new this.adminActionModel({
+      userid: userId,
+      organization,
+      actionType: "lead",
+      filePath: files[0].Location,
+      savedOn: "s3",
+      fileType: "campaignConfig",
+    });
+
+    adminActions.save();
 
     const result = await this.parseLeadFiles(
       files,

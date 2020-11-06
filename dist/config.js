@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = {
     s3: {
-        accessKeyId: "AKIARGBOXP35BONONB4J",
-        secretAccessKey: "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",
-        region: "ap-south-1",
+        accessKeyId: process.env.accessKeyId,
+        secretAccessKey: process.env.secretAccessKey,
+        region: process.env.region,
     },
     db: {
         user: null,

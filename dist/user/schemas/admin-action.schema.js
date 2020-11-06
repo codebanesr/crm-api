@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminActionSchema = void 0;
 const mongoose_1 = require("mongoose");
 exports.AdminActionSchema = new mongoose_1.Schema({
-    userid: mongoose_1.Schema.Types.ObjectId,
+    userid: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
+    organization: { type: mongoose_1.Schema.Types.ObjectId, ref: "Organization" },
     actionType: String,
     filePath: String,
     savedOn: {

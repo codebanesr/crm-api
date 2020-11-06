@@ -13,8 +13,10 @@ import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";
 import { S3UploadedFiles } from "./dto/generic.dto";
+import { AdminAction } from "../user/interfaces/admin-actions.interface";
 export declare class LeadService {
     private readonly leadModel;
+    private readonly adminActionModel;
     private readonly userModel;
     private readonly campaignConfigModel;
     private readonly campaignModel;
@@ -22,7 +24,7 @@ export declare class LeadService {
     private readonly callLogModel;
     private readonly geoLocationModel;
     private readonly alarmModel;
-    constructor(leadModel: Model<Lead>, userModel: Model<User>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, callLogModel: Model<CallLog>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>);
+    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, userModel: Model<User>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, callLogModel: Model<CallLog>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>);
     saveEmailAttachments(files: any): any;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string): Promise<EmailTemplate>;
@@ -54,7 +56,7 @@ export declare class LeadService {
         success?: undefined;
     }>;
     suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit?: number): Promise<any>;
-    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string): Promise<{
+    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string): Promise<{
         files: S3UploadedFiles[];
         result: void;
     }>;

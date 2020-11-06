@@ -5,4 +5,5 @@ export interface AdminAction extends Document {
     fileType: string;
     savedOn: string;
     filePath: string;
+    organization: string;
 }

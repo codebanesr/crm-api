@@ -279,13 +279,14 @@ export class LeadController {
     @Body() body: UploadMultipleFilesDto
   ) {
     /** @Todo add organization to lead file uploads also */
-    const { email, organization } = user;
+    const { email, organization, _id } = user;
     const { campaignName, files } = body;
     return this.leadService.uploadMultipleLeadFiles(
       files,
       campaignName,
       email,
-      organization
+      organization,
+      _id
     );
   }
 

@@ -32,41 +32,29 @@ let AgentService = class AgentService {
     }
     listActions(activeUserId, organization, skip, fileType, sortBy = "handler", me) {
         return __awaiter(this, void 0, void 0, function* () {
-            const matchQ = {
-                organization
-            };
+            const fq = this.adminActionModel.aggregate();
+            fq.match({ organization });
             if (me) {
-                matchQ.userid = new mongoose_2.Types.ObjectId(activeUserId);
+                fq.match({ userid: activeUserId });
             }
-            const fq = [
-                { $match: matchQ },
-                {
-                    $lookup: {
-                        from: "users",
-                        localField: "userid",
-                        foreignField: "_id",
-                        as: "userdetails",
-                    },
-                },
-                {
-                    $unwind: { path: "$userdetails" },
-                },
-                {
-                    $project: {
-                        email: "$userdetails.email",
-                        savedOn: "$userdetails.savedOn",
-                        filePath: "$filePath",
-                        actionType: "$actionType",
-                        createdAt: "$createdAt",
-                    },
-                },
-                { $sort: { createdAt: -1 } },
-                { $skip: Number(skip) },
-                {
-                    $limit: 10,
-                },
-            ];
-            return this.adminActionModel.aggregate(fq);
+            fq.lookup({
+                from: "users",
+                localField: "userid",
+                foreignField: "_id",
+                as: "userdetails",
+            });
+            fq.unwind({ path: "$userdetails" });
+            fq.project({
+                email: "$userdetails.email",
+                savedOn: "$userdetails.savedOn",
+                filePath: "$filePath",
+                actionType: "$actionType",
+                createdAt: "$createdAt",
+            });
+            fq.sort({ createdAt: -1 });
+            fq.skip(Number(skip));
+            fq.limit(20);
+            return fq.exec();
         });
     }
     downloadFile(location, res) {

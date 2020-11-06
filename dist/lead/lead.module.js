@@ -20,13 +20,14 @@ const geo_location_schema_1 = require("./schema/geo-location.schema");
 const alarm_schema_1 = require("./schema/alarm.schema");
 const campaign_schema_1 = require("../campaign/schema/campaign.schema");
 const platform_express_1 = require("@nestjs/platform-express");
+const admin_action_schema_1 = require("../user/schemas/admin-action.schema");
 let LeadModule = class LeadModule {
 };
 LeadModule = __decorate([
     common_1.Module({
         imports: [
             platform_express_1.MulterModule.register({
-                dest: '~/.upload',
+                dest: "~/.upload",
             }),
             mongoose_1.MongooseModule.forFeature([
                 { name: "Alarm", schema: alarm_schema_1.AlarmSchema },
@@ -36,7 +37,8 @@ LeadModule = __decorate([
                 { name: "EmailTemplate", schema: email_templates_schema_1.EmailTemplateSchema },
                 { name: "CampaignConfig", schema: campaign_config_schema_1.CampaignConfigSchema },
                 { name: "User", schema: user_schema_1.UserSchema },
-                { name: "Lead", schema: lead_schema_1.LeadSchema }
+                { name: "Lead", schema: lead_schema_1.LeadSchema },
+                { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },
             ]),
         ],
         providers: [lead_service_1.LeadService],

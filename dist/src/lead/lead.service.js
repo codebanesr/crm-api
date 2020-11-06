@@ -44,8 +44,9 @@ const xlsx_1 = require("xlsx");
 const nodemailer_1 = require("nodemailer");
 const config_1 = require("../config");
 let LeadService = class LeadService {
-    constructor(leadModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel) {
+    constructor(leadModel, adminActionModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel) {
         this.leadModel = leadModel;
+        this.adminActionModel = adminActionModel;
         this.userModel = userModel;
         this.campaignConfigModel = campaignConfigModel;
         this.campaignModel = campaignModel;
@@ -321,7 +322,7 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    uploadMultipleLeadFiles(files, campaignName, uploader, organization) {
+    uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const ccnfg = (yield this.campaignConfigModel
                 .find({ name: campaignName, organization }, { readableField: 1, internalField: 1, _id: 0 })
@@ -330,6 +331,15 @@ let LeadService = class LeadService {
             if (!ccnfg) {
                 throw new Error(`Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`);
             }
+            const adminActions = new this.adminActionModel({
+                userid: userId,
+                organization,
+                actionType: "lead",
+                filePath: files[0].Location,
+                savedOn: "s3",
+                fileType: "campaignConfig",
+            });
+            adminActions.save();
             const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader);
             return { files, result };
         });
@@ -719,14 +729,16 @@ let LeadService = class LeadService {
 LeadService = __decorate([
     common_1.Injectable(),
     __param(0, mongoose_1.InjectModel("Lead")),
-    __param(1, mongoose_1.InjectModel("User")),
-    __param(2, mongoose_1.InjectModel("CampaignConfig")),
-    __param(3, mongoose_1.InjectModel("Campaign")),
-    __param(4, mongoose_1.InjectModel("EmailTemplate")),
-    __param(5, mongoose_1.InjectModel("CallLog")),
-    __param(6, mongoose_1.InjectModel("GeoLocation")),
-    __param(7, mongoose_1.InjectModel("Alarm")),
+    __param(1, mongoose_1.InjectModel("AdminAction")),
+    __param(2, mongoose_1.InjectModel("User")),
+    __param(3, mongoose_1.InjectModel("CampaignConfig")),
+    __param(4, mongoose_1.InjectModel("Campaign")),
+    __param(5, mongoose_1.InjectModel("EmailTemplate")),
+    __param(6, mongoose_1.InjectModel("CallLog")),
+    __param(7, mongoose_1.InjectModel("GeoLocation")),
+    __param(8, mongoose_1.InjectModel("Alarm")),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,

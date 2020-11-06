@@ -110,9 +110,9 @@ let LeadController = class LeadController {
         return this.leadService.sendBulkEmails(emails, subject, text, attachments, organization);
     }
     uploadMultipleLeadFiles(user, body) {
-        const { email, organization } = user;
+        const { email, organization, _id } = user;
         const { campaignName, files } = body;
-        return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization);
+        return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization, _id);
     }
     saveEmailAttachments(files) {
         return this.leadService.saveEmailAttachments(files);
