@@ -342,7 +342,7 @@ let LeadService = class LeadService {
                 fileType: "campaignConfig",
             });
             adminActions.save();
-            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader);
+            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader, userId);
             return { files, result };
         });
     }
@@ -460,15 +460,15 @@ let LeadService = class LeadService {
             return result[0].subordinates;
         });
     }
-    parseLeadFiles(files, ccnfg, campaignName, organization, uploader) {
+    parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId) {
         return __awaiter(this, void 0, void 0, function* () {
             files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
                 const jsonRes = yield parseExcel_1.default(file.Location, ccnfg);
-                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader);
+                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader, uploaderId);
             }));
         });
     }
-    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader) {
+    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader, uploaderId) {
         return __awaiter(this, void 0, void 0, function* () {
             const created = [];
             const updated = [];
@@ -497,7 +497,18 @@ let LeadService = class LeadService {
                 bookType: "xlsx",
                 type: "buffer",
             });
-            const result = yield this.s3UploadService.uploadFileBuffer(`result-${originalFileName}`, wbOut);
+            const fileName = `result-${originalFileName}`;
+            const result = yield this.s3UploadService.uploadFileBuffer(fileName, wbOut);
+            const adminActions = new this.adminActionModel({
+                label: fileName,
+                userid: uploaderId,
+                organization,
+                actionType: "lead",
+                filePath: result.Location,
+                savedOn: "s3",
+                fileType: "lead",
+            });
+            yield adminActions.save();
             return result;
         });
     }
@@ -645,7 +656,7 @@ let LeadService = class LeadService {
                 { $skip: skip },
                 { $limit: limit },
             ];
-            return yield this.alarmModel.aggregate(fq).exec();
+            return this.alarmModel.aggregate(fq).exec();
         });
     }
     getUsersActivity(dateRange, userEmail, organization) {

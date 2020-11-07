@@ -457,7 +457,8 @@ export class LeadService {
       ccnfg,
       campaignName,
       organization,
-      uploader
+      uploader,
+      userId
     );
     // parse data here
     return { files, result };
@@ -687,7 +688,8 @@ export class LeadService {
     ccnfg: IConfig[],
     campaignName: string,
     organization: string,
-    uploader: string
+    uploader: string,
+    uploaderId: string
   ) {
     files.forEach(async (file) => {
       const jsonRes = await parseExcel(file.Location, ccnfg);
@@ -696,7 +698,8 @@ export class LeadService {
         campaignName,
         file.Key,
         organization,
-        uploader
+        uploader,
+        uploaderId
       );
     });
   }
@@ -706,7 +709,8 @@ export class LeadService {
     campaignName: string,
     originalFileName: string,
     organization: string,
-    uploader: string
+    uploader: string,
+    uploaderId: string
   ) {
     const created = [];
     const updated = [];
@@ -743,10 +747,22 @@ export class LeadService {
       bookType: "xlsx",
       type: "buffer",
     });
-    const result = await this.s3UploadService.uploadFileBuffer(
-      `result-${originalFileName}`,
-      wbOut
-    );
+
+    const fileName = `result-${originalFileName}`;
+    const result = await this.s3UploadService.uploadFileBuffer(fileName, wbOut);
+
+    const adminActions = new this.adminActionModel({
+      label: fileName,
+      userid: uploaderId,
+      organization,
+      actionType: "lead",
+      filePath: result.Location,
+      savedOn: "s3",
+      fileType: "lead",
+    });
+
+    await adminActions.save();
+
     return result;
   }
 
@@ -940,7 +956,7 @@ export class LeadService {
       { $limit: limit },
     ];
 
-    return await this.alarmModel.aggregate(fq).exec();
+    return this.alarmModel.aggregate(fq).exec();
   }
 
   // https://docs.mongodb.com/manual/core/aggregation-pipeline-optimization/#match-match-coalescence,

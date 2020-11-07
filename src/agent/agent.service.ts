@@ -27,9 +27,9 @@ export class AgentService {
       fq.match({ userid: activeUserId });
     }
 
-    if (fileType) {
-      fq.match({ fileType });
-    }
+    // if (fileType) {
+    //   fq.match({ fileType });
+    // }
 
     fq.lookup({
       from: "users",
@@ -46,6 +46,7 @@ export class AgentService {
       filePath: "$filePath",
       actionType: "$actionType",
       createdAt: "$createdAt",
+      label: "$label",
     });
 
     fq.sort({ createdAt: -1 });

@@ -11,6 +11,7 @@ export const AdminActionSchema = new Schema(
       enum: ["disk", "s3"],
     },
     fileType: String,
+    label: String,
   },
   { timestamps: true }
 );
