@@ -13,7 +13,7 @@ import { Alarm } from "./interfaces/alarm";
 import { sendEmail } from "../utils/sendMail";
 import { IConfig } from "../utils/renameJson";
 import parseExcel from "../utils/parseExcel";
-import { utils, writeFile } from "xlsx";
+import { utils, write } from "xlsx";
 import { EmailTemplate } from "./interfaces/email-template.interface";
 import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { CallLog } from "./interfaces/call-log.interface";
@@ -27,6 +27,7 @@ import { createTransport, SendMailOptions } from "nodemailer";
 import { default as config } from "../config";
 import { S3UploadedFiles } from "./dto/generic.dto";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
+import { UploadService } from "../upload/upload.service";
 @Injectable()
 export class LeadService {
   constructor(
@@ -55,7 +56,9 @@ export class LeadService {
     private readonly geoLocationModel: Model<GeoLocation>,
 
     @InjectModel("Alarm")
-    private readonly alarmModel: Model<Alarm>
+    private readonly alarmModel: Model<Alarm>,
+
+    private readonly s3UploadService: UploadService
   ) {}
 
   saveEmailAttachments(files) {
@@ -596,51 +599,60 @@ export class LeadService {
   }
 
   /** Findone and update implementation */
-  async saveLeads(
-    leads: any[],
-    campaignName: string,
-    originalFileName: string
-  ) {
-    const created = [];
-    const updated = [];
-    const error = [];
+  // async saveLeads(
+  //   leads: any[],
+  //   campaignName: string,
+  //   originalFileName: string
+  // ) {
+  //   const created = [];
+  //   const updated = [];
+  //   const error = [];
 
-    for (const l of leads) {
-      const { lastErrorObject, value } = await this.leadModel
-        .findOneAndUpdate(
-          { externalId: l.externalId },
-          { ...l, campaign: campaignName },
-          { new: true, upsert: true, rawResult: true }
-        )
-        .lean()
-        .exec();
-      if (lastErrorObject.updatedExisting === true) {
-        updated.push(value);
-      } else if (lastErrorObject.upserted) {
-        created.push(value);
-      } else {
-        error.push(value);
-      }
-    }
+  //   for (const l of leads) {
+  //     const { lastErrorObject, value } = await this.leadModel
+  //       .findOneAndUpdate(
+  //         { externalId: l.externalId },
+  //         { ...l, campaign: campaignName },
+  //         { new: true, upsert: true, rawResult: true }
+  //       )
+  //       .lean()
+  //       .exec();
+  //     if (lastErrorObject.updatedExisting === true) {
+  //       updated.push(value);
+  //     } else if (lastErrorObject.upserted) {
+  //       created.push(value);
+  //     } else {
+  //       error.push(value);
+  //     }
+  //   }
 
-    // createExcel files and update them to aws and then store the urls in database with AdminActions
-    const created_ws = utils.json_to_sheet(created);
-    const updated_ws = utils.json_to_sheet(updated);
+  //   // createExcel files and update them to aws and then store the urls in database with AdminActions
+  //   const created_ws = utils.json_to_sheet(created);
+  //   const updated_ws = utils.json_to_sheet(updated);
 
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, updated_ws, "tickets updated");
-    utils.book_append_sheet(wb, created_ws, "tickets created");
+  //   const wb = utils.book_new();
+  //   utils.book_append_sheet(wb, updated_ws, "updated");
+  //   utils.book_append_sheet(wb, created_ws, "created");
 
-    writeFile(wb, originalFileName + "_system");
-    console.log(
-      "created: ",
-      created.length,
-      "updated: ",
-      updated.length,
-      "error:",
-      error.length
-    );
-  }
+  //   writeFile(wb, originalFileName + "_system");
+
+  //   const result = await this.s3.upload({
+  //     Key: `lead:${originalFileName}:${new Date().toDateString()}`,
+  //     Body: wb,
+  //     Bucket: AppConfig.s3.region,
+  //     ContentType: "application/vnd.ms-excel",
+  //   });
+
+  //   Logger.debug(result);
+  //   // console.log(
+  //   //   "created: ",
+  //   //   created.length,
+  //   //   "updated: ",
+  //   //   updated.length,
+  //   //   "error:",
+  //   //   error.length
+  //   // );
+  // }
 
   async getSubordinates(email: string, roleType: string) {
     if (roleType !== "manager" && roleType !== "seniorManager") {
@@ -679,7 +691,7 @@ export class LeadService {
   ) {
     files.forEach(async (file) => {
       const jsonRes = await parseExcel(file.Location, ccnfg);
-      this.saveLeadsFromExcel(
+      await this.saveLeadsFromExcel(
         jsonRes,
         campaignName,
         file.Key,
@@ -726,15 +738,16 @@ export class LeadService {
     utils.book_append_sheet(wb, updated_ws, "tickets updated");
     utils.book_append_sheet(wb, created_ws, "tickets created");
 
-    writeFile(wb, originalFileName + "_system");
-    console.log(
-      "created: ",
-      created.length,
-      "updated: ",
-      updated.length,
-      "error:",
-      error.length
+    // writeFile(wb, originalFileName + "_system");
+    const wbOut = write(wb, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+    const result = await this.s3UploadService.uploadFileBuffer(
+      `result-${originalFileName}`,
+      wbOut
     );
+    return result;
   }
 
   async leadActivityByUser(startDate: string, endDate: string, email: string) {

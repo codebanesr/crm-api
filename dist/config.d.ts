@@ -12,6 +12,7 @@ declare const _default: {
         database: string;
         authSource: any;
     };
+    MONGODB_URI: string;
     host: {
         url: string;
         port: string;

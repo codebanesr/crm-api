@@ -12,6 +12,7 @@ export default {
     database: "testdb",
     authSource: null,
   },
+  MONGODB_URI: process.env.MONGODB_URI,
   host: {
     url: "localhost",
     port: "3000",

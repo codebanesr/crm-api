@@ -21,6 +21,7 @@ const alarm_schema_1 = require("./schema/alarm.schema");
 const campaign_schema_1 = require("../campaign/schema/campaign.schema");
 const platform_express_1 = require("@nestjs/platform-express");
 const admin_action_schema_1 = require("../user/schemas/admin-action.schema");
+const upload_service_1 = require("../upload/upload.service");
 let LeadModule = class LeadModule {
 };
 LeadModule = __decorate([
@@ -41,7 +42,7 @@ LeadModule = __decorate([
                 { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },
             ]),
         ],
-        providers: [lead_service_1.LeadService],
+        providers: [lead_service_1.LeadService, upload_service_1.UploadService],
         controllers: [lead_controller_1.LeadController],
     })
 ], LeadModule);

@@ -23,6 +23,8 @@ const shared_module_1 = require("./shared/shared.module");
 const serve_static_module_1 = require("@nestjs/serve-static/dist/serve-static.module");
 const path_1 = require("path");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
+const upload_service_1 = require("./upload/upload.service");
+const config_1 = require("./config");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -32,7 +34,7 @@ AppModule = __decorate([
             serve_static_module_1.ServeStaticModule.forRoot({
                 rootPath: path_1.join(__dirname, "..", "client"),
             }),
-            mongoose_1.MongooseModule.forRoot(process.env.MONGODB_URI),
+            mongoose_1.MongooseModule.forRoot(config_1.default.MONGODB_URI),
             user_module_1.UserModule,
             auth_module_1.AuthModule,
             article_module_1.ArticleModule,
@@ -50,6 +52,7 @@ AppModule = __decorate([
                 provide: core_1.APP_INTERCEPTOR,
                 useClass: common_1.CacheInterceptor,
             },
+            upload_service_1.UploadService,
         ],
     })
 ], AppModule);

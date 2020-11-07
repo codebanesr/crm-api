@@ -14,6 +14,8 @@ import { SharedModule } from "./shared/shared.module";
 import { ServeStaticModule } from "@nestjs/serve-static/dist/serve-static.module";
 import { join } from "path";
 import { DashboardModule } from "./dashboard/dashboard.module";
+import { UploadService } from "./upload/upload.service";
+import Config from "./config";
 
 @Module({
   imports: [
@@ -21,7 +23,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "..", "client"),
     }),
-    MongooseModule.forRoot(process.env.MONGODB_URI),
+    MongooseModule.forRoot(Config.MONGODB_URI),
     UserModule,
     AuthModule,
     ArticleModule,
@@ -39,6 +41,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
     },
+    UploadService,
   ],
 })
 export class AppModule {}

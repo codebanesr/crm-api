@@ -14,6 +14,7 @@ import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";
 import { S3UploadedFiles } from "./dto/generic.dto";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
+import { UploadService } from "../upload/upload.service";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -24,7 +25,8 @@ export declare class LeadService {
     private readonly callLogModel;
     private readonly geoLocationModel;
     private readonly alarmModel;
-    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, userModel: Model<User>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, callLogModel: Model<CallLog>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>);
+    private readonly s3UploadService;
+    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, userModel: Model<User>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, callLogModel: Model<CallLog>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, s3UploadService: UploadService);
     saveEmailAttachments(files: any): any;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string): Promise<EmailTemplate>;
@@ -68,10 +70,9 @@ export declare class LeadService {
         organization: string;
         loggedInUserEmail: string;
     }): Promise<Lead>;
-    saveLeads(leads: any[], campaignName: string, originalFileName: string): Promise<void>;
     getSubordinates(email: string, roleType: string): Promise<any>;
     parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string): Promise<void>;
-    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string): Promise<void>;
+    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string): Promise<any>;
     leadActivityByUser(startDate: string, endDate: string, email: string): Promise<any>;
     getUpdatedAtQuery(startDate: string, endDate: string): Promise<{
         updatedAt: {

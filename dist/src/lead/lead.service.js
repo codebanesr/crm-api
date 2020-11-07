@@ -43,8 +43,9 @@ const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
 const nodemailer_1 = require("nodemailer");
 const config_1 = require("../config");
+const upload_service_1 = require("../upload/upload.service");
 let LeadService = class LeadService {
-    constructor(leadModel, adminActionModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel) {
+    constructor(leadModel, adminActionModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel, s3UploadService) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
         this.userModel = userModel;
@@ -54,6 +55,7 @@ let LeadService = class LeadService {
         this.callLogModel = callLogModel;
         this.geoLocationModel = geoLocationModel;
         this.alarmModel = alarmModel;
+        this.s3UploadService = s3UploadService;
     }
     saveEmailAttachments(files) {
         return files;
@@ -430,35 +432,6 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    saveLeads(leads, campaignName, originalFileName) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const created = [];
-            const updated = [];
-            const error = [];
-            for (const l of leads) {
-                const { lastErrorObject, value } = yield this.leadModel
-                    .findOneAndUpdate({ externalId: l.externalId }, Object.assign(Object.assign({}, l), { campaign: campaignName }), { new: true, upsert: true, rawResult: true })
-                    .lean()
-                    .exec();
-                if (lastErrorObject.updatedExisting === true) {
-                    updated.push(value);
-                }
-                else if (lastErrorObject.upserted) {
-                    created.push(value);
-                }
-                else {
-                    error.push(value);
-                }
-            }
-            const created_ws = xlsx_1.utils.json_to_sheet(created);
-            const updated_ws = xlsx_1.utils.json_to_sheet(updated);
-            const wb = xlsx_1.utils.book_new();
-            xlsx_1.utils.book_append_sheet(wb, updated_ws, "tickets updated");
-            xlsx_1.utils.book_append_sheet(wb, created_ws, "tickets created");
-            xlsx_1.writeFile(wb, originalFileName + "_system");
-            console.log("created: ", created.length, "updated: ", updated.length, "error:", error.length);
-        });
-    }
     getSubordinates(email, roleType) {
         return __awaiter(this, void 0, void 0, function* () {
             if (roleType !== "manager" && roleType !== "seniorManager") {
@@ -491,7 +464,7 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () {
             files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
                 const jsonRes = yield parseExcel_1.default(file.Location, ccnfg);
-                this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader);
+                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader);
             }));
         });
     }
@@ -520,8 +493,12 @@ let LeadService = class LeadService {
             const wb = xlsx_1.utils.book_new();
             xlsx_1.utils.book_append_sheet(wb, updated_ws, "tickets updated");
             xlsx_1.utils.book_append_sheet(wb, created_ws, "tickets created");
-            xlsx_1.writeFile(wb, originalFileName + "_system");
-            console.log("created: ", created.length, "updated: ", updated.length, "error:", error.length);
+            const wbOut = xlsx_1.write(wb, {
+                bookType: "xlsx",
+                type: "buffer",
+            });
+            const result = yield this.s3UploadService.uploadFileBuffer(`result-${originalFileName}`, wbOut);
+            return result;
         });
     }
     leadActivityByUser(startDate, endDate, email) {
@@ -745,7 +722,8 @@ LeadService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        upload_service_1.UploadService])
 ], LeadService);
 exports.LeadService = LeadService;
 //# sourceMappingURL=lead.service.js.map

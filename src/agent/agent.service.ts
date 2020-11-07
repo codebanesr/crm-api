@@ -27,6 +27,10 @@ export class AgentService {
       fq.match({ userid: activeUserId });
     }
 
+    if (fileType) {
+      fq.match({ fileType });
+    }
+
     fq.lookup({
       from: "users",
       localField: "userid",

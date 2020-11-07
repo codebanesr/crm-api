@@ -37,6 +37,9 @@ let AgentService = class AgentService {
             if (me) {
                 fq.match({ userid: activeUserId });
             }
+            if (fileType) {
+                fq.match({ fileType });
+            }
             fq.lookup({
                 from: "users",
                 localField: "userid",
