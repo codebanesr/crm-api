@@ -13,6 +13,7 @@ import { CampaignSchema } from "../campaign/schema/campaign.schema";
 import { MulterModule } from "@nestjs/platform-express";
 import { AdminActionSchema } from "../user/schemas/admin-action.schema";
 import { UploadService } from "../upload/upload.service";
+import { PushNotificationService } from "../push-notification/push-notification.service";
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { UploadService } from "../upload/upload.service";
       { name: "AdminAction", schema: AdminActionSchema },
     ]),
   ],
-  providers: [LeadService, UploadService],
+  providers: [LeadService, UploadService, PushNotificationService],
   controllers: [LeadController],
 })
 export class LeadModule {}

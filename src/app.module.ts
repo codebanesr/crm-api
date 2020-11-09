@@ -15,6 +15,7 @@ import { ServeStaticModule } from "@nestjs/serve-static/dist/serve-static.module
 import { join } from "path";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { UploadService } from "./upload/upload.service";
+import { PushNotificationService } from './push-notification/push-notification.service';
 import Config from "./config";
 
 @Module({
@@ -42,6 +43,7 @@ import Config from "./config";
       useClass: CacheInterceptor,
     },
     UploadService,
+    PushNotificationService,
   ],
 })
 export class AppModule {}

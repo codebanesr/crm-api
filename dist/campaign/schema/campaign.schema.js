@@ -16,6 +16,7 @@ exports.CampaignSchema = new mongoose_1.Schema({
     assignees: [{ type: mongoose_1.Types.ObjectId, ref: "User" }],
     type: { type: String },
     browsableCols: [String],
+    uniqueCols: [String],
     editableCols: [String],
     formModel: Object,
 }, { timestamps: true });

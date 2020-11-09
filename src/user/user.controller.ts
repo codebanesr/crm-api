@@ -43,6 +43,7 @@ import { User } from "./interfaces/user.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { UserActivityDto } from "./dto/user-activity.dto";
+import { PushNotificationDto } from "./dto/push-notification.dto";
 
 @ApiTags("User")
 @Controller("user")
@@ -223,5 +224,31 @@ export class UserController {
   @ApiOkResponse({})
   async updateUser(@Param("id") userid: string, @Body() user: CreateUserDto) {
     return this.userService.updateUser(userid, user);
+  }
+
+  // push notifications
+  @Post("/subscribe/push")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Subscribe to push notification" })
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOkResponse({})
+  async subscribeToPush(
+    @CurrentUser() user: User,
+    @Body() body: PushNotificationDto
+  ) {
+    const { _id } = user;
+    return this.userService.subscribeToPushNotification(_id, body);
+  }
+
+  @Post("/send/push")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "send push notifications to subscribed users" })
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOkResponse({})
+  async sendPushNotification(
+    @Req() req: IRequest,
+    @Body() body: VerifyUuidDto
+  ) {
+    return this.userService.sendPushNotification();
   }
 }

@@ -6,4 +6,5 @@ export interface AdminAction extends Document {
     savedOn: string;
     fileType: string;
     organization: string;
+    label?: string;
 }

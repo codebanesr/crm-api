@@ -40,4 +40,9 @@ export default {
     password: process.env.REDIS_PASSWORD || "password123",
     // keyPrefix: process.env.REDIS_PRIFIX,
   },
+
+  webpush: {
+    VAPID_PUBLIC: process.env.VAPID_PUBLIC,
+    VAPID_PRIVATE: process.env.VAPID_PRIVATE,
+  },
 };

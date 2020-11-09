@@ -15,6 +15,7 @@ import { AttachmentDto } from "./dto/create-email-template.dto";
 import { S3UploadedFiles } from "./dto/generic.dto";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
 import { UploadService } from "../upload/upload.service";
+import { PushNotificationService } from "../push-notification/push-notification.service";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -26,7 +27,8 @@ export declare class LeadService {
     private readonly geoLocationModel;
     private readonly alarmModel;
     private readonly s3UploadService;
-    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, userModel: Model<User>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, callLogModel: Model<CallLog>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, s3UploadService: UploadService);
+    private readonly pushNotificationService;
+    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, userModel: Model<User>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, callLogModel: Model<CallLog>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, s3UploadService: UploadService, pushNotificationService: PushNotificationService);
     saveEmailAttachments(files: any): any;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string): Promise<EmailTemplate>;
@@ -58,7 +60,7 @@ export declare class LeadService {
         success?: undefined;
     }>;
     suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit?: number): Promise<any>;
-    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string): Promise<{
+    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string, pushtoken: any): Promise<{
         files: S3UploadedFiles[];
         result: void;
     }>;
@@ -71,8 +73,8 @@ export declare class LeadService {
         loggedInUserEmail: string;
     }): Promise<Lead>;
     getSubordinates(email: string, roleType: string): Promise<any>;
-    parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string, uploaderId: string): Promise<void>;
-    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string, uploaderId: string): Promise<any>;
+    parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string, uploaderId: string, pushtoken: any): Promise<void>;
+    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string, uploaderId: string, pushtoken: any): Promise<any>;
     leadActivityByUser(startDate: string, endDate: string, email: string): Promise<any>;
     getUpdatedAtQuery(startDate: string, endDate: string): Promise<{
         updatedAt: {

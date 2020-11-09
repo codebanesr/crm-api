@@ -38,6 +38,7 @@ const fileUpload_dto_1 = require("./dto/fileUpload.dto");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const find_all_dto_1 = require("../lead/dto/find-all.dto");
 const create_forgot_password_dto_1 = require("./dto/create-forgot-password.dto");
+const push_notification_dto_1 = require("./dto/push-notification.dto");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
@@ -105,6 +106,17 @@ let UserController = class UserController {
     updateUser(userid, user) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.userService.updateUser(userid, user);
+        });
+    }
+    subscribeToPush(user, body) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { _id } = user;
+            return this.userService.subscribeToPushNotification(_id, body);
+        });
+    }
+    sendPushNotification(req, body) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.userService.sendPushNotification();
         });
     }
 };
@@ -284,6 +296,30 @@ __decorate([
     __metadata("design:paramtypes", [String, create_user_dto_1.CreateUserDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "updateUser", null);
+__decorate([
+    common_1.Post("/subscribe/push"),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    swagger_1.ApiOperation({ summary: "Subscribe to push notification" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOkResponse({}),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, push_notification_dto_1.PushNotificationDto]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "subscribeToPush", null);
+__decorate([
+    common_1.Post("/send/push"),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    swagger_1.ApiOperation({ summary: "send push notifications to subscribed users" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOkResponse({}),
+    __param(0, common_1.Req()),
+    __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, verify_uuid_dto_1.VerifyUuidDto]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "sendPushNotification", null);
 UserController = __decorate([
     swagger_1.ApiTags("User"),
     common_1.Controller("user"),

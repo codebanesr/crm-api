@@ -44,8 +44,9 @@ const xlsx_1 = require("xlsx");
 const nodemailer_1 = require("nodemailer");
 const config_1 = require("../config");
 const upload_service_1 = require("../upload/upload.service");
+const push_notification_service_1 = require("../push-notification/push-notification.service");
 let LeadService = class LeadService {
-    constructor(leadModel, adminActionModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel, s3UploadService) {
+    constructor(leadModel, adminActionModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel, s3UploadService, pushNotificationService) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
         this.userModel = userModel;
@@ -56,6 +57,7 @@ let LeadService = class LeadService {
         this.geoLocationModel = geoLocationModel;
         this.alarmModel = alarmModel;
         this.s3UploadService = s3UploadService;
+        this.pushNotificationService = pushNotificationService;
     }
     saveEmailAttachments(files) {
         return files;
@@ -324,7 +326,7 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId) {
+    uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken) {
         return __awaiter(this, void 0, void 0, function* () {
             const ccnfg = (yield this.campaignConfigModel
                 .find({ name: campaignName, organization }, { readableField: 1, internalField: 1, _id: 0 })
@@ -341,8 +343,8 @@ let LeadService = class LeadService {
                 savedOn: "s3",
                 fileType: "campaignConfig",
             });
-            adminActions.save();
-            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader, userId);
+            yield adminActions.save();
+            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader, userId, pushtoken);
             return { files, result };
         });
     }
@@ -460,15 +462,15 @@ let LeadService = class LeadService {
             return result[0].subordinates;
         });
     }
-    parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId) {
+    parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId, pushtoken) {
         return __awaiter(this, void 0, void 0, function* () {
             files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
                 const jsonRes = yield parseExcel_1.default(file.Location, ccnfg);
-                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader, uploaderId);
+                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader, uploaderId, pushtoken);
             }));
         });
     }
-    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader, uploaderId) {
+    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader, uploaderId, pushtoken) {
         return __awaiter(this, void 0, void 0, function* () {
             const created = [];
             const updated = [];
@@ -509,6 +511,15 @@ let LeadService = class LeadService {
                 fileType: "lead",
             });
             yield adminActions.save();
+            yield this.pushNotificationService.sendPushNotification(pushtoken, {
+                notification: {
+                    title: "File Upload Complete",
+                    icon: `https://cdn3.vectorstock.com/i/1000x1000/94/72/cute-black-cat-icon-vector-13499472.jpg`,
+                    body: `please visit ${result.Location} for the result`,
+                    tag: "some random tag",
+                    badge: `https://e7.pngegg.com/pngimages/564/873/png-clipart-computer-icons-education-molecule-icon-structure-area.png`,
+                },
+            });
             return result;
         });
     }
@@ -734,7 +745,8 @@ LeadService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        upload_service_1.UploadService])
+        upload_service_1.UploadService,
+        push_notification_service_1.PushNotificationService])
 ], LeadService);
 exports.LeadService = LeadService;
 //# sourceMappingURL=lead.service.js.map

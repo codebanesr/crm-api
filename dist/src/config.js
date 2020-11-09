@@ -41,5 +41,9 @@ exports.default = {
         db: parseInt(process.env.REDIS_DB) || 4,
         password: process.env.REDIS_PASSWORD || "password123",
     },
+    webpush: {
+        VAPID_PUBLIC: process.env.VAPID_PUBLIC,
+        VAPID_PRIVATE: process.env.VAPID_PRIVATE,
+    },
 };
 //# sourceMappingURL=config.js.map

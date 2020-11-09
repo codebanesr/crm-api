@@ -102,7 +102,6 @@ export class CampaignController {
   @Get(":campaignId")
   @ApiOperation({ summary: "Get one campaign by id" })
   @HttpCode(HttpStatus.OK)
-  @CacheTTL(300)
   findOneByIdOrName(
     @Param("campaignId") campaignId: string,
     @Query("identifier") identifier: string
@@ -128,6 +127,7 @@ export class CampaignController {
       campaignInfo,
       editableCols,
       browsableCols,
+      uniqueCols,
       formModel,
     } = body;
 
@@ -140,6 +140,7 @@ export class CampaignController {
       editableCols,
       browsableCols,
       formModel,
+      uniqueCols,
     });
   }
 

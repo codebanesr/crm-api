@@ -9,6 +9,7 @@ import {
   Logger,
   HttpException,
   HttpStatus,
+  MethodNotAllowedException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
@@ -30,8 +31,7 @@ import { join } from "path";
 import { default as config } from "../config";
 import { createTransport } from "nodemailer";
 import { getForgotPasswordTemplate } from "../utils/forgot-password-template";
-import { UserActivityDto } from "./dto/user-activity.dto";
-import { start } from "repl";
+import { PushNotificationDto } from "./dto/push-notification.dto";
 
 @Injectable()
 export class UserService {
@@ -603,5 +603,17 @@ export class UserService {
 
   async updateUser(userid: string, user: CreateUserDto) {
     return this.userModel.updateOne({ _id: userid }, user);
+  }
+
+  async subscribeToPushNotification(
+    userId: string,
+    pushtoken: PushNotificationDto
+  ) {
+    await this.userModel.findOneAndUpdate({ _id: userId }, { pushtoken });
+    return { message: "Successfully registered to push notification" };
+  }
+
+  async sendPushNotification() {
+    throw new MethodNotAllowedException();
   }
 }

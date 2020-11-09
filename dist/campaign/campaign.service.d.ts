@@ -46,7 +46,7 @@ export declare class CampaignService {
         error?: undefined;
     }>;
     uploadConfig(file: any): Promise<void>;
-    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, }: {
+    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, }: {
         activeUserId: string;
         file: any;
         dispositionData: any;
@@ -54,6 +54,7 @@ export declare class CampaignService {
         organization: string;
         editableCols: string;
         browsableCols: string;
+        uniqueCols: string;
         formModel: any;
     }): Promise<{
         campaign: Campaign;

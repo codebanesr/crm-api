@@ -11,6 +11,7 @@ import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { Request } from "express";
 import { AdminAction } from "./interfaces/admin-actions.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
+import { PushNotificationDto } from "./dto/push-notification.dto";
 export declare class UserService {
     private readonly userModel;
     private readonly forgotPasswordModel;
@@ -74,10 +75,14 @@ export declare class UserService {
     private withManages;
     private parseManages;
     private assignHierarchyWeight;
-    managersForReassignment(manages: string[], organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "history" | "hierarchyWeight" | "organization">[]>;
+    managersForReassignment(manages: string[], organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     saveToExcel(json: any): string;
     sendEmailForgotPassword(email: string, token: string): Promise<boolean>;
     getAllUsersHack(organization: string): Promise<any>;
     getUserById(userid: string, organization: any): Promise<User>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
+    subscribeToPushNotification(userId: string, pushtoken: PushNotificationDto): Promise<{
+        message: string;
+    }>;
+    sendPushNotification(): Promise<void>;
 }

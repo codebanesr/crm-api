@@ -16,4 +16,12 @@ export interface User extends Document {
     history: string[];
     hierarchyWeight: number;
     organization: string;
+    pushtoken: {
+        endpoint: string;
+        expirationTime: any;
+        keys: {
+            p256dh: string;
+            auth: string;
+        };
+    };
 }

@@ -8,6 +8,7 @@ import { RefreshAccessTokenDto } from "./dto/refresh-access-token.dto";
 import { User } from "./interfaces/user.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
+import { PushNotificationDto } from "./dto/push-notification.dto";
 export declare class UserController {
     private readonly userService;
     constructor(userService: UserService);
@@ -43,7 +44,11 @@ export declare class UserController {
         message: string;
     }>;
     findAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any>;
-    managersForReassignment(user: User, assigned: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "history" | "hierarchyWeight" | "organization">[]>;
+    managersForReassignment(user: User, assigned: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     add(req: any, assigned: string, file: any, user: User): Promise<import("./interfaces/admin-actions.interface").AdminAction>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
+    subscribeToPush(user: User, body: PushNotificationDto): Promise<{
+        message: string;
+    }>;
+    sendPushNotification(req: IRequest, body: VerifyUuidDto): Promise<void>;
 }

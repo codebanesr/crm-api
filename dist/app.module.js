@@ -24,6 +24,7 @@ const serve_static_module_1 = require("@nestjs/serve-static/dist/serve-static.mo
 const path_1 = require("path");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
 const upload_service_1 = require("./upload/upload.service");
+const push_notification_service_1 = require("./push-notification/push-notification.service");
 const config_1 = require("./config");
 let AppModule = class AppModule {
 };
@@ -53,6 +54,7 @@ AppModule = __decorate([
                 useClass: common_1.CacheInterceptor,
             },
             upload_service_1.UploadService,
+            push_notification_service_1.PushNotificationService,
         ],
     })
 ], AppModule);

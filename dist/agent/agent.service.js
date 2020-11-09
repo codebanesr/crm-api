@@ -50,6 +50,7 @@ let AgentService = class AgentService {
                 filePath: "$filePath",
                 actionType: "$actionType",
                 createdAt: "$createdAt",
+                label: "$label",
             });
             fq.sort({ createdAt: -1 });
             fq.skip(Number(skip));

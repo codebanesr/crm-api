@@ -69,6 +69,14 @@ exports.UserSchema = new mongoose_1.Schema({
         ref: "Organization",
         default: null,
     },
+    pushtoken: {
+        endpoint: String,
+        expirationTime: String,
+        keys: {
+            p256dh: String,
+            auth: String,
+        },
+    },
 }, {
     versionKey: false,
     timestamps: true,

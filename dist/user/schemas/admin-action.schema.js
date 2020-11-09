@@ -12,5 +12,6 @@ exports.AdminActionSchema = new mongoose_1.Schema({
         enum: ["disk", "s3"],
     },
     fileType: String,
+    label: String,
 }, { timestamps: true });
 //# sourceMappingURL=admin-action.schema.js.map

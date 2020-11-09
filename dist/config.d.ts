@@ -39,5 +39,9 @@ declare const _default: {
         db: number;
         password: string;
     };
+    webpush: {
+        VAPID_PUBLIC: string;
+        VAPID_PRIVATE: string;
+    };
 };
 export default _default;

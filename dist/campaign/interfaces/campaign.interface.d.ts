@@ -10,5 +10,6 @@ export interface Campaign extends Document {
     assignees: string[];
     editableCols: string[];
     browsableCols: string[];
+    uniqueCols: string[];
     formModel: any;
 }

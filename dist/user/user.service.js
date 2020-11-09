@@ -519,6 +519,17 @@ let UserService = class UserService {
             return this.userModel.updateOne({ _id: userid }, user);
         });
     }
+    subscribeToPushNotification(userId, pushtoken) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.userModel.findOneAndUpdate({ _id: userId }, { pushtoken });
+            return { message: "Successfully registered to push notification" };
+        });
+    }
+    sendPushNotification() {
+        return __awaiter(this, void 0, void 0, function* () {
+            throw new common_1.MethodNotAllowedException();
+        });
+    }
 };
 UserService = __decorate([
     common_1.Injectable(),

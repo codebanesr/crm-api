@@ -15,6 +15,7 @@ export const CampaignSchema = new Schema(
     assignees: [{ type: Types.ObjectId, ref: "User" }],
     type: { type: String },
     browsableCols: [String],
+    uniqueCols: [String],
     editableCols: [String],
     formModel: Object,
   },

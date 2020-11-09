@@ -28,6 +28,7 @@ import { default as config } from "../config";
 import { S3UploadedFiles } from "./dto/generic.dto";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
 import { UploadService } from "../upload/upload.service";
+import { PushNotificationService } from "../push-notification/push-notification.service";
 @Injectable()
 export class LeadService {
   constructor(
@@ -58,7 +59,9 @@ export class LeadService {
     @InjectModel("Alarm")
     private readonly alarmModel: Model<Alarm>,
 
-    private readonly s3UploadService: UploadService
+    private readonly s3UploadService: UploadService,
+
+    private readonly pushNotificationService: PushNotificationService
   ) {}
 
   saveEmailAttachments(files) {
@@ -426,7 +429,8 @@ export class LeadService {
     campaignName: string,
     uploader: string,
     organization: string,
-    userId: string
+    userId: string,
+    pushtoken: any
   ) {
     const ccnfg = (await this.campaignConfigModel
       .find(
@@ -450,7 +454,7 @@ export class LeadService {
       fileType: "campaignConfig",
     });
 
-    adminActions.save();
+    await adminActions.save();
 
     const result = await this.parseLeadFiles(
       files,
@@ -458,7 +462,8 @@ export class LeadService {
       campaignName,
       organization,
       uploader,
-      userId
+      userId,
+      pushtoken
     );
     // parse data here
     return { files, result };
@@ -689,7 +694,8 @@ export class LeadService {
     campaignName: string,
     organization: string,
     uploader: string,
-    uploaderId: string
+    uploaderId: string,
+    pushtoken
   ) {
     files.forEach(async (file) => {
       const jsonRes = await parseExcel(file.Location, ccnfg);
@@ -699,7 +705,8 @@ export class LeadService {
         file.Key,
         organization,
         uploader,
-        uploaderId
+        uploaderId,
+        pushtoken
       );
     });
   }
@@ -710,7 +717,8 @@ export class LeadService {
     originalFileName: string,
     organization: string,
     uploader: string,
-    uploaderId: string
+    uploaderId: string,
+    pushtoken
   ) {
     const created = [];
     const updated = [];
@@ -763,6 +771,15 @@ export class LeadService {
 
     await adminActions.save();
 
+    await this.pushNotificationService.sendPushNotification(pushtoken, {
+      notification: {
+        title: "File Upload Complete",
+        icon: `https://cdn3.vectorstock.com/i/1000x1000/94/72/cute-black-cat-icon-vector-13499472.jpg`,
+        body: `please visit ${result.Location} for the result`,
+        tag: "some random tag",
+        badge: `https://e7.pngegg.com/pngimages/564/873/png-clipart-computer-icons-education-molecule-icon-structure-area.png`,
+      },
+    });
     return result;
   }
 

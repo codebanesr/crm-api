@@ -7,6 +7,7 @@ import { ForgotPasswordSchema } from "./schemas/forgot-password.schema";
 import { AdminActionSchema } from "./schemas/admin-action.schema";
 import { MulterModule } from "@nestjs/platform-express";
 import { MongooseModule } from "@nestjs/mongoose";
+import { PushNotificationService } from "src/push-notification/push-notification.service";
 
 @Module({
   imports: [
@@ -22,8 +23,6 @@ import { MongooseModule } from "@nestjs/mongoose";
   ],
   controllers: [UserController],
   providers: [UserService],
-  exports: [
-    UserService
-  ]
+  exports: [UserService],
 })
 export class UserModule {}

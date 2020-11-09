@@ -162,6 +162,7 @@ export class CampaignService {
     editableCols,
     browsableCols,
     formModel,
+    uniqueCols,
   }: {
     activeUserId: string;
     file: any;
@@ -170,12 +171,14 @@ export class CampaignService {
     organization: string;
     editableCols: string;
     browsableCols: string;
+    uniqueCols: string;
     formModel: any;
   }) {
     dispositionData = JSON.parse(dispositionData);
     campaignInfo = JSON.parse(campaignInfo);
     editableCols = JSON.parse(editableCols);
     browsableCols = JSON.parse(browsableCols);
+    uniqueCols = JSON.parse(uniqueCols);
     formModel = JSON.parse(formModel);
 
     const campaign = await this.campaignModel.findOneAndUpdate(
@@ -186,6 +189,7 @@ export class CampaignService {
         organization,
         browsableCols,
         editableCols,
+        uniqueCols,
         formModel,
       },
       { new: true, upsert: true, rawResult: true }

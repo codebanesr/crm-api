@@ -154,16 +154,18 @@ let CampaignService = class CampaignService {
             const excelObject = parseExcel_1.default(path);
         });
     }
-    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, }) {
+    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, }) {
         return __awaiter(this, void 0, void 0, function* () {
             dispositionData = JSON.parse(dispositionData);
             campaignInfo = JSON.parse(campaignInfo);
             editableCols = JSON.parse(editableCols);
             browsableCols = JSON.parse(browsableCols);
+            uniqueCols = JSON.parse(uniqueCols);
             formModel = JSON.parse(formModel);
             const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
                 browsableCols,
                 editableCols,
+                uniqueCols,
                 formModel }), { new: true, upsert: true, rawResult: true });
             const disposition = yield this.dispositionModel.findOneAndUpdate({ campaign: campaign.value.id, organization }, {
                 options: dispositionData,

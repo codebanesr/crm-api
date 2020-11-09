@@ -62,7 +62,7 @@ let CampaignController = class CampaignController {
     }
     createCampaignAndDisposition(currrentUser, file, body) {
         const { id: activeUserId, organization } = currrentUser;
-        const { dispositionData, campaignInfo, editableCols, browsableCols, formModel, } = body;
+        const { dispositionData, campaignInfo, editableCols, browsableCols, uniqueCols, formModel, } = body;
         return this.campaignService.createCampaignAndDisposition({
             activeUserId,
             file,
@@ -72,6 +72,7 @@ let CampaignController = class CampaignController {
             editableCols,
             browsableCols,
             formModel,
+            uniqueCols,
         });
     }
     getDispositionByCampaignName(campaignName, user) {
@@ -145,7 +146,6 @@ __decorate([
     common_1.Get(":campaignId"),
     swagger_1.ApiOperation({ summary: "Get one campaign by id" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    common_1.CacheTTL(300),
     __param(0, common_1.Param("campaignId")),
     __param(1, common_1.Query("identifier")),
     __metadata("design:type", Function),
