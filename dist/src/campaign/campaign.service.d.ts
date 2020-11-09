@@ -46,7 +46,7 @@ export declare class CampaignService {
         error?: undefined;
     }>;
     uploadConfig(file: any): Promise<void>;
-    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, }: {
+    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, }: {
         activeUserId: string;
         file: any;
         dispositionData: any;
@@ -56,6 +56,8 @@ export declare class CampaignService {
         browsableCols: string;
         uniqueCols: string;
         formModel: any;
+        assignTo: string;
+        advancedSettings: string;
     }): Promise<{
         campaign: Campaign;
         disposition: import("mongodb").FindAndModifyWriteOpResultObject<Disposition>;

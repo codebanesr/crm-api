@@ -12,4 +12,6 @@ export interface Campaign extends Document {
     browsableCols: string[];
     uniqueCols: string[];
     formModel: any;
+    advancedSettings: string[];
+    assignTo: string[];
 }

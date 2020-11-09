@@ -18,6 +18,8 @@ exports.CampaignSchema = new mongoose_1.Schema({
     browsableCols: [String],
     uniqueCols: [String],
     editableCols: [String],
+    assignTo: [String],
+    advancedSettings: [String],
     formModel: Object,
 }, { timestamps: true });
 //# sourceMappingURL=campaign.schema.js.map

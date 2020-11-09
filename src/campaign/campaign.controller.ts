@@ -129,6 +129,8 @@ export class CampaignController {
       browsableCols,
       uniqueCols,
       formModel,
+      assignTo,
+      advancedSettings,
     } = body;
 
     return this.campaignService.createCampaignAndDisposition({
@@ -141,6 +143,8 @@ export class CampaignController {
       browsableCols,
       formModel,
       uniqueCols,
+      assignTo,
+      advancedSettings,
     });
   }
 

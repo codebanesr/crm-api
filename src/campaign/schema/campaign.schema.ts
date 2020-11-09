@@ -17,6 +17,8 @@ export const CampaignSchema = new Schema(
     browsableCols: [String],
     uniqueCols: [String],
     editableCols: [String],
+    assignTo: [String],
+    advancedSettings: [String],
     formModel: Object,
   },
   { timestamps: true }

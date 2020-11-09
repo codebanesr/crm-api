@@ -17,7 +17,7 @@ class CreateCampaignAndDispositionDto {
 __decorate([
     swagger_1.ApiProperty({
         description: "Contains the disposition tree for the given campaign",
-        example: "This will be a stringified json tree structure, check db schema for more details"
+        example: "This will be a stringified json tree structure, check db schema for more details",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
@@ -25,7 +25,7 @@ __decorate([
 __decorate([
     swagger_1.ApiProperty({
         description: "Contains information about the campaign",
-        example: "Check the database schema for more details"
+        example: "Check the database schema for more details",
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
