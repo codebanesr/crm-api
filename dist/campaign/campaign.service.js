@@ -257,6 +257,13 @@ let CampaignService = class CampaignService {
             return this.campaignFormModel.updateOne({ organization, campaign }, { $set: { payload } }, { upsert: true });
         });
     }
+    archiveCampaign(campaign) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.campaignModel.findByIdAndUpdate(campaign._id, {
+                $set: { archived: campaign.archived },
+            }, { new: true });
+        });
+    }
 };
 CampaignService = __decorate([
     common_1.Injectable(),

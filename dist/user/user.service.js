@@ -75,6 +75,7 @@ let UserService = class UserService {
             return {
                 fullName: user.fullName,
                 email: user.email,
+                roleType: user.roleType,
                 accessToken: yield this.authService.createAccessToken(user._id),
                 refreshToken: yield this.authService.createRefreshToken(req, user._id),
             };

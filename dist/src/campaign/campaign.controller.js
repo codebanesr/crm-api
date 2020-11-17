@@ -81,6 +81,10 @@ let CampaignController = class CampaignController {
         const { organization } = user;
         return this.campaignService.getDispositionByCampaignName(campaignName, organization);
     }
+    archiveCampaign(user, body) {
+        const { organization } = user;
+        return this.campaignService.archiveCampaign(body);
+    }
 };
 __decorate([
     common_1.Post("get"),
@@ -181,6 +185,16 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "getDispositionByCampaignName", null);
+__decorate([
+    common_1.Post("/archive"),
+    swagger_1.ApiOperation({ summary: "Archives a campaign" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], CampaignController.prototype, "archiveCampaign", null);
 CampaignController = __decorate([
     swagger_1.ApiTags("Campaign"),
     common_1.Controller("campaign"),

@@ -11,6 +11,7 @@ export const CampaignSchema = new Schema(
       ref: "User",
       required: true,
     },
+    archived: Boolean,
     interval: [Date],
     assignees: [{ type: Types.ObjectId, ref: "User" }],
     type: { type: String },

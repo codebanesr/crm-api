@@ -72,4 +72,5 @@ export declare class CampaignService {
         payload: any;
         campaign: any;
     }): Promise<any>;
+    archiveCampaign(campaign: any): Promise<Campaign>;
 }

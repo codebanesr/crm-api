@@ -12,6 +12,7 @@ exports.CampaignSchema = new mongoose_1.Schema({
         ref: "User",
         required: true,
     },
+    archived: Boolean,
     interval: [Date],
     assignees: [{ type: mongoose_1.Types.ObjectId, ref: "User" }],
     type: { type: String },

@@ -320,4 +320,14 @@ export class CampaignService {
       { upsert: true }
     );
   }
+
+  async archiveCampaign(campaign: any) {
+    return this.campaignModel.findByIdAndUpdate(
+      campaign._id,
+      {
+        $set: { archived: campaign.archived },
+      },
+      { new: true }
+    );
+  }
 }

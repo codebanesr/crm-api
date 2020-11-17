@@ -26,4 +26,5 @@ export declare class CampaignController {
         filePath: string;
     }>;
     getDispositionByCampaignName(campaignName: string, user: User): Promise<any>;
+    archiveCampaign(user: User, body: any): Promise<import("./interfaces/campaign.interface").Campaign>;
 }

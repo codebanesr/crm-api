@@ -14,5 +14,6 @@ export interface Campaign extends Document {
   uniqueCols: string[];
   formModel: any;
   advancedSettings: string[];
+  archived: boolean;
   assignTo: string[];
 }

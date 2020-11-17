@@ -163,6 +163,13 @@ export class CampaignController {
       organization
     );
   }
-}
 
-// /campaign/campaignName/disposition
+  @Post("/archive")
+  @ApiOperation({ summary: "Archives a campaign" })
+  @UseGuards(AuthGuard("jwt"))
+  @HttpCode(HttpStatus.OK)
+  archiveCampaign(@CurrentUser() user: User, @Body() body) {
+    const { organization } = user;
+    return this.campaignService.archiveCampaign(body);
+  }
+}

@@ -91,6 +91,7 @@ export class UserService {
     return {
       fullName: user.fullName,
       email: user.email,
+      roleType: user.roleType,
       accessToken: await this.authService.createAccessToken(user._id),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
     };

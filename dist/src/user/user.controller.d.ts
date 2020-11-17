@@ -24,6 +24,7 @@ export declare class UserController {
     login(req: IRequest, loginUserDto: LoginUserDto): Promise<{
         fullName: string;
         email: string;
+        roleType: string;
         accessToken: string;
         refreshToken: string;
     }>;

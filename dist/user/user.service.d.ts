@@ -31,6 +31,7 @@ export declare class UserService {
     login(req: Request, loginUserDto: LoginUserDto): Promise<{
         fullName: string;
         email: string;
+        roleType: string;
         accessToken: string;
         refreshToken: string;
     }>;
