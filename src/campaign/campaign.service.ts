@@ -10,6 +10,7 @@ import { join } from "path";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { CampaignForm } from "./interfaces/campaign-form.interface";
 import { Lead } from "../lead/interfaces/lead.interface";
+import { keyBy } from "lodash";
 
 @Injectable()
 export class CampaignService {
@@ -379,6 +380,7 @@ export class CampaignService {
       _id: 0,
     });
 
-    return quickStatsAgg.exec();
+    const quickStatsArr = await quickStatsAgg.exec();
+    return keyBy(quickStatsArr, "campaign");
   }
 }

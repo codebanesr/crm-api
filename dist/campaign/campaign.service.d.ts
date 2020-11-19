@@ -1,3 +1,4 @@
+/// <reference types="lodash" />
 import { Model } from "mongoose";
 import { Campaign } from "./interfaces/campaign.interface";
 import { CampaignConfig } from "../lead/interfaces/campaign-config.interface";
@@ -22,7 +23,7 @@ export declare class CampaignService {
     }): Promise<{
         data: any;
         metadata: any;
-        quickStatsAgg: any;
+        quickStatsAgg: import("lodash").Dictionary<any>;
     }>;
     findOneByIdOrName(campaignId: any, identifier: any): Promise<any>;
     patch(campaignId: any, requestBody: any): Promise<any>;
@@ -76,5 +77,5 @@ export declare class CampaignService {
         campaign: any;
     }): Promise<any>;
     archiveCampaign(campaign: any): Promise<Campaign>;
-    getQuickStatsForCampaigns(campaignNames: string[]): Promise<any>;
+    getQuickStatsForCampaigns(campaignNames: string[]): Promise<import("lodash").Dictionary<any>>;
 }

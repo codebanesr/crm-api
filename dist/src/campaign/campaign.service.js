@@ -28,6 +28,7 @@ const mongoose_2 = require("mongoose");
 const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
 const path_1 = require("path");
+const lodash_1 = require("lodash");
 let CampaignService = class CampaignService {
     constructor(campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel, leadModel) {
         this.campaignModel = campaignModel;
@@ -304,7 +305,8 @@ let CampaignService = class CampaignService {
                 overdue: "$overdue",
                 _id: 0,
             });
-            return quickStatsAgg.exec();
+            const quickStatsArr = yield quickStatsAgg.exec();
+            return lodash_1.keyBy(quickStatsArr, "campaign");
         });
     }
 };

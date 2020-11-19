@@ -1,3 +1,4 @@
+/// <reference types="lodash" />
 import { CampaignService } from "./campaign.service";
 import { FindCampaignsDto } from "./dto/find-campaigns.dto";
 import { User } from "../user/interfaces/user.interface";
@@ -7,7 +8,7 @@ export declare class CampaignController {
     findAll(body: FindCampaignsDto, user: User): Promise<{
         data: any;
         metadata: any;
-        quickStatsAgg: any;
+        quickStatsAgg: import("lodash").Dictionary<any>;
     }>;
     getDispositionForCampaign(campaignId: string): Promise<Pick<import("./interfaces/disposition.interface").Disposition, "options" | "_id" | "organization" | "campaign" | "creator"> | {
         error: string;
