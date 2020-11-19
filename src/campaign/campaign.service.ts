@@ -9,6 +9,7 @@ import { Disposition } from "./interfaces/disposition.interface";
 import { join } from "path";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { CampaignForm } from "./interfaces/campaign-form.interface";
+import { Lead } from "../lead/interfaces/lead.interface";
 
 @Injectable()
 export class CampaignService {
@@ -24,7 +25,10 @@ export class CampaignService {
     private readonly adminActionModel: Model<AdminAction>,
 
     @InjectModel("CampaignForm")
-    private readonly campaignFormModel: Model<CampaignForm>
+    private readonly campaignFormModel: Model<CampaignForm>,
+
+    @InjectModel("Lead")
+    private readonly leadModel: Model<Lead>
   ) {}
 
   // sort by default handler
@@ -52,8 +56,18 @@ export class CampaignService {
       data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
     });
 
+    // lists all campaigns with created at, name of campaign etc
     const result = await campaignAgg.exec();
-    return { data: result[0].data, metadata: result[0].metadata[0] };
+
+    // finding quick stats
+    const campaignNames = result[0].data.map((d) => d.campaignName);
+    const quickStatsAgg = await this.getQuickStatsForCampaigns(campaignNames);
+
+    return {
+      data: result[0].data,
+      metadata: result[0].metadata[0],
+      quickStatsAgg,
+    };
   }
 
   //   campaign id from params.campaignId
@@ -329,5 +343,42 @@ export class CampaignService {
       },
       { new: true }
     );
+  }
+
+  async getQuickStatsForCampaigns(campaignNames: string[]) {
+    const quickStatsAgg = this.leadModel.aggregate();
+    quickStatsAgg.match({
+      campaign: { $in: campaignNames },
+    });
+    quickStatsAgg.group({
+      _id: { campaign: "$campaign" },
+      followUp: {
+        $sum: {
+          $cond: [
+            { $gt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+            1,
+            0,
+          ],
+        },
+      },
+      overdue: {
+        $sum: {
+          $cond: [
+            { $lt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+            1,
+            0,
+          ],
+        },
+      },
+    });
+
+    quickStatsAgg.project({
+      campaign: "$_id.campaign",
+      followUp: "$followUp",
+      overdue: "$overdue",
+      _id: 0,
+    });
+
+    return quickStatsAgg.exec();
   }
 }

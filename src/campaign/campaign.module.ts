@@ -8,6 +8,7 @@ import { DispositionSchema } from "./schema/disposition.schema";
 import { MulterModule } from "@nestjs/platform-express";
 import { AdminActionSchema } from "../user/schemas/admin-action.schema";
 import { CampaignFormSchema } from "./schema/campaign-form.schema";
+import { LeadSchema } from "../lead/schema/lead.schema";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CampaignFormSchema } from "./schema/campaign-form.schema";
     }),
     MongooseModule.forFeature([
       { name: "Campaign", schema: CampaignSchema },
+      { name: "Lead", schema: LeadSchema },
       { name: "CampaignConfig", schema: CampaignConfigSchema },
       { name: "Disposition", schema: DispositionSchema },
       { name: "AdminAction", schema: AdminActionSchema },

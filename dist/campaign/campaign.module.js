@@ -17,6 +17,7 @@ const disposition_schema_1 = require("./schema/disposition.schema");
 const platform_express_1 = require("@nestjs/platform-express");
 const admin_action_schema_1 = require("../user/schemas/admin-action.schema");
 const campaign_form_schema_1 = require("./schema/campaign-form.schema");
+const lead_schema_1 = require("../lead/schema/lead.schema");
 let CampaignModule = class CampaignModule {
 };
 CampaignModule = __decorate([
@@ -27,6 +28,7 @@ CampaignModule = __decorate([
             }),
             mongoose_1.MongooseModule.forFeature([
                 { name: "Campaign", schema: campaign_schema_1.CampaignSchema },
+                { name: "Lead", schema: lead_schema_1.LeadSchema },
                 { name: "CampaignConfig", schema: campaign_config_schema_1.CampaignConfigSchema },
                 { name: "Disposition", schema: disposition_schema_1.DispositionSchema },
                 { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },

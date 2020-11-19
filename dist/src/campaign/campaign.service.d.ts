@@ -4,13 +4,15 @@ import { CampaignConfig } from "../lead/interfaces/campaign-config.interface";
 import { Disposition } from "./interfaces/disposition.interface";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { CampaignForm } from "./interfaces/campaign-form.interface";
+import { Lead } from "../lead/interfaces/lead.interface";
 export declare class CampaignService {
     private readonly campaignModel;
     private readonly campaignConfigModel;
     private readonly dispositionModel;
     private readonly adminActionModel;
     private readonly campaignFormModel;
-    constructor(campaignModel: Model<Campaign>, campaignConfigModel: Model<CampaignConfig>, dispositionModel: Model<Disposition>, adminActionModel: Model<AdminAction>, campaignFormModel: Model<CampaignForm>);
+    private readonly leadModel;
+    constructor(campaignModel: Model<Campaign>, campaignConfigModel: Model<CampaignConfig>, dispositionModel: Model<Disposition>, adminActionModel: Model<AdminAction>, campaignFormModel: Model<CampaignForm>, leadModel: Model<Lead>);
     findAll({ page, perPage, filters, sortBy, loggedInUserId }: {
         page: any;
         perPage: any;
@@ -20,6 +22,7 @@ export declare class CampaignService {
     }): Promise<{
         data: any;
         metadata: any;
+        quickStatsAgg: any;
     }>;
     findOneByIdOrName(campaignId: any, identifier: any): Promise<any>;
     patch(campaignId: any, requestBody: any): Promise<any>;
@@ -73,4 +76,5 @@ export declare class CampaignService {
         campaign: any;
     }): Promise<any>;
     archiveCampaign(campaign: any): Promise<Campaign>;
+    getQuickStatsForCampaigns(campaignNames: string[]): Promise<any>;
 }

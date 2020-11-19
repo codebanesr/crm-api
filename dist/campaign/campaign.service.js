@@ -29,12 +29,13 @@ const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
 const path_1 = require("path");
 let CampaignService = class CampaignService {
-    constructor(campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel) {
+    constructor(campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel, leadModel) {
         this.campaignModel = campaignModel;
         this.campaignConfigModel = campaignConfigModel;
         this.dispositionModel = dispositionModel;
         this.adminActionModel = adminActionModel;
         this.campaignFormModel = campaignFormModel;
+        this.leadModel = leadModel;
     }
     findAll({ page, perPage, filters, sortBy, loggedInUserId }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -53,7 +54,13 @@ let CampaignService = class CampaignService {
                 data: [{ $skip: skip }, { $limit: limit }],
             });
             const result = yield campaignAgg.exec();
-            return { data: result[0].data, metadata: result[0].metadata[0] };
+            const campaignNames = result[0].data.map((d) => d.campaignName);
+            const quickStatsAgg = yield this.getQuickStatsForCampaigns(campaignNames);
+            return {
+                data: result[0].data,
+                metadata: result[0].metadata[0],
+                quickStatsAgg,
+            };
         });
     }
     findOneByIdOrName(campaignId, identifier) {
@@ -264,6 +271,36 @@ let CampaignService = class CampaignService {
             }, { new: true });
         });
     }
+    getQuickStatsForCampaigns(campaignNames) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const quickStatsAgg = this.leadModel.aggregate();
+            quickStatsAgg.match({
+                campaign: { $in: campaignNames },
+            });
+            quickStatsAgg.group({
+                _id: { campaign: "$campaign" },
+                followUp: {
+                    $sum: {
+                        $cond: [
+                            { $gt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+                            1,
+                            0,
+                        ],
+                    },
+                },
+                overdue: {
+                    $sum: {
+                        $cond: [
+                            { $lt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+                            1,
+                            0,
+                        ],
+                    },
+                },
+            });
+            return quickStatsAgg.exec();
+        });
+    }
 };
 CampaignService = __decorate([
     common_1.Injectable(),
@@ -272,7 +309,9 @@ CampaignService = __decorate([
     __param(2, mongoose_1.InjectModel("Disposition")),
     __param(3, mongoose_1.InjectModel("AdminAction")),
     __param(4, mongoose_1.InjectModel("CampaignForm")),
+    __param(5, mongoose_1.InjectModel("Lead")),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,

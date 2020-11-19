@@ -7,6 +7,7 @@ export declare class CampaignController {
     findAll(body: FindCampaignsDto, user: User): Promise<{
         data: any;
         metadata: any;
+        quickStatsAgg: any;
     }>;
     getDispositionForCampaign(campaignId: string): Promise<Pick<import("./interfaces/disposition.interface").Disposition, "options" | "_id" | "organization" | "campaign" | "creator"> | {
         error: string;
