@@ -6,7 +6,7 @@ import {
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, NativeError } from "mongoose";
 import { Lead, LeadHistory } from "./interfaces/lead.interface";
-import { get, isArray, isEmpty, keys, values } from "lodash";
+import { get, isArray, isEmpty, keyBy, keys, values } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
@@ -724,11 +724,31 @@ export class LeadService {
     const updated = [];
     const error = [];
 
-    for (const l of leads) {
+    const leadColumns = await this.campaignConfigModel
+      .find({
+        name: campaignName,
+        organization,
+      })
+      .lean()
+      .exec();
+
+    const leadMappings = keyBy(leadColumns, "internalField");
+    for (const lead of leads) {
+      let contact = [];
+      Object.keys(lead).forEach((key) => {
+        if (leadMappings[key].group === "contact") {
+          contact.push({
+            label: leadMappings[key].readableField,
+            value: lead[key],
+          });
+          delete lead[key];
+        }
+      });
+
       const { lastErrorObject, value } = await this.leadModel
         .findOneAndUpdate(
-          { externalId: l.externalId },
-          { ...l, campaign: campaignName, organization, uploader },
+          { externalId: lead.externalId },
+          { ...lead, campaign: campaignName, contact, organization, uploader },
           { new: true, upsert: true, rawResult: true }
         )
         .lean()

@@ -475,9 +475,27 @@ let LeadService = class LeadService {
             const created = [];
             const updated = [];
             const error = [];
-            for (const l of leads) {
+            const leadColumns = yield this.campaignConfigModel
+                .find({
+                name: campaignName,
+                organization,
+            })
+                .lean()
+                .exec();
+            const leadMappings = lodash_1.keyBy(leadColumns, "internalField");
+            for (const lead of leads) {
+                let contact = [];
+                Object.keys(lead).forEach((key) => {
+                    if (leadMappings[key].group === "contact") {
+                        contact.push({
+                            label: leadMappings[key].readableField,
+                            value: lead[key],
+                        });
+                        delete lead[key];
+                    }
+                });
                 const { lastErrorObject, value } = yield this.leadModel
-                    .findOneAndUpdate({ externalId: l.externalId }, Object.assign(Object.assign({}, l), { campaign: campaignName, organization, uploader }), { new: true, upsert: true, rawResult: true })
+                    .findOneAndUpdate({ externalId: lead.externalId }, Object.assign(Object.assign({}, lead), { campaign: campaignName, contact, organization, uploader }), { new: true, upsert: true, rawResult: true })
                     .lean()
                     .exec();
                 if (lastErrorObject.updatedExisting === true) {

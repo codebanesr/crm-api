@@ -14,12 +14,13 @@ export declare class CampaignService {
     private readonly campaignFormModel;
     private readonly leadModel;
     constructor(campaignModel: Model<Campaign>, campaignConfigModel: Model<CampaignConfig>, dispositionModel: Model<Disposition>, adminActionModel: Model<AdminAction>, campaignFormModel: Model<CampaignForm>, leadModel: Model<Lead>);
-    findAll({ page, perPage, filters, sortBy, loggedInUserId }: {
+    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, }: {
         page: any;
         perPage: any;
         filters: any;
         sortBy: any;
         loggedInUserId: any;
+        organization: any;
     }): Promise<{
         data: any;
         metadata: any;
@@ -77,5 +78,5 @@ export declare class CampaignService {
         campaign: any;
     }): Promise<any>;
     archiveCampaign(campaign: any): Promise<Campaign>;
-    getQuickStatsForCampaigns(campaignNames: string[]): Promise<import("lodash").Dictionary<any>>;
+    getQuickStatsForCampaigns(campaignNames: string[], organization: string): Promise<import("lodash").Dictionary<any>>;
 }

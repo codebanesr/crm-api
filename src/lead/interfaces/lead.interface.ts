@@ -1,17 +1,14 @@
 import { Schema, Document } from "mongoose";
 
 export interface Lead extends Document {
+  email: string;
   externalId: string;
   history: LeadHistory[];
-  email: string;
   campaign: string;
   firstName: string;
   lastName: string;
   source: string;
   amount: number;
-  customerEmail: string;
-  phoneNumberPrefix: string;
-  phoneNumber: string;
   leadStatus: string;
   address: string;
   followUp: Date;
@@ -22,6 +19,7 @@ export interface Lead extends Document {
   operationalArea: string;
   pincode: number;
   organization: string;
+  contact: { label: String; value: String }[];
   requestedInformation?: { [key: string]: string }[];
 }
 

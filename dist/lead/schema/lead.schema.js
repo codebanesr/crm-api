@@ -4,6 +4,7 @@ exports.LeadSchema = void 0;
 const mongoose_1 = require("mongoose");
 exports.LeadSchema = new mongoose_1.Schema({
     externalId: { type: String, required: true },
+    email: String,
     history: [
         {
             oldUser: String,
@@ -20,18 +21,17 @@ exports.LeadSchema = new mongoose_1.Schema({
             requestedInformation: Object,
         },
     ],
-    email: {
-        type: String,
-        required: true,
-    },
+    contact: [
+        {
+            label: String,
+            value: String,
+        },
+    ],
     campaign: String,
     firstName: String,
     lastName: String,
     source: String,
     amount: Number,
-    customerEmail: String,
-    phoneNumberPrefix: String,
-    phoneNumber: String,
     leadStatus: String,
     address: String,
     followUp: Date,

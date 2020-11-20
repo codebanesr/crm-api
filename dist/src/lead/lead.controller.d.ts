@@ -47,7 +47,7 @@ export declare class LeadController {
         result: void;
     }>;
     saveEmailAttachments(files: any): any;
-    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "campaign" | "externalId" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "requestedInformation">>;
+    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "campaign" | "externalId" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "contact" | "requestedInformation">>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;
     fetchNextLead(user: User, campaignId: string, body: FetchNextLeadDto): Promise<{
         result: any;

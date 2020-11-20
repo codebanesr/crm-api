@@ -48,7 +48,7 @@ export declare class LeadService {
         paths: any;
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
-    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "phoneNumber" | "history" | "organization" | "leadStatus" | "campaign" | "externalId" | "firstName" | "lastName" | "amount" | "customerEmail" | "phoneNumberPrefix" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "requestedInformation">>;
+    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "campaign" | "externalId" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "contact" | "requestedInformation">>;
     patch(productId: string, body: any[]): Promise<any>;
     deleteOne(leadId: string, activeUserEmail: string): Promise<Pick<any, string | number | symbol>>;
     createAlarm(alarmObj: Partial<Alarm>): Promise<Alarm>;

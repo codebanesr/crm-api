@@ -38,7 +38,7 @@ let CampaignService = class CampaignService {
         this.campaignFormModel = campaignFormModel;
         this.leadModel = leadModel;
     }
-    findAll({ page, perPage, filters, sortBy, loggedInUserId }) {
+    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((page - 1) * limit);
@@ -56,7 +56,7 @@ let CampaignService = class CampaignService {
             });
             const result = yield campaignAgg.exec();
             const campaignNames = result[0].data.map((d) => d.campaignName);
-            const quickStatsAgg = yield this.getQuickStatsForCampaigns(campaignNames);
+            const quickStatsAgg = yield this.getQuickStatsForCampaigns(campaignNames, organization);
             return {
                 data: result[0].data,
                 metadata: result[0].metadata[0],
@@ -272,10 +272,11 @@ let CampaignService = class CampaignService {
             }, { new: true });
         });
     }
-    getQuickStatsForCampaigns(campaignNames) {
+    getQuickStatsForCampaigns(campaignNames, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             const quickStatsAgg = this.leadModel.aggregate();
             quickStatsAgg.match({
+                organization,
                 campaign: { $in: campaignNames },
             });
             quickStatsAgg.group({

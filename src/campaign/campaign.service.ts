@@ -33,7 +33,14 @@ export class CampaignService {
   ) {}
 
   // sort by default handler
-  async findAll({ page, perPage, filters, sortBy, loggedInUserId }) {
+  async findAll({
+    page,
+    perPage,
+    filters,
+    sortBy,
+    loggedInUserId,
+    organization,
+  }) {
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
 
@@ -62,7 +69,10 @@ export class CampaignService {
 
     // finding quick stats
     const campaignNames = result[0].data.map((d) => d.campaignName);
-    const quickStatsAgg = await this.getQuickStatsForCampaigns(campaignNames);
+    const quickStatsAgg = await this.getQuickStatsForCampaigns(
+      campaignNames,
+      organization
+    );
 
     return {
       data: result[0].data,
@@ -346,9 +356,14 @@ export class CampaignService {
     );
   }
 
-  async getQuickStatsForCampaigns(campaignNames: string[]) {
+  async getQuickStatsForCampaigns(
+    campaignNames: string[],
+    organization: string
+  ) {
+    /** also add organiztion because two campaigns can have same names between different organization */
     const quickStatsAgg = this.leadModel.aggregate();
     quickStatsAgg.match({
+      organization,
       campaign: { $in: campaignNames },
     });
     quickStatsAgg.group({

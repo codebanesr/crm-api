@@ -25,7 +25,7 @@ let CampaignController = class CampaignController {
         this.campaignService = campaignService;
     }
     findAll(body, user) {
-        const { _id: loggedInUserId } = user;
+        const { _id: loggedInUserId, organization } = user;
         const { filters, page, perPage, sortBy } = body;
         return this.campaignService.findAll({
             page,
@@ -33,6 +33,7 @@ let CampaignController = class CampaignController {
             filters,
             sortBy,
             loggedInUserId,
+            organization,
         });
     }
     getDispositionForCampaign(campaignId) {

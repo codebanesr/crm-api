@@ -7,4 +7,5 @@ export interface CampaignConfig extends Document {
     type: string;
     checked: boolean;
     organization: string;
+    group: string;
 }
