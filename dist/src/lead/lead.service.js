@@ -617,6 +617,7 @@ let LeadService = class LeadService {
             campaign.browsableCols.forEach((c) => {
                 projection[c] = 1;
             });
+            projection["contact"] = 1;
             projection["history"] = 1;
             singleLeadAgg.project(projection);
             const result = (yield singleLeadAgg.exec())[0];

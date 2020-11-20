@@ -907,6 +907,9 @@ export class LeadService {
       projection[c] = 1;
     });
 
+    /** @Todo Quick fix for sending contact ionformation to frontend, to put some effort into this if required */
+    projection["contact"] = 1;
+
     // other information that should always show up, one is history
     projection["history"] = 1;
 
