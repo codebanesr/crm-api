@@ -15,4 +15,8 @@ export interface Campaign extends Document {
     advancedSettings: string[];
     archived: boolean;
     assignTo: string[];
+    groups: {
+        label: string;
+        value: string[];
+    };
 }

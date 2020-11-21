@@ -21,6 +21,12 @@ export const CampaignSchema = new Schema(
     assignTo: [String],
     advancedSettings: [String],
     formModel: Object,
+    groups: [
+      {
+        label: String,
+        value: [String],
+      },
+    ],
   },
   { timestamps: true }
 );

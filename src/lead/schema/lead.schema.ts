@@ -24,6 +24,7 @@ export const LeadSchema = new Schema(
       {
         label: String,
         value: String,
+        type: String,
       },
     ],
     campaign: String,

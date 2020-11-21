@@ -22,5 +22,11 @@ exports.CampaignSchema = new mongoose_1.Schema({
     assignTo: [String],
     advancedSettings: [String],
     formModel: Object,
+    groups: [
+        {
+            label: String,
+            value: [String],
+        },
+    ],
 }, { timestamps: true });
 //# sourceMappingURL=campaign.schema.js.map

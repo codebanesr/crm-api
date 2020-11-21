@@ -21,6 +21,7 @@ export interface Lead extends Document {
     contact: {
         label: String;
         value: String;
+        type: String;
     }[];
     requestedInformation?: {
         [key: string]: string;

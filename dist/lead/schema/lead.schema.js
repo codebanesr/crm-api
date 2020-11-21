@@ -25,6 +25,7 @@ exports.LeadSchema = new mongoose_1.Schema({
         {
             label: String,
             value: String,
+            type: String,
         },
     ],
     campaign: String,

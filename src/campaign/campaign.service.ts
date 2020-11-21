@@ -190,6 +190,7 @@ export class CampaignService {
     uniqueCols,
     assignTo,
     advancedSettings,
+    groups,
   }: {
     activeUserId: string;
     file: any;
@@ -202,6 +203,7 @@ export class CampaignService {
     formModel: any;
     assignTo: string;
     advancedSettings: string;
+    groups: string;
   }) {
     dispositionData = JSON.parse(dispositionData);
     campaignInfo = JSON.parse(campaignInfo);
@@ -211,6 +213,7 @@ export class CampaignService {
     formModel = JSON.parse(formModel);
     assignTo = JSON.parse(assignTo);
     advancedSettings = JSON.parse(advancedSettings);
+    groups = JSON.parse(groups);
 
     const campaign = await this.campaignModel.findOneAndUpdate(
       { campaignName: campaignInfo.campaignName, organization },
@@ -224,6 +227,7 @@ export class CampaignService {
         formModel,
         advancedSettings,
         assignTo,
+        groups,
       },
       { new: true, upsert: true, rawResult: true }
     );

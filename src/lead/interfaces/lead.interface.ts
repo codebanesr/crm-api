@@ -19,7 +19,7 @@ export interface Lead extends Document {
   operationalArea: string;
   pincode: number;
   organization: string;
-  contact: { label: String; value: String }[];
+  contact: { label: String; value: String; type: String }[];
   requestedInformation?: { [key: string]: string }[];
 }
 
