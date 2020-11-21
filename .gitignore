@@ -1,7 +1,5 @@
 node_modules
 node_modules/*
-*upload
-uploads
 containers/openfire/databases*
 logs/*
 .env
