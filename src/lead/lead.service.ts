@@ -29,6 +29,7 @@ import { S3UploadedFiles } from "./dto/generic.dto";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
 import { UploadService } from "../upload/upload.service";
 import { PushNotificationService } from "../push-notification/push-notification.service";
+import { UpdateContactDto } from "./dto/update-contact.dto";
 @Injectable()
 export class LeadService {
   constructor(
@@ -580,7 +581,8 @@ export class LeadService {
       );
     }
 
-    let { history, ...filteredObj } = obj;
+    /** Do not update contact, there will be a separate api for adding contact information */
+    let { history, contact, ...filteredObj } = obj;
 
     // if reassignment is required, change that in the lead
     if (get(reassignmentInfo, "newUser")) {
@@ -1060,5 +1062,11 @@ export class LeadService {
       });
     });
     return sended;
+  }
+
+  async addContact(contact: UpdateContactDto, leadId: string) {
+    return this.leadModel.findByIdAndUpdate(leadId, {
+      $push: { contact },
+    });
   }
 }

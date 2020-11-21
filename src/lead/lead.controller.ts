@@ -34,6 +34,7 @@ import { Roles } from "../auth/decorators/roles.decorator";
 import { UserActivityDto } from "../user/dto/user-activity.dto";
 import { FollowUpDto } from "./dto/follow-up.dto";
 import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
+import { UpdateContactDto } from "./dto/update-contact.dto";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -128,6 +129,14 @@ export class LeadController {
       emailForm,
       requestedInformation,
     });
+  }
+
+  @Put("contact/:leadId")
+  @ApiOperation({ summary: "Adds contact information" })
+  @UseGuards(AuthGuard("jwt"))
+  @HttpCode(HttpStatus.OK)
+  addContact(@Body() body: UpdateContactDto, @Param("leadId") leadId: string) {
+    return this.leadService.addContact(body, leadId);
   }
 
   @Post("reassignLead")
