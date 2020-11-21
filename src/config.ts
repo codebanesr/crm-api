@@ -1,3 +1,7 @@
+import { config as loadEnvConfig } from "dotenv";
+
+loadEnvConfig();
+
 export default {
   s3: {
     accessKeyId: process.env.accessKeyId,
