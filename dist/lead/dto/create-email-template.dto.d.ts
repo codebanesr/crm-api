@@ -5,7 +5,8 @@ export declare class AttachmentDto {
 export declare class CreateEmailTemplateDto {
     content: string;
     subject: string;
-    campaign: string;
+    templateName: string;
+    campaignId: string;
     attachments: AttachmentDto[];
 }
 export declare class BulkEmailDto {

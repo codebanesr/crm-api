@@ -1,6 +1,12 @@
 // content, subject, campaign, attachments
 
-import { IsArray, ValidateNested, IsString, IsEmail } from "class-validator";
+import {
+  IsArray,
+  ValidateNested,
+  IsString,
+  IsEmail,
+  IsMongoId,
+} from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 
@@ -35,7 +41,10 @@ export class CreateEmailTemplateDto {
     example: "This will become the subject of the email template",
   })
   @IsString()
-  campaign: string;
+  templateName: string;
+
+  @IsMongoId()
+  campaignId: string;
 
   @ApiProperty({
     examples: [

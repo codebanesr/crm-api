@@ -110,7 +110,8 @@ export class LeadService {
     subject: string,
     campaign: string,
     attachments: AttachmentDto[],
-    organization: string
+    organization: string,
+    templateName: string
   ) {
     let acceptableAttachmentFormat = attachments.map((a) => {
       let { key: fileName, Location: filePath, ...others } = a;
@@ -127,6 +128,7 @@ export class LeadService {
       subject: subject,
       attachments: acceptableAttachmentFormat,
       organization,
+      templateName,
     });
 
     return emailTemplate.save();
@@ -136,27 +138,15 @@ export class LeadService {
   async getAllEmailTemplates(
     limit,
     skip,
-    searchTerm: string,
-    organization: string,
-    campaignName
+    campaign: string,
+    organization: string
   ) {
-    const query = this.emailTemplateModel.aggregate();
-    const matchQ = {
-      subject: { $regex: `^${searchTerm}`, $options: "I" },
-      organization,
-    };
-    if (campaignName !== "undefined") {
-      matchQ["campaign"] = campaignName;
-    }
-
-    const result = await query
-      .match(matchQ)
-      .sort("type")
-      .limit(+limit)
-      .skip(+skip)
+    return this.emailTemplateModel
+      .find({ campaign, organization })
+      .skip(skip)
+      .limit(limit)
+      .lean()
       .exec();
-
-    return result;
   }
 
   async getLeadHistoryById(externalId: string, organization) {
@@ -550,7 +540,7 @@ export class LeadService {
     // this len condition maybe unnecessary if mongoose itself handles
     // this condition being an array since that is what we defined in
     // the schema, also try
-    const prevHistory = oldLead.history[len - 1];
+    const prevHistory = get(oldLead, `history${[len - 1]}`, null);
     if (len === 0 && !reassignmentInfo) {
       // assign to logged in user and notes will be lead was created by
       nextEntryInHistory[
@@ -559,7 +549,7 @@ export class LeadService {
       nextEntryInHistory["newUser"] = loggedInUserEmail;
     }
 
-    if (reassignmentInfo && prevHistory.newUser !== reassignmentInfo.newUser) {
+    if (reassignmentInfo && prevHistory?.newUser !== reassignmentInfo.newUser) {
       nextEntryInHistory[
         "notes"
       ] = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;

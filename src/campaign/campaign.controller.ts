@@ -132,7 +132,7 @@ export class CampaignController {
       formModel,
       assignTo,
       advancedSettings,
-      groups
+      groups,
     } = body;
 
     return this.campaignService.createCampaignAndDisposition({
@@ -147,7 +147,7 @@ export class CampaignController {
       uniqueCols,
       assignTo,
       advancedSettings,
-      groups
+      groups,
     });
   }
 

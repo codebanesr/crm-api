@@ -222,16 +222,14 @@ export class LeadController {
     @CurrentUser() user: User,
     @Query("limit") limit: number = 10,
     @Query("skip") skip: number = 0,
-    @Query("searchTerm") searchTerm: string,
-    @Query("campaignName") campaignName: string
+    @Query("campaignId") campaignId: string,
   ) {
     const { organization } = user;
     return this.leadService.getAllEmailTemplates(
       limit || 20,
       skip || 0,
-      searchTerm,
+      campaignId,
       organization,
-      campaignName
     );
   }
 
@@ -247,14 +245,15 @@ export class LeadController {
     @Body() body: CreateEmailTemplateDto
   ) {
     const { email: userEmail, organization } = user;
-    const { content, subject, campaign, attachments } = body;
+    const { content, subject, campaignId, attachments, templateName } = body;
     return this.leadService.createEmailTemplate(
       userEmail,
       content,
       subject,
-      campaign,
+      campaignId,
       attachments,
-      organization
+      organization,
+      templateName
     );
   }
 

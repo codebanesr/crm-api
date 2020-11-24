@@ -89,7 +89,7 @@ let LeadService = class LeadService {
             }
         });
     }
-    createEmailTemplate(userEmail, content, subject, campaign, attachments, organization) {
+    createEmailTemplate(userEmail, content, subject, campaign, attachments, organization, templateName) {
         return __awaiter(this, void 0, void 0, function* () {
             let acceptableAttachmentFormat = attachments.map((a) => {
                 let { key: fileName, Location: filePath } = a, others = __rest(a, ["key", "Location"]);
@@ -103,27 +103,19 @@ let LeadService = class LeadService {
                 subject: subject,
                 attachments: acceptableAttachmentFormat,
                 organization,
+                templateName,
             });
             return emailTemplate.save();
         });
     }
-    getAllEmailTemplates(limit, skip, searchTerm, organization, campaignName) {
+    getAllEmailTemplates(limit, skip, campaign, organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            const query = this.emailTemplateModel.aggregate();
-            const matchQ = {
-                subject: { $regex: `^${searchTerm}`, $options: "I" },
-                organization,
-            };
-            if (campaignName !== "undefined") {
-                matchQ["campaign"] = campaignName;
-            }
-            const result = yield query
-                .match(matchQ)
-                .sort("type")
-                .limit(+limit)
-                .skip(+skip)
+            return this.emailTemplateModel
+                .find({ campaign, organization })
+                .skip(skip)
+                .limit(limit)
+                .lean()
                 .exec();
-            return result;
         });
     }
     getLeadHistoryById(externalId, organization) {
@@ -400,12 +392,12 @@ let LeadService = class LeadService {
             const nextEntryInHistory = {
                 geoLocation: {},
             };
-            const prevHistory = oldLead.history[len - 1];
+            const prevHistory = lodash_1.get(oldLead, `history${[len - 1]}`, null);
             if (len === 0 && !reassignmentInfo) {
                 nextEntryInHistory["notes"] = `Lead has been assigned to ${loggedInUserEmail} by default`;
                 nextEntryInHistory["newUser"] = loggedInUserEmail;
             }
-            if (reassignmentInfo && prevHistory.newUser !== reassignmentInfo.newUser) {
+            if (reassignmentInfo && (prevHistory === null || prevHistory === void 0 ? void 0 : prevHistory.newUser) !== reassignmentInfo.newUser) {
                 nextEntryInHistory["notes"] = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
                 nextEntryInHistory["oldUser"] = prevHistory.newUser;
                 nextEntryInHistory["newUser"] = reassignmentInfo.newUser;

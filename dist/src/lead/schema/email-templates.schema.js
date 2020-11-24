@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailTemplateSchema = void 0;
 const mongoose_1 = require("mongoose");
 exports.EmailTemplateSchema = new mongoose_1.Schema({
-    campaign: String,
+    campaignId: { type: mongoose_1.Types.ObjectId, ref: "Campaign" },
+    templateName: String,
     email: { type: String },
     content: { type: String, required: true },
     subject: { type: String, required: true },

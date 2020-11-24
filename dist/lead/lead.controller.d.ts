@@ -35,7 +35,7 @@ export declare class LeadController {
         result: any[];
         total: number;
     }>;
-    getAllEmailTemplates(user: User, limit: number, skip: number, searchTerm: string, campaignName: string): Promise<any>;
+    getAllEmailTemplates(user: User, limit: number, skip: number, campaignId: string): Promise<Pick<import("./interfaces/email-template.interface").EmailTemplate, "_id" | "content" | "email" | "organization" | "subject" | "attachments" | "campaign">[]>;
     createEmailTemplate(user: User, body: CreateEmailTemplateDto): Promise<import("./interfaces/email-template.interface").EmailTemplate>;
     sendBulkEmails(req: any, body: BulkEmailDto): Promise<{
         success: boolean;
@@ -49,7 +49,7 @@ export declare class LeadController {
         result: void;
     }>;
     saveEmailAttachments(files: any): any;
-    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "campaign" | "externalId" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "contact" | "requestedInformation">>;
+    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "contact" | "requestedInformation">>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;
     fetchNextLead(user: User, campaignId: string, body: FetchNextLeadDto): Promise<{
         result: any;

@@ -2,7 +2,8 @@ import { Schema, Types } from "mongoose";
 
 export const EmailTemplateSchema = new Schema(
   {
-    campaign: String,
+    campaignId: { type: Types.ObjectId, ref: "Campaign" },
+    templateName: String,
     email: { type: String },
     content: { type: String, required: true },
     subject: { type: String, required: true },

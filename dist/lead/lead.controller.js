@@ -99,14 +99,14 @@ let LeadController = class LeadController {
     getBasicOverview(req) {
         return this.leadService.getBasicOverview();
     }
-    getAllEmailTemplates(user, limit = 10, skip = 0, searchTerm, campaignName) {
+    getAllEmailTemplates(user, limit = 10, skip = 0, campaignId) {
         const { organization } = user;
-        return this.leadService.getAllEmailTemplates(limit || 20, skip || 0, searchTerm, organization, campaignName);
+        return this.leadService.getAllEmailTemplates(limit || 20, skip || 0, campaignId, organization);
     }
     createEmailTemplate(user, body) {
         const { email: userEmail, organization } = user;
-        const { content, subject, campaign, attachments } = body;
-        return this.leadService.createEmailTemplate(userEmail, content, subject, campaign, attachments, organization);
+        const { content, subject, campaignId, attachments, templateName } = body;
+        return this.leadService.createEmailTemplate(userEmail, content, subject, campaignId, attachments, organization, templateName);
     }
     sendBulkEmails(req, body) {
         const { email: userEmail, organization } = req.user;
@@ -315,10 +315,9 @@ __decorate([
     __param(0, current_user_decorator_1.CurrentUser()),
     __param(1, common_1.Query("limit")),
     __param(2, common_1.Query("skip")),
-    __param(3, common_1.Query("searchTerm")),
-    __param(4, common_1.Query("campaignName")),
+    __param(3, common_1.Query("campaignId")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number, Number, String, String]),
+    __metadata("design:paramtypes", [Object, Number, Number, String]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "getAllEmailTemplates", null);
 __decorate([

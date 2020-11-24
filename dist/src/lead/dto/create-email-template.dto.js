@@ -52,7 +52,11 @@ __decorate([
     }),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateEmailTemplateDto.prototype, "campaign", void 0);
+], CreateEmailTemplateDto.prototype, "templateName", void 0);
+__decorate([
+    class_validator_1.IsMongoId(),
+    __metadata("design:type", String)
+], CreateEmailTemplateDto.prototype, "campaignId", void 0);
 __decorate([
     swagger_1.ApiProperty({
         examples: [
