@@ -256,13 +256,15 @@ export class LeadService {
     }
 
     const projectQ = {} as any;
+
     flds.forEach((fld: string) => {
       projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
     });
 
-    projectQ._id = 0;
+    if (Object.keys(projectQ).length > 0) {
+      leadAgg.project(projectQ);
+    }
 
-    leadAgg.project(projectQ);
     leadAgg.sort({ [sortBy]: 1 });
     leadAgg.facet({
       metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
@@ -316,7 +318,7 @@ export class LeadService {
 
   async findOneById(leadId: string, organization: string) {
     const lead = await this.leadModel
-      .findOne({ externalId: leadId, organization })
+      .findOne({ _id: leadId, organization })
       .lean()
       .exec();
     return lead;

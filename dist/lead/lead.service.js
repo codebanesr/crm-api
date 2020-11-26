@@ -202,8 +202,9 @@ let LeadService = class LeadService {
             flds.forEach((fld) => {
                 projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
             });
-            projectQ._id = 0;
-            leadAgg.project(projectQ);
+            if (Object.keys(projectQ).length > 0) {
+                leadAgg.project(projectQ);
+            }
             leadAgg.sort({ [sortBy]: 1 });
             leadAgg.facet({
                 metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
@@ -252,7 +253,7 @@ let LeadService = class LeadService {
     findOneById(leadId, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             const lead = yield this.leadModel
-                .findOne({ externalId: leadId, organization })
+                .findOne({ _id: leadId, organization })
                 .lean()
                 .exec();
             return lead;
