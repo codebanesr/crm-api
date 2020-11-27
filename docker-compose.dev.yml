@@ -30,6 +30,16 @@ services:
       - webnet
     restart: always
 
+
+  portainerservice:
+    image: portainer/portainer
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9000:9000"
+
+
   mongodb:
     container_name: mongoback  # take snapshot:: `docker exec mongoback sh -c 'mongodump --archive' > db.dump`
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
@@ -54,6 +64,7 @@ services:
 networks:
   webnet:
 volumes:
+  portainer_data:
   pgdata:
   mongodb_data:
     driver: local
