@@ -16,6 +16,8 @@ import {
   UploadedFile,
   Get,
   Param,
+  Logger,
+  Put,
 } from "@nestjs/common";
 import { Request as IRequest } from "express";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -40,6 +42,8 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "./interfaces/user.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
+import { UserActivityDto } from "./dto/user-activity.dto";
+import { PushNotificationDto } from "./dto/push-notification.dto";
 
 @ApiTags("User")
 @Controller("user")
@@ -65,10 +69,21 @@ export class UserController {
   }
 
   @Get()
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Gets all users without filter, quick prototype" })
   @ApiOperation({ summary: "Get users hack" })
   async getAllUsersHack(@CurrentUser() user: User) {
     const { organization } = user;
     return this.userService.getAllUsersHack(organization);
+  }
+
+  @Get("single/:id")
+  @Roles("admin")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Gets single user details" })
+  async getUserById(@CurrentUser() user: User, @Param("id") userid: string) {
+    const { organization } = user;
+    return this.userService.getUserById(userid, organization);
   }
 
   @Post("verify-email")
@@ -77,7 +92,7 @@ export class UserController {
   @ApiOkResponse({})
   async verifyEmail(
     @Req() req: IRequest,
-    @Body() verifyUuidDto: VerifyUuidDto,
+    @Body() verifyUuidDto: VerifyUuidDto
   ) {
     return this.userService.verifyEmail(req, verifyUuidDto);
   }
@@ -111,15 +126,15 @@ export class UserController {
     return this.userService.forgotPassword(req, createForgotPasswordDto);
   }
 
-  @Get("forgot-password-verify/:token")
+  @Post("forgot-password-verify")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Verfiy forget password code" })
   @ApiOkResponse({})
   async forgotPasswordVerify(
     @Req() req: IRequest,
-    @Param("token") token: VerifyUuidDto
+    @Body() body: VerifyUuidDto
   ) {
-    return this.userService.forgotPasswordVerify(req, token);
+    return this.userService.forgotPasswordVerify(req, body);
   }
 
   @Post("reset-password")
@@ -194,5 +209,46 @@ export class UserController {
   ) {
     const { organization } = user;
     return this.userService.insertMany(req.user.id, file.path);
+  }
+
+  @Put(":id")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Reset password after verify reset password" })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @ApiHeader({
+    name: "Bearer",
+    description: "the token we need for auth.",
+  })
+  @ApiOkResponse({})
+  async updateUser(@Param("id") userid: string, @Body() user: CreateUserDto) {
+    return this.userService.updateUser(userid, user);
+  }
+
+  // push notifications
+  @Post("/subscribe/push")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Subscribe to push notification" })
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOkResponse({})
+  async subscribeToPush(
+    @CurrentUser() user: User,
+    @Body() body: PushNotificationDto
+  ) {
+    const { _id } = user;
+    return this.userService.subscribeToPushNotification(_id, body);
+  }
+
+  @Post("/send/push")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "send push notifications to subscribed users" })
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOkResponse({})
+  async sendPushNotification(
+    @Req() req: IRequest,
+    @Body() body: VerifyUuidDto
+  ) {
+    return this.userService.sendPushNotification();
   }
 }

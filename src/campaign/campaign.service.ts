@@ -8,6 +8,9 @@ import { writeFile, utils } from "xlsx";
 import { Disposition } from "./interfaces/disposition.interface";
 import { join } from "path";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
+import { CampaignForm } from "./interfaces/campaign-form.interface";
+import { Lead } from "../lead/interfaces/lead.interface";
+import { keyBy } from "lodash";
 
 @Injectable()
 export class CampaignService {
@@ -21,45 +24,61 @@ export class CampaignService {
 
     @InjectModel("AdminAction")
     private readonly adminActionModel: Model<AdminAction>,
+
+    @InjectModel("CampaignForm")
+    private readonly campaignFormModel: Model<CampaignForm>,
+
+    @InjectModel("Lead")
+    private readonly leadModel: Model<Lead>
   ) {}
 
-
   // sort by default handler
-  async findAll(page, perPage, filters, sortBy) {
+  async findAll({
+    page,
+    perPage,
+    filters,
+    sortBy,
+    loggedInUserId,
+    organization,
+  }) {
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
 
-    const { createdBy, campaigns = [] } = filters;
+    const campaignAgg = this.campaignModel.aggregate();
 
+    const { campaigns = [] } = filters;
 
-    const matchQ = {} as any;
+    // mongodb understands that assigness is an array so it will go and check every single value
+    // in the array and if any one of that is a match, it will keep that record
+    campaignAgg.match({
+      $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }],
+    });
 
-    matchQ.$and = [];
-    if(createdBy) {
-        matchQ.$and.push({createdBy:createdBy});
+    // if campaign filter is applied, @Todo verify if this is still required, i believe that this schema was changed
+    if (campaigns && campaigns.length > 0) {
+      campaignAgg.match({ type: { $in: campaigns } });
     }
 
-    if(campaigns && campaigns.length > 0) {
-        matchQ.$and.push({ type: { $in: campaigns } });
-    }
+    campaignAgg.facet({
+      metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+      data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
+    });
 
-    const fq = [
-        { $match: matchQ },
-        { $sort: { [sortBy]: 1 } },
-        {
-            '$facet': {
-                metadata: [ { $count: "total" }, { $addFields: { page: Number(page) } } ],
-                data: [ { $skip: skip }, { $limit: limit } ] // add projection here wish you re-shape the docs
-            }
-        }
-    ];
+    // lists all campaigns with created at, name of campaign etc
+    const result = await campaignAgg.exec();
 
-    if(fq[0]["$match"]["$and"].length === 0) {
-        delete fq[0]["$match"]["$and"];
-    }
-    console.log(JSON.stringify(fq));
-    const result = await this.campaignModel.aggregate(fq);
-    return { data: result[0].data, metadata: result[0].metadata[0] };
+    // finding quick stats
+    const campaignNames = result[0].data.map((d) => d.campaignName);
+    const quickStatsAgg = await this.getQuickStatsForCampaigns(
+      campaignNames,
+      organization
+    );
+
+    return {
+      data: result[0].data,
+      metadata: result[0].metadata[0],
+      quickStatsAgg,
+    };
   }
 
   //   campaign id from params.campaignId
@@ -70,19 +89,15 @@ export class CampaignService {
       case "campaignName":
         result = await this.campaignModel
           .findOne({ campaignName: campaignId })
-          .sort({updatedAt: -1})
+          .sort({ updatedAt: -1 })
           .lean()
           .exec();
         break;
       default:
-        result = await this.campaignModel
-          .findById(campaignId)
-          .lean()
-          .exec();
+        result = await this.campaignModel.findById(campaignId).lean().exec();
     }
     return result;
   }
-
 
   async patch(campaignId, requestBody) {
     const updateOps: { [index: string]: any } = {};
@@ -117,9 +132,12 @@ export class CampaignService {
   }
 
   //   @Query
-  async getCampaignTypes(hint) {
+  async getCampaignTypes(hint, organization) {
     return this.campaignModel
-      .find({ campaignName: { $regex: "^" + hint, $options: "I" } })
+      .find({
+        campaignName: { $regex: "^" + hint, $options: "I" },
+        organization,
+      })
       .limit(20);
   }
 
@@ -142,12 +160,15 @@ export class CampaignService {
     }
   }
 
-
   async getDispositionForCampaign(campaignId: string) {
-    if (campaignId == "core") {
+    if (!campaignId || campaignId == "core") {
       return this.defaultDisposition();
     } else {
-      return this.dispositionModel.findOne({ campaign: campaignId }).sort({_id: 1});
+      return this.dispositionModel
+        .findOne({ campaign: campaignId })
+        .sort({ _id: -1 })
+        .lean()
+        .exec();
     }
   }
 
@@ -157,41 +178,93 @@ export class CampaignService {
   }
 
   //   disposition data and campaign infor from body
-  async createCampaignAndDisposition(
-    activeUserId: string,
+  async createCampaignAndDisposition({
+    activeUserId,
     file,
-    dispositionData: any,
-    campaignInfo: any
-  ) {
+    dispositionData,
+    campaignInfo,
+    organization,
+    editableCols,
+    browsableCols,
+    formModel,
+    uniqueCols,
+    assignTo,
+    advancedSettings,
+    groups,
+  }: {
+    activeUserId: string;
+    file: any;
+    dispositionData: any;
+    campaignInfo: any;
+    organization: string;
+    editableCols: string;
+    browsableCols: string;
+    uniqueCols: string;
+    formModel: any;
+    assignTo: string;
+    advancedSettings: string;
+    groups: string;
+  }) {
     dispositionData = JSON.parse(dispositionData);
     campaignInfo = JSON.parse(campaignInfo);
-    const ccJSON = parseExcel(file.path);
+    editableCols = JSON.parse(editableCols);
+    browsableCols = JSON.parse(browsableCols);
+    uniqueCols = JSON.parse(uniqueCols);
+    formModel = JSON.parse(formModel);
+    assignTo = JSON.parse(assignTo);
+    advancedSettings = JSON.parse(advancedSettings);
+    groups = JSON.parse(groups);
 
     const campaign = await this.campaignModel.findOneAndUpdate(
-      { campaignName: campaignInfo.campaignName },
-      { ...campaignInfo, createdBy: activeUserId },
+      { campaignName: campaignInfo.campaignName, organization },
+      {
+        ...campaignInfo,
+        createdBy: activeUserId,
+        organization,
+        browsableCols,
+        editableCols,
+        uniqueCols,
+        formModel,
+        advancedSettings,
+        assignTo,
+        groups,
+      },
       { new: true, upsert: true, rawResult: true }
     );
 
-    const filePath = await this.saveCampaignSchema(ccJSON, {
-      schemaName: campaignInfo.campaignName,
-    });
+    // let disposition = new this.dispositionModel({
+    //   options: dispositionData,
+    //   campaign: campaign.value.id,
+    // });
+    // disposition = await disposition.save();
 
+    const disposition = await this.dispositionModel.findOneAndUpdate(
+      { campaign: campaign.value.id, organization },
+      {
+        options: dispositionData,
+        campaign: campaign.value.id,
+      },
+      { new: true, upsert: true, rawResult: true }
+    );
 
-    const adminActions = new this.adminActionModel({
-      userid: activeUserId,
-      actionType: "error",
-      filePath,
-      savedOn: "disk",
-      fileType: "campaignConfig"
-    });
+    let filePath = "";
+    if (file) {
+      const ccJSON = await parseExcel(file.path);
+      filePath = await this.saveCampaignSchema(ccJSON, {
+        schemaName: campaignInfo.campaignName,
+        organization,
+      });
 
-    adminActions.save();
-    let disposition = new this.dispositionModel({
-      options: dispositionData,
-      campaign: campaign.value.id,
-    });
-    disposition = await disposition.save();
+      const adminActions = new this.adminActionModel({
+        userid: activeUserId,
+        actionType: "error",
+        filePath,
+        savedOn: "disk",
+        fileType: "campaignConfig",
+      });
+
+      adminActions.save();
+    }
 
     return {
       campaign: campaign.value,
@@ -200,19 +273,26 @@ export class CampaignService {
     };
   }
 
-  async saveCampaignSchema(ccJSON: any[], others: any) {
+  async saveCampaignSchema(
+    ccJSON: any[],
+    others: any & { organization: string }
+  ) {
     const created = [];
     const updated = [];
     const error = [];
 
     for (const cc of ccJSON) {
-      if (cc.type === 'select') {
+      if (cc.type === "select") {
         cc.options = cc.options.split(", ");
       }
       const { lastErrorObject, value } = await this.campaignConfigModel
         .findOneAndUpdate(
-          { name: others.schemaName, internalField: cc.internalField },
-          cc,
+          {
+            name: others.schemaName,
+            internalField: cc.internalField,
+            organization: others.schema,
+          },
+          { ...cc, organization: others.organization },
           { new: true, upsert: true, rawResult: true }
         )
         .lean()
@@ -235,9 +315,91 @@ export class CampaignService {
     utils.book_append_sheet(wb, created_ws, "tickets created");
 
     const filename = `campaignSchema.xlsx`;
-    const filePath = join(__dirname,'..', '..', "crm_response", filename);
-    
+    const filePath = join(__dirname, "..", "..", "crm_response", filename);
+
     writeFile(wb, filename);
     return filePath;
+  }
+
+  async getDispositionByCampaignName(
+    campaignName: string,
+    organization: string
+  ) {
+    Logger.debug({ campaignName, organization });
+    const campaignAgg = this.campaignModel.aggregate();
+    campaignAgg.match({ campaignName, organization });
+    campaignAgg.lookup({
+      from: "dispositions",
+      localField: "_id",
+      foreignField: "campaign",
+      as: "disposition",
+    });
+
+    campaignAgg.project({ disposition: "$disposition" });
+
+    const result = await campaignAgg.exec();
+
+    return result[0].disposition[0];
+  }
+
+  async updateCampaignForm({ organization, payload, campaign }) {
+    return this.campaignFormModel.updateOne(
+      { organization, campaign },
+      { $set: { payload } },
+      { upsert: true }
+    );
+  }
+
+  async archiveCampaign(campaign: any) {
+    return this.campaignModel.findByIdAndUpdate(
+      campaign._id,
+      {
+        $set: { archived: campaign.archived },
+      },
+      { new: true }
+    );
+  }
+
+  async getQuickStatsForCampaigns(
+    campaignNames: string[],
+    organization: string
+  ) {
+    /** also add organiztion because two campaigns can have same names between different organization */
+    const quickStatsAgg = this.leadModel.aggregate();
+    quickStatsAgg.match({
+      organization,
+      campaign: { $in: campaignNames },
+    });
+    quickStatsAgg.group({
+      _id: { campaign: "$campaign" },
+      followUp: {
+        $sum: {
+          $cond: [
+            { $gt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+            1,
+            0,
+          ],
+        },
+      },
+      overdue: {
+        $sum: {
+          $cond: [
+            { $lt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+            1,
+            0,
+          ],
+        },
+      },
+    });
+
+    quickStatsAgg.project({
+      campaign: "$_id.campaign",
+      followUp: "$followUp",
+      overdue: "$overdue",
+      _id: 0,
+    });
+
+    const quickStatsArr = await quickStatsAgg.exec();
+    return keyBy(quickStatsArr, "campaign");
   }
 }

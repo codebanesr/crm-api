@@ -1,36 +1,40 @@
-import { UserModule } from './user/user.module';
-import { ArticleModule } from './article/article.module';
-import 'dotenv/config';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { warn } from 'console';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
-import { LeadModule } from './lead/lead.module';
-import { CampaignModule } from './campaign/campaign.module';
-import { AgentModule } from './agent/agent.module';
-import { OrganizationModule } from './organization/organization.module';
+import { UserModule } from "./user/user.module";
+import { ArticleModule } from "./article/article.module";
+import "dotenv/config";
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { warn } from "console";
+import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
+import { ValidationPipe } from "@nestjs/common";
+import { LeadModule } from "./lead/lead.module";
+import { CampaignModule } from "./campaign/campaign.module";
+import { AgentModule } from "./agent/agent.module";
+import { OrganizationModule } from "./organization/organization.module";
+import { Logger } from "nestjs-pino";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { logger: false });
+  app.useLogger(app.get(Logger));
 
   app.enableCors();
   // ╦ ╦╔═╗╔═╗  ╔═╗╦  ╔═╗╔╗ ╔═╗╦    ╔═╗╦╔═╗╔═╗╔═╗
   // ║ ║╚═╗║╣   ║ ╦║  ║ ║╠╩╗╠═╣║    ╠═╝║╠═╝║╣ ╚═╗
   // ╚═╝╚═╝╚═╝  ╚═╝╩═╝╚═╝╚═╝╩ ╩╩═╝  ╩  ╩╩  ╚═╝╚═╝
-  app.useGlobalPipes(new ValidationPipe({
-    // disableErrorMessages: true,
-    transform: true
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      // disableErrorMessages: true,
+      transform: true,
+    })
+  );
 
   // ╔═╗╦ ╦╔═╗╔═╗╔═╗╔═╗╦═╗
   // ╚═╗║║║╠═╣║ ╦║ ╦║╣ ╠╦╝
   // ╚═╝╚╩╝╩ ╩╚═╝╚═╝╚═╝╩╚═
   const options = new DocumentBuilder()
-    .setTitle('API')
-    .setDescription('API description')
-    .setVersion('1.0')
-    .addTag('API')
+    .setTitle("API")
+    .setDescription("API description")
+    .setVersion("1.0")
+    .addTag("API")
     .build();
   const document = SwaggerModule.createDocument(app, options, {
     include: [
@@ -39,10 +43,10 @@ async function bootstrap() {
       LeadModule,
       CampaignModule,
       AgentModule,
-      OrganizationModule
-  ],
+      OrganizationModule,
+    ],
   });
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup("api", app, document);
 
   // ╔╦╗╔═╗╔═╗╦╔╗╔╔═╗  ╔═╗╔╗╔╔╦╗  ╦  ╦╔═╗╔╦╗╔═╗╔╗╔  ╔╦╗╔═╗  ╔═╗╔═╗╦═╗╔╦╗
   // ║║║╣ ╠╣ ║║║║║╣    ╠═╣║║║ ║║  ║  ║╚═╗ ║ ║╣ ║║║   ║ ║ ║  ╠═╝║ ║╠╦╝ ║

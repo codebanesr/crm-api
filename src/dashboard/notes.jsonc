@@ -1,0 +1,63 @@
+db.timing.aggregate([
+  {
+    "$project": {
+      "year": {
+        "$year": "$date"
+      },
+      "month": {
+        "$month": "$date"
+      },
+      "week": {
+        "$week": "$date"
+      },
+      "day": {
+        "$dayOfWeek": "$date"
+      },
+      "weight": {"$literal": 1},
+      "amount": "$amount"
+    }
+  },
+  {
+    "$group": {
+      "_id": {
+        "year": "$year",
+        "month": "$month",
+        "week": "$week",
+        "day": "$day"
+      },
+      "totalWeightDaily": {
+        "$sum": "$weight"
+      },
+      "totalAmountDaily": {
+        "$sum": "$amount"
+      },
+    }
+  },
+  {
+    "$group": {
+      "_id": {
+        "year": "$_id.year",
+        "month": "$_id.month",
+        "week": "$_id.week"
+      },
+      "totalWeightWeekly": {
+        "$sum": "$totalWeightDaily"
+      },
+      "totalAmountWeekly": {
+        "$sum": "$totalAmountDaily"
+      },
+      "totalWeightDay": {
+        "$push": {
+          "totalWeightDay": "$totalWeightDaily",
+          "totalAmountDay": "$totalAmountDaily",
+          "dayOfWeek": "$_id.day"
+        }
+      }
+    }
+  },
+  {
+    "$match": {
+      "_id.month": 3
+    }
+  }
+])

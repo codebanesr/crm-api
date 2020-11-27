@@ -1,32 +1,43 @@
-import { Injectable, Logger } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  PreconditionFailedException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { Lead } from "./interfaces/lead.interface";
-import { AuthReq } from "./interfaces/auth-request.interface";
-import { isArray } from "lodash";
-import { writeFileSync } from "fs";
+import { Model, NativeError } from "mongoose";
+import { Lead, LeadHistory } from "./interfaces/lead.interface";
+import { get, isArray, isEmpty, keyBy, keys, values } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
 import { sendEmail } from "../utils/sendMail";
 import { IConfig } from "../utils/renameJson";
 import parseExcel from "../utils/parseExcel";
-import { utils, writeFile } from "xlsx";
+import { utils, write } from "xlsx";
 import { EmailTemplate } from "./interfaces/email-template.interface";
 import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
-import { CreateLeadDto } from "./dto/create-lead.dto";
+import { CreateLeadDto, ReassignmentInfo } from "./dto/create-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
-import { response } from "express";
 import { FiltersDto } from "./dto/find-all.dto";
-
+import { AttachmentDto } from "./dto/create-email-template.dto";
+import { createTransport, SendMailOptions } from "nodemailer";
+import { default as config } from "../config";
+import { S3UploadedFiles } from "./dto/generic.dto";
+import { AdminAction } from "../user/interfaces/admin-actions.interface";
+import { UploadService } from "../upload/upload.service";
+import { PushNotificationService } from "../push-notification/push-notification.service";
+import { UpdateContactDto } from "./dto/update-contact.dto";
 @Injectable()
 export class LeadService {
   constructor(
     @InjectModel("Lead")
     private readonly leadModel: Model<Lead>,
+
+    @InjectModel("AdminAction")
+    private readonly adminActionModel: Model<AdminAction>,
 
     @InjectModel("User")
     private readonly userModel: Model<User>,
@@ -47,7 +58,11 @@ export class LeadService {
     private readonly geoLocationModel: Model<GeoLocation>,
 
     @InjectModel("Alarm")
-    private readonly alarmModel: Model<Alarm>
+    private readonly alarmModel: Model<Alarm>,
+
+    private readonly s3UploadService: UploadService,
+
+    private readonly pushNotificationService: PushNotificationService
   ) {}
 
   saveEmailAttachments(files) {
@@ -72,7 +87,7 @@ export class LeadService {
         oldUser: oldUserEmail,
         newUser: newUserEmail,
         note,
-      };
+      } as LeadHistory;
 
       const result = await this.leadModel
         .updateOne(
@@ -94,11 +109,12 @@ export class LeadService {
     content: any,
     subject: string,
     campaign: string,
-    attachments: any,
-    organization: string
+    attachments: AttachmentDto[],
+    organization: string,
+    templateName: string
   ) {
-    let acceptableAttachmentFormat = attachments.map((a: any) => {
-      let { originalname: fileName, path: filePath, ...others } = a;
+    let acceptableAttachmentFormat = attachments.map((a) => {
+      let { key: fileName, Location: filePath, ...others } = a;
       return {
         fileName,
         filePath,
@@ -111,23 +127,26 @@ export class LeadService {
       content: content,
       subject: subject,
       attachments: acceptableAttachmentFormat,
-      organization
+      organization,
+      templateName,
     });
 
     return emailTemplate.save();
   }
 
   // const result = await Campaign.find({type: {$regex: "^"+hint, $options:"I"}}).limit(20);
-  async getAllEmailTemplates(limit, skip, campaign: string, organization: string) {
-    const query = this.emailTemplateModel.aggregate();
-    const result = await query
-      .match({ campaign: { $regex: `^${campaign}`, $options: "I" }, organization })
-      .sort("type")
-      .limit(+limit)
-      .skip(+skip)
+  async getAllEmailTemplates(
+    limit,
+    skip,
+    campaign: string,
+    organization: string
+  ) {
+    return this.emailTemplateModel
+      .find({ campaign, organization })
+      .skip(skip)
+      .limit(limit)
+      .lean()
       .exec();
-
-    return result;
   }
 
   async getLeadHistoryById(externalId: string, organization) {
@@ -180,41 +199,48 @@ export class LeadService {
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
-
     const { assigned, selectedCampaign, dateRange } = filters;
-
     const [startDate, endDate] = dateRange || [];
-    const matchQ = { $and: [{organization}] } as any;
+
+    const leadAgg = this.leadModel.aggregate();
+    // match with text is only allowed as the first pipeline stage
+    if (searchTerm) {
+      leadAgg.match({ $text: { $search: searchTerm } });
+    }
+
+    leadAgg.match({ organization });
+
     if (assigned) {
       const subordinateEmails = await this.getSubordinates(
         activeUserEmail,
         roleType
       );
-      matchQ.$and.push({
+
+      leadAgg.match({
         email: { $in: [...subordinateEmails, activeUserEmail] },
       });
-    } else {
-      matchQ.$and.push({ email: { $exists: false } });
     }
 
     if (startDate) {
-      matchQ.$and.push({
+      leadAgg.match({
         createdAt: { $gt: new Date(startDate) },
       });
     }
 
     if (endDate) {
-      matchQ.$and.push({
+      leadAgg.match({
         createdAt: { $lt: new Date(endDate) },
       });
     }
 
+    /** Move it into a cached service call */
     if (selectedCampaign) {
-      matchQ["$and"].push({ campaign: selectedCampaign });
-    }
+      const campaign = await this.campaignModel
+        .findOne({ _id: selectedCampaign }, { campaignName: 1 })
+        .lean()
+        .exec();
 
-    if (searchTerm) {
-      matchQ["$and"].push({ $text: { $search: searchTerm } });
+      leadAgg.match({ campaign: campaign.campaignName });
     }
 
     let flds;
@@ -230,29 +256,23 @@ export class LeadService {
     }
 
     const projectQ = {} as any;
+
     flds.forEach((fld: string) => {
       projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
     });
 
-    projectQ._id = 0;
+    if (Object.keys(projectQ).length > 0) {
+      leadAgg.project(projectQ);
+    }
 
-    const fq = [
-      { $match: matchQ },
-      {
-        $project: projectQ,
-      },
-      { $sort: { [sortBy]: 1 } },
-      {
-        $facet: {
-          metadata: [
-            { $count: "total" },
-            { $addFields: { page: Number(page) } },
-          ],
-          data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
-        },
-      },
-    ];
-    const response = await this.leadModel.aggregate(fq);
+    leadAgg.sort({ [sortBy]: 1 });
+    leadAgg.facet({
+      metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+      data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
+    });
+
+    const response = await leadAgg.exec();
+
     return {
       total: response[0]?.metadata[0]?.total,
       page: response[0]?.metadata[0]?.page,
@@ -270,9 +290,9 @@ export class LeadService {
     }
     const matchQ: any = { name: campaignType };
 
-    const paths = await this.campaignConfigModel.aggregate([
-      { $match: matchQ },
-    ]);
+    const paths = await this.campaignConfigModel
+      .aggregate([{ $match: matchQ }])
+      .exec();
 
     return { paths: paths };
   }
@@ -298,7 +318,7 @@ export class LeadService {
 
   async findOneById(leadId: string, organization: string) {
     const lead = await this.leadModel
-      .findOne({ externalId: leadId, organization })
+      .findOne({ _id: leadId, organization })
       .lean()
       .exec();
     return lead;
@@ -316,10 +336,7 @@ export class LeadService {
   }
 
   async deleteOne(leadId: string, activeUserEmail: string) {
-    const result = await this.leadModel
-      .remove({ _id: leadId })
-      .lean()
-      .exec();
+    const result = await this.leadModel.remove({ _id: leadId }).lean().exec();
 
     await this.createAlarm({
       module: "LEAD",
@@ -365,7 +382,12 @@ export class LeadService {
     }
   }
 
-  async suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit = 10) {
+  async suggestLeads(
+    activeUserEmail: string,
+    leadId: string,
+    organization: string,
+    limit = 10
+  ) {
     const query = this.leadModel.aggregate();
 
     query.match({
@@ -395,30 +417,56 @@ export class LeadService {
   //   type: 'Lead Generation',
   //   interval: [ '2020-07-24T13:31:02.621Z', '2020-07-04T13:26:07.078Z' ]
   // }
-  async uploadMultipleLeadFiles(files: any[], campaignName: string) {
+  async uploadMultipleLeadFiles(
+    files: S3UploadedFiles[],
+    campaignName: string,
+    uploader: string,
+    organization: string,
+    userId: string,
+    pushtoken: any
+  ) {
     const ccnfg = (await this.campaignConfigModel
       .find(
-        { name: campaignName },
+        { name: campaignName, organization },
         { readableField: 1, internalField: 1, _id: 0 }
       )
       .lean()
       .exec()) as IConfig[];
     if (!ccnfg) {
-      return {
-        error: `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`,
-      };
+      throw new Error(
+        `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`
+      );
     }
 
-    const result = await this.parseLeadFiles(files, ccnfg, campaignName);
+    const adminActions = new this.adminActionModel({
+      userid: userId,
+      organization,
+      actionType: "lead",
+      filePath: files[0].Location,
+      savedOn: "s3",
+      fileType: "campaignConfig",
+    });
+
+    await adminActions.save();
+
+    const result = await this.parseLeadFiles(
+      files,
+      ccnfg,
+      campaignName,
+      organization,
+      uploader,
+      userId,
+      pushtoken
+    );
     // parse data here
     return { files, result };
   }
 
   async syncPhoneCalls(callLogs: SyncCallLogsDto[], organization, user) {
     try {
-      const transformed = callLogs.map(callLog=>{
-        return {...callLog, organization, user}
-      })
+      const transformed = callLogs.map((callLog) => {
+        return { ...callLog, organization, user };
+      });
       return this.callLogModel.insertMany(transformed);
     } catch (e) {
       Logger.error(
@@ -429,7 +477,12 @@ export class LeadService {
     }
   }
 
-  async addGeolocation(activeUserId: string, lat: number, lng: number, organization: string) {
+  async addGeolocation(
+    activeUserId: string,
+    lat: number,
+    lng: number,
+    organization: string
+  ) {
     var geoObj = new this.geoLocationModel({
       userid: Types.ObjectId(activeUserId),
       location: {
@@ -445,68 +498,161 @@ export class LeadService {
 
   async getPerformance() {}
 
-  async updateLead(externalId: string, lead: Partial<CreateLeadDto>) {
-    let obj = {} as any;
-    Object.keys(lead).forEach((key) => {
+  /** @Todo trim all string fields otherwise they will give trouble with equality later on */
+  async updateLead({
+    organization,
+    externalId,
+    lead,
+    geoLocation,
+    loggedInUserEmail,
+    reassignmentInfo,
+    emailForm,
+    requestedInformation,
+  }: CreateLeadDto & {
+    externalId: string;
+    organization: string;
+    loggedInUserEmail: string;
+  }) {
+    let obj = {} as Partial<Lead>;
+    Logger.debug({ geoLocation, reassignmentInfo });
+    const keysToUpdate = Object.keys(lead);
+
+    if (keysToUpdate.length > 25) {
+      throw new PreconditionFailedException(
+        null,
+        "Cannot have more than 25 fields in the lead schema"
+      );
+    }
+    keysToUpdate.forEach((key) => {
       if (!!lead[key]) {
         obj[key] = lead[key];
       }
     });
 
+    const oldLead = await this.leadModel
+      .findOne({ externalId, organization })
+      .lean()
+      .exec();
+
+    const len = oldLead.history?.length;
+    const nextEntryInHistory = {
+      geoLocation: {},
+    } as LeadHistory;
+
+    // this len condition maybe unnecessary if mongoose itself handles
+    // this condition being an array since that is what we defined in
+    // the schema, also try
+    const prevHistory = get(oldLead, `history${[len - 1]}`, null);
+    if (len === 0 && !reassignmentInfo) {
+      // assign to logged in user and notes will be lead was created by
+      nextEntryInHistory[
+        "notes"
+      ] = `Lead has been assigned to ${loggedInUserEmail} by default`;
+      nextEntryInHistory["newUser"] = loggedInUserEmail;
+    }
+
+    if (reassignmentInfo && prevHistory?.newUser !== reassignmentInfo.newUser) {
+      nextEntryInHistory[
+        "notes"
+      ] = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
+      nextEntryInHistory["oldUser"] = prevHistory.newUser;
+      nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
+    }
+
+    if (lead.leadStatus !== oldLead.leadStatus) {
+      nextEntryInHistory[
+        "notes"
+      ] = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+    }
+
+    nextEntryInHistory.geoLocation = geoLocation;
+    if (requestedInformation && Object.keys(requestedInformation).length > 0) {
+      /** @Todo this filter should be removed, checkbox is currently returning empty object, please remove that */
+      nextEntryInHistory["requestedInformation"] = requestedInformation.filter(
+        (ri) => Object.keys(ri).length > 0
+      );
+    }
+
+    /** Do not update contact, there will be a separate api for adding contact information */
+    let { history, contact, ...filteredObj } = obj;
+
+    // if reassignment is required, change that in the lead
+    if (get(reassignmentInfo, "newUser")) {
+      obj.email = reassignmentInfo.newUser;
+    }
+
     const result = await this.leadModel.findOneAndUpdate(
-      { externalId: externalId },
-      { $set: obj }
+      { externalId: externalId, organization },
+      { $set: filteredObj, $push: { history: nextEntryInHistory } }
     );
 
+    if (!values(emailForm).every(isEmpty)) {
+      const { subject, attachments, content } = emailForm;
+      this.sendEmailToLead({
+        content,
+        subject,
+        attachments,
+        email: lead.email,
+      });
+    }
     return result;
   }
 
   /** Findone and update implementation */
-  async saveLeads(
-    leads: any[],
-    campaignName: string,
-    originalFileName: string
-  ) {
-    const created = [];
-    const updated = [];
-    const error = [];
+  // async saveLeads(
+  //   leads: any[],
+  //   campaignName: string,
+  //   originalFileName: string
+  // ) {
+  //   const created = [];
+  //   const updated = [];
+  //   const error = [];
 
-    for (const l of leads) {
-      const { lastErrorObject, value } = await this.leadModel
-        .findOneAndUpdate(
-          { externalId: l.externalId },
-          { ...l, campaign: campaignName },
-          { new: true, upsert: true, rawResult: true }
-        )
-        .lean()
-        .exec();
-      if (lastErrorObject.updatedExisting === true) {
-        updated.push(value);
-      } else if (lastErrorObject.upserted) {
-        created.push(value);
-      } else {
-        error.push(value);
-      }
-    }
+  //   for (const l of leads) {
+  //     const { lastErrorObject, value } = await this.leadModel
+  //       .findOneAndUpdate(
+  //         { externalId: l.externalId },
+  //         { ...l, campaign: campaignName },
+  //         { new: true, upsert: true, rawResult: true }
+  //       )
+  //       .lean()
+  //       .exec();
+  //     if (lastErrorObject.updatedExisting === true) {
+  //       updated.push(value);
+  //     } else if (lastErrorObject.upserted) {
+  //       created.push(value);
+  //     } else {
+  //       error.push(value);
+  //     }
+  //   }
 
-    // createExcel files and update them to aws and then store the urls in database with AdminActions
-    const created_ws = utils.json_to_sheet(created);
-    const updated_ws = utils.json_to_sheet(updated);
+  //   // createExcel files and update them to aws and then store the urls in database with AdminActions
+  //   const created_ws = utils.json_to_sheet(created);
+  //   const updated_ws = utils.json_to_sheet(updated);
 
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, updated_ws, "tickets updated");
-    utils.book_append_sheet(wb, created_ws, "tickets created");
+  //   const wb = utils.book_new();
+  //   utils.book_append_sheet(wb, updated_ws, "updated");
+  //   utils.book_append_sheet(wb, created_ws, "created");
 
-    writeFile(wb, originalFileName + "_system");
-    console.log(
-      "created: ",
-      created.length,
-      "updated: ",
-      updated.length,
-      "error:",
-      error.length
-    );
-  }
+  //   writeFile(wb, originalFileName + "_system");
+
+  //   const result = await this.s3.upload({
+  //     Key: `lead:${originalFileName}:${new Date().toDateString()}`,
+  //     Body: wb,
+  //     Bucket: AppConfig.s3.region,
+  //     ContentType: "application/vnd.ms-excel",
+  //   });
+
+  //   Logger.debug(result);
+  //   // console.log(
+  //   //   "created: ",
+  //   //   created.length,
+  //   //   "updated: ",
+  //   //   updated.length,
+  //   //   "error:",
+  //   //   error.length
+  //   // );
+  // }
 
   async getSubordinates(email: string, roleType: string) {
     if (roleType !== "manager" && roleType !== "seniorManager") {
@@ -536,27 +682,67 @@ export class LeadService {
     return result[0].subordinates;
   }
 
-  async parseLeadFiles(files: any[], ccnfg: IConfig[], campaignName: string) {
-    files.forEach(async (file: any) => {
-      const jsonRes = parseExcel(file.path, ccnfg);
-      this.saveLeadsFromExcel(jsonRes, campaignName, file.originalname);
+  async parseLeadFiles(
+    files: S3UploadedFiles[],
+    ccnfg: IConfig[],
+    campaignName: string,
+    organization: string,
+    uploader: string,
+    uploaderId: string,
+    pushtoken
+  ) {
+    files.forEach(async (file) => {
+      const jsonRes = await parseExcel(file.Location, ccnfg);
+      await this.saveLeadsFromExcel(
+        jsonRes,
+        campaignName,
+        file.Key,
+        organization,
+        uploader,
+        uploaderId,
+        pushtoken
+      );
     });
   }
 
   async saveLeadsFromExcel(
     leads: any[],
     campaignName: string,
-    originalFileName: string
+    originalFileName: string,
+    organization: string,
+    uploader: string,
+    uploaderId: string,
+    pushtoken
   ) {
     const created = [];
     const updated = [];
     const error = [];
 
-    for (const l of leads) {
+    const leadColumns = await this.campaignConfigModel
+      .find({
+        name: campaignName,
+        organization,
+      })
+      .lean()
+      .exec();
+
+    const leadMappings = keyBy(leadColumns, "internalField");
+    for (const lead of leads) {
+      let contact = [];
+      Object.keys(lead).forEach((key) => {
+        if (leadMappings[key].group === "contact") {
+          contact.push({
+            label: leadMappings[key].readableField,
+            value: lead[key],
+          });
+          delete lead[key];
+        }
+      });
+
       const { lastErrorObject, value } = await this.leadModel
         .findOneAndUpdate(
-          { externalId: l.externalId },
-          { ...l, campaign: campaignName },
+          { externalId: lead.externalId },
+          { ...lead, campaign: campaignName, contact, organization, uploader },
           { new: true, upsert: true, rawResult: true }
         )
         .lean()
@@ -578,15 +764,37 @@ export class LeadService {
     utils.book_append_sheet(wb, updated_ws, "tickets updated");
     utils.book_append_sheet(wb, created_ws, "tickets created");
 
-    writeFile(wb, originalFileName + "_system");
-    console.log(
-      "created: ",
-      created.length,
-      "updated: ",
-      updated.length,
-      "error:",
-      error.length
-    );
+    // writeFile(wb, originalFileName + "_system");
+    const wbOut = write(wb, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    const fileName = `result-${originalFileName}`;
+    const result = await this.s3UploadService.uploadFileBuffer(fileName, wbOut);
+
+    const adminActions = new this.adminActionModel({
+      label: fileName,
+      userid: uploaderId,
+      organization,
+      actionType: "lead",
+      filePath: result.Location,
+      savedOn: "s3",
+      fileType: "lead",
+    });
+
+    await adminActions.save();
+
+    await this.pushNotificationService.sendPushNotification(pushtoken, {
+      notification: {
+        title: "File Upload Complete",
+        icon: `https://cdn3.vectorstock.com/i/1000x1000/94/72/cute-black-cat-icon-vector-13499472.jpg`,
+        body: `please visit ${result.Location} for the result`,
+        tag: "some random tag",
+        badge: `https://e7.pngegg.com/pngimages/564/873/png-clipart-computer-icons-education-molecule-icon-structure-area.png`,
+      },
+    });
+    return result;
   }
 
   async leadActivityByUser(startDate: string, endDate: string, email: string) {
@@ -618,26 +826,90 @@ export class LeadService {
     return uq;
   }
 
-  async fetchNextLead(campaignId: string, leadStatus: string, email: string, organization: string) {
-    const campaign: any = await this.campaignModel
+  async fetchNextLead({
+    campaignId,
+    filters,
+    email,
+    organization,
+    typeDict,
+  }: {
+    campaignId: string;
+    filters: Map<string, string>;
+    email: string;
+    organization: string;
+    typeDict: Map<string, any>;
+  }) {
+    // Null value removal
+    Object.keys(filters).forEach((k) => {
+      if (!filters[k]) {
+        delete filters[k];
+      }
+    });
+
+    const campaign = await this.campaignModel
       .findOne({ _id: campaignId, organization })
       .lean()
       .exec();
-    const result = await this.leadModel
-      .findOne({
-        campaign: campaign.campaignName,
-        leadStatus,
-        $or: [
-          { email: email },
-          {
-            email: { $exists: false },
-          },
-        ],
-      })
-      .sort({ _id: -1 })
-      .lean()
-      .exec();
-    return { result };
+
+    if (!campaign.browsableCols || !campaign.editableCols) {
+      throw new NativeError(
+        "Please add browsable and editable columns for this campaign"
+      );
+    }
+
+    const singleLeadAgg = this.leadModel.aggregate();
+    singleLeadAgg.match({ campaign: campaign.campaignName, email });
+
+    Object.keys(filters).forEach((key) => {
+      switch (typeDict[key].type) {
+        case "string":
+        case "select":
+        case "tel":
+          const expr = new RegExp(filters[key]);
+          singleLeadAgg.match({ [key]: { $regex: expr, $options: "i" } });
+          break;
+        case "date":
+          const dateInput = filters[key];
+          if (dateInput.length === 2) {
+            const startDate = new Date(dateInput[0]);
+            const endDate = new Date(dateInput[1]);
+
+            singleLeadAgg.match({
+              [key]: {
+                $gte: startDate,
+                $lt: endDate,
+              },
+            });
+          } else if (dateInput.length === 1) {
+            singleLeadAgg.match({
+              [key]: {
+                $eq: new Date(dateInput[0]),
+              },
+            });
+          }
+          break;
+      }
+    });
+
+    // oldest lead first from match queries
+    singleLeadAgg.sort({ _id: 1 });
+    singleLeadAgg.limit(1);
+
+    let projection = {};
+
+    campaign.browsableCols.forEach((c) => {
+      projection[c] = 1;
+    });
+
+    /** @Todo Quick fix for sending contact ionformation to frontend, to put some effort into this if required */
+    projection["contact"] = 1;
+
+    // other information that should always show up, one is history
+    projection["history"] = 1;
+
+    singleLeadAgg.project(projection);
+    const result = (await singleLeadAgg.exec())[0];
+    return Promise.resolve({ result });
   }
 
   getSaleAmountByLeadStatus(campaignName?: string) {
@@ -654,28 +926,139 @@ export class LeadService {
     return qb.exec();
   }
 
+  // date will always be greater than today
+  async getFollowUps({
+    interval,
+    organization,
+    email,
+    campaignName,
+    limit,
+    skip,
+    page,
+  }) {
+    const leadAgg = this.leadModel.aggregate();
+    var todayStart = new Date();
+    todayStart.setHours(0);
+    todayStart.setMinutes(0);
+    todayStart.setSeconds(1);
 
+    var todayEnd = new Date();
+    todayEnd.setHours(23);
+    todayEnd.setMinutes(59);
+    todayEnd.setSeconds(59);
 
-  async getFollowUps() {
-    
+    if (campaignName) {
+      leadAgg.match({ campaign: campaignName });
+    }
+
+    if (interval?.length === 2) {
+      leadAgg.match({
+        followUp: {
+          $gte: new Date(interval[0]),
+          $lte: new Date(interval[1]),
+        },
+      });
+    } else {
+      leadAgg.match({
+        followUp: {
+          $gte: todayStart,
+        },
+      });
+    }
+
+    leadAgg.match({ organization, email });
+    leadAgg.sort({ followUp: 1 });
+
+    leadAgg.facet({
+      metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
+      data: [{ $skip: skip }, { $limit: limit }], // add projection here wish you re-shape the docs
+    });
+
+    return leadAgg.exec();
   }
 
-
-
   async getAllAlarms(body, organization) {
-    const { page = 1, perPage = 20, filters={}, sortBy = 'createdAt' } = body;
+    const { page = 1, perPage = 20, filters = {}, sortBy = "createdAt" } = body;
 
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
 
-
     const fq = [
-        { $match: {organization} },
-        { $sort: { [sortBy]: 1 } },
-        { $skip: skip },
-        { $limit: limit }
+      { $match: { organization } },
+      { $sort: { [sortBy]: 1 } },
+      { $skip: skip },
+      { $limit: limit },
     ];
 
-    return await this.alarmModel.aggregate(fq).exec();
+    return this.alarmModel.aggregate(fq).exec();
+  }
+
+  // https://docs.mongodb.com/manual/core/aggregation-pipeline-optimization/#match-match-coalescence,
+  // it is ok to use consecutive match statements
+  async getUsersActivity(
+    dateRange: Date[],
+    userEmail: string,
+    organization: string
+  ) {
+    let startDate, endDate;
+    const userAgg = this.leadModel.aggregate();
+    userAgg.match({ email: userEmail, organization });
+    if (dateRange) {
+      [startDate, endDate] = dateRange;
+      userAgg.match({ createdAt: { $gte: startDate, $lt: endDate } });
+    }
+
+    // project fields that we want
+    userAgg.project({ amount: "$amount", leadStatus: "$leadStatus" });
+
+    // group by lead status
+    userAgg.group({ _id: "$leadStatus", amount: { $sum: "$amount" } });
+
+    return userAgg.exec();
+  }
+
+  async sendEmailToLead({ content, subject, attachments, email }) {
+    let transporter = createTransport({
+      service: "Mailgun",
+      auth: {
+        user: config.mail.user,
+        pass: config.mail.pass,
+      },
+    });
+
+    let mailOptions: SendMailOptions = {
+      from: '"Company" <' + config.mail.user + ">",
+      to: ["shanur.cse.nitap@gmail.com"],
+      subject: subject,
+      text: content,
+      replyTo: {
+        name: "shanur",
+        address: "mnsh0203@gmail.com",
+      },
+      attachments: attachments?.map((a) => {
+        return {
+          filename: a.fileName,
+          path: a.filePath,
+        };
+      }),
+    };
+
+    var sended = await new Promise<boolean>(async function (resolve, reject) {
+      return await transporter.sendMail(mailOptions, async (error, info) => {
+        if (error) {
+          console.log("Message sent: %s", error);
+          return reject(false);
+        }
+        console.log("Message sent: %s", info.messageId);
+        resolve(true);
+      });
+    });
+    return sended;
+  }
+
+  async addContact(contact: UpdateContactDto, leadId: string) {
+    return this.leadModel.findByIdAndUpdate(leadId, {
+      $push: { contact },
+    });
   }
 }

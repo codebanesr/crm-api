@@ -1,8 +1,27 @@
-import { IsString, IsArray, IsEmail, IsNumber, IsDate, Max, Min, IsDateString, IsOptional } from "class-validator";
+import {
+  IsString,
+  IsEmail,
+  IsNumber,
+  Min,
+  IsDateString,
+  IsOptional,
+  ValidateNested,
+} from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
+import { EmailTemplate } from "../interfaces/email-template.interface";
+import { AttachmentDto } from "./create-email-template.dto";
 
-export class CreateLeadDto {
+class GeoLocation {
+  @IsNumber({}, { each: true })
+  coordinates: number[];
+}
+
+export class ReassignmentInfo {
+  newUser: string;
+}
+
+export class Lead {
   @ApiProperty({
     example: "1",
     description: "The id coming from external system",
@@ -69,7 +88,6 @@ export class CreateLeadDto {
   @Type(() => Number)
   amount: number;
 
-
   @ApiProperty({
     example: "shanur@gcsns.com",
     description: "Customer's email ",
@@ -79,16 +97,15 @@ export class CreateLeadDto {
   @IsEmail()
   customerEmail: string;
 
-
   @ApiProperty({
     example: "+91",
     description: "Phone number prefix",
     format: "number",
     default: 1,
   })
+  @IsOptional()
   @IsString()
-  phoneNumberPrefix: string;
-
+  phoneNumberPrefix?: string;
 
   @ApiProperty({
     example: "9199945454",
@@ -99,7 +116,6 @@ export class CreateLeadDto {
   @IsString()
   phoneNumber: string;
 
-
   @ApiProperty({
     example: "Nurturing",
     description: "Describes the status of the lead",
@@ -108,7 +124,6 @@ export class CreateLeadDto {
   })
   @IsString()
   leadStatus: string;
-
 
   @ApiProperty({
     example: "Park view CA",
@@ -119,16 +134,14 @@ export class CreateLeadDto {
   @IsString()
   address: string;
 
-
   @ApiProperty({
     example: new Date(),
     description: "Page Number in paginated view",
     format: "number",
-    default: new Date,
+    default: new Date(),
   })
   @IsDateString()
   followUp: Date;
-
 
   @ApiProperty({
     example: "moleculesns",
@@ -139,7 +152,6 @@ export class CreateLeadDto {
   @IsString()
   companyName: string;
 
-
   @ApiProperty({
     example: "Very nice product",
     description: "Latest remark after disposition",
@@ -148,7 +160,6 @@ export class CreateLeadDto {
   })
   @IsString()
   remarks: string;
-
 
   @ApiProperty({
     example: "CRM",
@@ -159,17 +170,15 @@ export class CreateLeadDto {
   @IsString()
   product: string;
 
-
-  // @ApiProperty({
-  //   example: "coordinates",
-  //   required: false,
-  //   description: "User's geo location",
-  //   type: JSON,
-  //   default: 1,
-  // })
-  // @IsString()
-  // geoLocation: string;
-
+  @ApiProperty({
+    example: "coordinates",
+    required: false,
+    description: "User's geo location",
+    type: JSON,
+    default: 1,
+  })
+  @ValidateNested()
+  geoLocation: GeoLocation;
 
   @ApiProperty({
     example: "1",
@@ -181,7 +190,6 @@ export class CreateLeadDto {
   @IsOptional()
   bucket: string;
 
-
   @ApiProperty({
     example: "New Patliputra",
     description: "Describe the operational area of the customer/company",
@@ -192,7 +200,6 @@ export class CreateLeadDto {
   @IsOptional()
   operationalArea: string;
 
-
   @ApiProperty({
     example: 808901,
     description: "Area Pincode",
@@ -202,4 +209,24 @@ export class CreateLeadDto {
   @IsNumber()
   @IsOptional()
   pincode: number;
+}
+
+export class CreateLeadDto {
+  lead: Lead;
+  geoLocation: GeoLocation;
+
+  @IsOptional()
+  reassignmentInfo?: ReassignmentInfo;
+
+  @IsOptional()
+  emailForm: {
+    attachments: {
+      filePath: string;
+      fileName: string;
+    };
+    content: string;
+    subject: string;
+  };
+
+  requestedInformation?: { [key: string]: string }[];
 }

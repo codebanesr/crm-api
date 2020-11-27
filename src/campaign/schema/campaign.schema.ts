@@ -11,8 +11,22 @@ export const CampaignSchema = new Schema(
       ref: "User",
       required: true,
     },
+    archived: Boolean,
     interval: [Date],
+    assignees: [{ type: Types.ObjectId, ref: "User" }],
     type: { type: String },
+    browsableCols: [String],
+    uniqueCols: [String],
+    editableCols: [String],
+    assignTo: [String],
+    advancedSettings: [String],
+    formModel: Object,
+    groups: [
+      {
+        label: String,
+        value: [String],
+      },
+    ],
   },
   { timestamps: true }
 );

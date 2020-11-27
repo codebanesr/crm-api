@@ -14,49 +14,45 @@ export class AgentService {
 
   async listActions(
     activeUserId: string,
+    organization: string,
     skip,
     fileType,
     sortBy = "handler",
     me
   ) {
-    const matchQ = {} as any;
-    if (fileType) {
-      matchQ.fileType = fileType;
-    }
+    const fq = this.adminActionModel.aggregate();
+    fq.match({ organization });
 
     if (me) {
-      matchQ.userid = new Types.ObjectId(activeUserId);
+      fq.match({ userid: activeUserId });
     }
 
-    const fq = [
-      { $match: matchQ },
-      {
-        $lookup: {
-          from: "users",
-          localField: "userid",
-          foreignField: "_id",
-          as: "userdetails",
-        },
-      },
-      {
-        $unwind: { path: "$userdetails" },
-      },
-      {
-        $project: {
-          email: "$userdetails.email",
-          savedOn: "$userdetails.savedOn",
-          filePath: "$filePath",
-          actionType: "$actionType",
-          createdAt: "$createdAt",
-        },
-      },
-      { $sort: { createdAt: -1 } },
-      { $skip: Number(skip) },
-      {
-        $limit: 10,
-      },
-    ];
-    return this.adminActionModel.aggregate(fq);
+    // if (fileType) {
+    //   fq.match({ fileType });
+    // }
+
+    fq.lookup({
+      from: "users",
+      localField: "userid",
+      foreignField: "_id",
+      as: "userdetails",
+    });
+
+    fq.unwind({ path: "$userdetails" });
+
+    fq.project({
+      email: "$userdetails.email",
+      savedOn: "$userdetails.savedOn",
+      filePath: "$filePath",
+      actionType: "$actionType",
+      createdAt: "$createdAt",
+      label: "$label",
+    });
+
+    fq.sort({ createdAt: -1 });
+    fq.skip(Number(skip));
+    fq.limit(20);
+    return fq.exec();
   }
 
   async downloadFile(location: string, res: Response) {
