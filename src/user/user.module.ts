@@ -1,4 +1,3 @@
-import { MongooseModule } from "@nestjs/mongoose";
 import { UserSchema } from "./schemas/user.schema";
 import { Module } from "@nestjs/common";
 import { UserController } from "./user.controller";
@@ -7,6 +6,8 @@ import { AuthModule } from "../auth/auth.module";
 import { ForgotPasswordSchema } from "./schemas/forgot-password.schema";
 import { AdminActionSchema } from "./schemas/admin-action.schema";
 import { MulterModule } from "@nestjs/platform-express";
+import { MongooseModule } from "@nestjs/mongoose";
+import { PushNotificationService } from "src/push-notification/push-notification.service";
 
 @Module({
   imports: [
@@ -22,8 +23,6 @@ import { MulterModule } from "@nestjs/platform-express";
   ],
   controllers: [UserController],
   providers: [UserService],
-  exports: [
-    UserService
-  ]
+  exports: [UserService],
 })
 export class UserModule {}

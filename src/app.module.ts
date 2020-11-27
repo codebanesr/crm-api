@@ -5,18 +5,28 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { UserModule } from "./user/user.module";
 import { AuthModule } from "./auth/auth.module";
 import { ArticleModule } from "./article/article.module";
-import { LeadModule } from './lead/lead.module';
-import { CampaignModule } from './campaign/campaign.module';
-import { AgentModule } from './agent/agent.module';
+import { LeadModule } from "./lead/lead.module";
+import { CampaignModule } from "./campaign/campaign.module";
+import { AgentModule } from "./agent/agent.module";
 import { APP_INTERCEPTOR } from "@nestjs/core";
-import { OrganizationModule } from './organization/organization.module';
-import { SharedModule } from './shared/shared.module';
-
+import { OrganizationModule } from "./organization/organization.module";
+import { SharedModule } from "./shared/shared.module";
+import { ServeStaticModule } from "@nestjs/serve-static/dist/serve-static.module";
+import { join } from "path";
+import { DashboardModule } from "./dashboard/dashboard.module";
+import { UploadService } from "./upload/upload.service";
+import { PushNotificationService } from "./push-notification/push-notification.service";
+import Config from "./config";
+import { LoggerModule } from "nestjs-pino";
 
 @Module({
   imports: [
+    LoggerModule.forRoot(),
     CacheModule.register(),
-    MongooseModule.forRoot(process.env.MONGODB_URI),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, "..", "client"),
+    }),
+    MongooseModule.forRoot(Config.MONGODB_URI),
     UserModule,
     AuthModule,
     ArticleModule,
@@ -25,6 +35,7 @@ import { SharedModule } from './shared/shared.module';
     AgentModule,
     OrganizationModule,
     SharedModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
@@ -33,6 +44,8 @@ import { SharedModule } from './shared/shared.module';
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
     },
+    UploadService,
+    PushNotificationService,
   ],
 })
 export class AppModule {}

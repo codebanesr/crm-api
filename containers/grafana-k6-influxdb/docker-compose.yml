@@ -1,0 +1,33 @@
+version: '2'
+
+services:
+  influxdb:
+    container_name: influxdb
+    image: docker.io/bitnami/influxdb:1-debian-10
+    environment:
+      - 'INFLUXDB_ADMIN_USER_PASSWORD=influxdb'
+      - 'K6_INFLUXDB_USERNAME=admin'
+    ports:
+      - 8086:8086
+      - 8088:8088
+    volumes:
+      - influxdb_data:/bitnami/influxdb
+
+  grafana:
+    image: docker.io/bitnami/grafana:7-debian-10
+    ports:
+      - '3086:3000'
+    environment:
+      - 'GF_SECURITY_ADMIN_PASSWORD=bitnami'
+    volumes:
+      - grafana_data:/opt/bitnami/grafana/data
+
+volumes:
+  grafana_data:
+    driver: local
+  influxdb_data:
+    driver: local
+
+
+
+    1:45 dubai time 

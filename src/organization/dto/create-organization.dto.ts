@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString, MinLength, MaxLength, IsEmail, IsEnum, IsDateString, IsDate, IsIn, IsOptional } from "class-validator";
-import { OrganizationalType } from "src/utils/organizational.enum";
+import { OrganizationalType } from "../../utils/organizational.enum";
 
 /** @Todo add phone number and email as well with @OneOf */
 export class CreateOrganizationDto {
@@ -69,7 +69,7 @@ export class CreateOrganizationDto {
       @IsNotEmpty()
       @MinLength(8)
       @MaxLength(14)
-      phoneNumber: String
+      phoneNumber: string
 
 
 

@@ -9,12 +9,13 @@ import {
   Logger,
   HttpException,
   HttpStatus,
+  MethodNotAllowedException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { v4 } from "uuid";
 import { addHours } from "date-fns";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { VerifyUuidDto } from "./dto/verify-uuid.dto";
 import { RefreshAccessTokenDto } from "./dto/refresh-access-token.dto";
@@ -29,8 +30,8 @@ import { writeFile, utils } from "xlsx";
 import { join } from "path";
 import { default as config } from "../config";
 import { createTransport } from "nodemailer";
-import { getForgotPasswordTemplate } from "src/utils/forgot-password-template";
-import { CurrentUser } from "src/auth/decorators/current-user.decorator";
+import { getForgotPasswordTemplate } from "../utils/forgot-password-template";
+import { PushNotificationDto } from "./dto/push-notification.dto";
 
 @Injectable()
 export class UserService {
@@ -90,6 +91,7 @@ export class UserService {
     return {
       fullName: user.fullName,
       email: user.email,
+      roleType: user.roleType,
       accessToken: await this.authService.createAccessToken(user._id),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
     };
@@ -210,9 +212,12 @@ export class UserService {
   }
 
   async getSubordinates(user: User, organization: string): Promise<any> {
-    if(user.roleType === 'admin') {
-      const users = await this.userModel.find({organization}, {email: 1, _id: 0})
-      return users.map(u=>u.email)
+    if (user.roleType === "admin") {
+      const users = await this.userModel.find(
+        { organization },
+        { email: 1, _id: 0 }
+      );
+      return users.map((u) => u.email);
     }
 
     if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
@@ -409,7 +414,7 @@ export class UserService {
   }
 
   async insertMany(activeUserId: string, filePath: string) {
-    const jsonRes = parseExcel(filePath);
+    const jsonRes = await parseExcel(filePath);
 
     const userid = Types.ObjectId(activeUserId);
     // this path comes from multer and is where the original file is stored
@@ -519,7 +524,10 @@ export class UserService {
     return filePath;
   }
 
-  async sendEmailForgotPassword(email: string, token): Promise<boolean> {
+  async sendEmailForgotPassword(
+    email: string,
+    token: string
+  ): Promise<boolean> {
     var userFromDb = await this.userModel.findOne({ email: email });
     if (!userFromDb)
       throw new HttpException("LOGIN.USER_NOT_FOUND", HttpStatus.NOT_FOUND);
@@ -538,14 +546,14 @@ export class UserService {
         to: [email],
         subject: "Frogotten Password",
         text: "Forgot Password",
-        html: getForgotPasswordTemplate(
-          config.host.url,
-          config.host.port,
-          token
-        ),
+        html: getForgotPasswordTemplate({
+          hostUrl: config.host.url,
+          hostPort: config.host.port,
+          resetToken: token,
+        }),
       };
 
-      var sended = await new Promise<boolean>(async function(resolve, reject) {
+      var sended = await new Promise<boolean>(async function (resolve, reject) {
         return await transporter.sendMail(mailOptions, async (error, info) => {
           if (error) {
             console.log("Message sent: %s", error);
@@ -588,5 +596,25 @@ export class UserService {
         },
       ])
       .exec();
+  }
+
+  async getUserById(userid: string, organization) {
+    return this.userModel.findOne({ _id: userid }, { password: 0 });
+  }
+
+  async updateUser(userid: string, user: CreateUserDto) {
+    return this.userModel.updateOne({ _id: userid }, user);
+  }
+
+  async subscribeToPushNotification(
+    userId: string,
+    pushtoken: PushNotificationDto
+  ) {
+    await this.userModel.findOneAndUpdate({ _id: userId }, { pushtoken });
+    return { message: "Successfully registered to push notification" };
+  }
+
+  async sendPushNotification() {
+    throw new MethodNotAllowedException();
   }
 }

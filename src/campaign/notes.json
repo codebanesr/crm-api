@@ -1,0 +1,26 @@
+db.leads.aggregate([
+  { "$match": { "campaign": { "$in": ["Another Campaign", "Mobile-v1"] } } },
+  {
+    "$group": {
+      "_id": { "campaign": "$campaign" },
+      "followUp": {
+        "$sum": {
+          "$cond": [
+            { "$gt": ["$followUp", ISODate("2020-12-17T17:26:57.701Z")] },
+            1,
+            0
+          ]
+        }
+      },
+      "overdue": {
+        "$sum": {
+          "$cond": [
+            { "$lt": ["$followUp", ISODate("2020-12-17T17:26:57.701Z")] },
+            1,
+            0
+          ]
+        }
+      }
+    }
+  }
+])

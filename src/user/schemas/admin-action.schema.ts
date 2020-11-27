@@ -1,9 +1,17 @@
 import { Schema } from "mongoose";
 
-export const AdminActionSchema = new Schema({
-    userid: Schema.Types.ObjectId,
+export const AdminActionSchema = new Schema(
+  {
+    userid: { type: Schema.Types.ObjectId, ref: "User" },
+    organization: { type: Schema.Types.ObjectId, ref: "Organization" },
     actionType: String,
     filePath: String,
-    savedOn: String,
+    savedOn: {
+      type: String,
+      enum: ["disk", "s3"],
+    },
     fileType: String,
-}, { timestamps: true });
+    label: String,
+  },
+  { timestamps: true }
+);

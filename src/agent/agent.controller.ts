@@ -15,6 +15,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { User } from "../user/interfaces/user.interface";
+import { Roles } from "../auth/decorators/roles.decorator";
 
 @ApiTags("Agent")
 @Controller("agent")
@@ -25,6 +26,7 @@ export class AgentController {
   @Get("listActions")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "List all admin actions" })
+  @Roles('admin')
   @HttpCode(HttpStatus.OK)
   getUsersPerformance(
     @CurrentUser() user: User,
@@ -33,10 +35,11 @@ export class AgentController {
     @Query("sortBy") sortBy: string = 'handler',
     @Query("me") me: boolean
   ) {
-    const { id: activeUserId } = user;
+    const { id: activeUserId, organization } = user;
 
     return this.agentService.listActions(
       activeUserId,
+      organization,
       skip,
       fileType,
       sortBy,
