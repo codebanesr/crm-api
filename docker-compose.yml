@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   main:
-    image: "node:14-slim"
+    image: "node:14.15.1-alpine3.12"
     container_name: main
     build:
       context: .
@@ -15,7 +15,7 @@ services:
       - VERSION=1.0
     volumes:
       - .:/usr/src/app
-      - /usr/app/node_modules
+      # - /usr/app/node_modules
     ports:
       - "3000:3000"
     tty: true
