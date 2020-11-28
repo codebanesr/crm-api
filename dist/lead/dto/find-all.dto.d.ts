@@ -11,4 +11,5 @@ export declare class FindAllDto {
     readonly showCols: string[];
     readonly searchTerm: string;
     readonly filters?: FiltersDto;
+    readonly typeDict?: any;
 }

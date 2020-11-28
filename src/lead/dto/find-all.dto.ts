@@ -86,4 +86,6 @@ export class FindAllDto {
     },
   })
   readonly filters?: FiltersDto;
+
+  readonly typeDict?: any;
 }

@@ -153,18 +153,45 @@ let LeadService = class LeadService {
             return { result, total };
         });
     }
-    findAll(page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, activeUserEmail, roleType, organization) {
+    findAll(page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, activeUserEmail, roleType, organization, typeDict) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
-            const { assigned, selectedCampaign, dateRange } = filters;
+            const { assigned, selectedCampaign, dateRange } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange"]);
             const [startDate, endDate] = dateRange || [];
             const leadAgg = this.leadModel.aggregate();
             if (searchTerm) {
                 leadAgg.match({ $text: { $search: searchTerm } });
             }
-            leadAgg.match({ organization });
+            const matchQuery = { organization };
+            Object.keys(otherFilters).forEach((k) => {
+                if (!otherFilters[k]) {
+                    delete otherFilters[k];
+                }
+            });
+            Object.keys(otherFilters).forEach((key) => {
+                switch (typeDict[key].type) {
+                    case "string":
+                    case "select":
+                    case "tel":
+                        const expr = new RegExp(otherFilters[key]);
+                        matchQuery[key] = { $regex: expr, $options: "i" };
+                        break;
+                    case "date":
+                        const dateInput = otherFilters[key];
+                        if (dateInput.length === 2) {
+                            const startDate = new Date(dateInput[0]);
+                            const endDate = new Date(dateInput[1]);
+                            matchQuery[key] = { $gte: startDate, $lt: endDate };
+                        }
+                        else if (dateInput.length === 1) {
+                            matchQuery[key] = { $eq: new Date(dateInput[0]) };
+                        }
+                        break;
+                }
+            });
+            leadAgg.match(matchQuery);
             if (assigned) {
                 const subordinateEmails = yield this.getSubordinates(activeUserEmail, roleType);
                 leadAgg.match({
@@ -437,11 +464,11 @@ let LeadService = class LeadService {
     }
     getSubordinates(email, roleType) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (roleType !== "manager" && roleType !== "seniorManager") {
+            if (roleType === "frontline") {
                 return [email];
             }
             const fq = [
-                { $match: { email: email } },
+                { $match: { email: email, verified: true } },
                 {
                     $graphLookup: {
                         from: "users",

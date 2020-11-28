@@ -41,7 +41,7 @@ export declare class LeadService {
         result: any[];
         total: number;
     }>;
-    findAll(page: number, perPage: number, sortBy: string, showCols: string[], searchTerm: string, filters: FiltersDto, activeUserEmail: string, roleType: string, organization: string): Promise<{
+    findAll(page: number, perPage: number, sortBy: string, showCols: string[], searchTerm: string, filters: FiltersDto, activeUserEmail: string, roleType: string, organization: string, typeDict: any): Promise<{
         total: any;
         page: any;
         data: any;
