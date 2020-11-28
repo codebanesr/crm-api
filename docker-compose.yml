@@ -6,8 +6,8 @@ services:
     container_name: main
     build:
       context: .
-      dockerfile: Dockerfile.slim
-      target: production
+      dockerfile: Dockerfile.prod
+      # target: production
     user: "node"
     working_dir: /usr/src/app
     environment:
@@ -19,7 +19,7 @@ services:
     ports:
       - "3000:3000"
     tty: true
-    command: "yarn start:dev"
+    command: "yarn start"
     env_file:
       - .env
     networks:
