@@ -2,7 +2,7 @@ import { Mongoose, Schema } from "mongoose";
 
 export const LeadSchema = new Schema(
   {
-    externalId: { type: String, required: true },
+    externalId: { type: String },
     email: String,
     history: [
       {

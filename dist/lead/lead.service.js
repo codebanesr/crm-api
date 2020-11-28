@@ -271,6 +271,14 @@ let LeadService = class LeadService {
                 .exec();
         });
     }
+    createLead(body, email, organization, campaignId, campaignName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { contact, lead } = body;
+            const draftLead = yield this.leadModel.create(Object.assign(Object.assign({}, lead), { campaign: campaignName, organization,
+                contact }));
+            return draftLead.save();
+        });
+    }
     deleteOne(leadId, activeUserEmail) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = yield this.leadModel.remove({ _id: leadId }).lean().exec();

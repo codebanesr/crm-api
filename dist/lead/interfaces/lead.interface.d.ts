@@ -1,8 +1,8 @@
 import { Document } from "mongoose";
 export interface Lead extends Document {
     email: string;
-    externalId: string;
-    history: LeadHistory[];
+    externalId?: string;
+    history?: LeadHistory[];
     campaign: string;
     firstName: string;
     lastName: string;

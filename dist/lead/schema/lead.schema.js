@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadSchema = void 0;
 const mongoose_1 = require("mongoose");
 exports.LeadSchema = new mongoose_1.Schema({
-    externalId: { type: String, required: true },
+    externalId: { type: String },
     email: String,
     history: [
         {

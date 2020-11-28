@@ -1,6 +1,6 @@
 import { LeadService } from "./lead.service";
 import { FindAllDto } from "./dto/find-all.dto";
-import { CreateLeadDto } from "./dto/create-lead.dto";
+import { UpdateLeadDto } from "./dto/update-lead.dto";
 import { GeoLocationDto } from "./dto/geo-location.dto";
 import { ReassignLeadDto } from "./dto/reassign-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
@@ -11,20 +11,21 @@ import { UserActivityDto } from "../user/dto/user-activity.dto";
 import { FollowUpDto } from "./dto/follow-up.dto";
 import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
+import { CreateLeadDto } from "./dto/create-lead.dto";
 export declare class LeadController {
     private readonly leadService;
     constructor(leadService: LeadService);
     getAllLeadColumns(campaignType: string, user: any): Promise<{
         paths: any;
     }>;
-    insertOne(body: CreateLeadDto, user: User): Promise<import("./interfaces/lead.interface").Lead>;
+    insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<import("./interfaces/lead.interface").Lead>;
     findAll(body: FindAllDto, user: any): Promise<{
         total: any;
         page: any;
         data: any;
     }>;
     addGeoLocation(body: GeoLocationDto, user: any): Promise<import("./interfaces/geo-location.interface").GeoLocation>;
-    updateLead(user: User, body: CreateLeadDto, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
+    updateLead(user: User, body: UpdateLeadDto, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
     addContact(body: UpdateContactDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
     reassignLead(body: ReassignLeadDto, user: User, externalId: string): Promise<any>;
     syncPhoneCalls(callLogs: SyncCallLogsDto[], user: User): Promise<any>;

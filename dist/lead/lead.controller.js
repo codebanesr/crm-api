@@ -26,7 +26,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const lead_service_1 = require("./lead.service");
 const find_all_dto_1 = require("./dto/find-all.dto");
-const create_lead_dto_1 = require("./dto/create-lead.dto");
+const update_lead_dto_1 = require("./dto/update-lead.dto");
 const geo_location_dto_1 = require("./dto/geo-location.dto");
 const reassign_lead_dto_1 = require("./dto/reassign-lead.dto");
 const create_email_template_dto_1 = require("./dto/create-email-template.dto");
@@ -39,6 +39,7 @@ const user_activity_dto_1 = require("../user/dto/user-activity.dto");
 const follow_up_dto_1 = require("./dto/follow-up.dto");
 const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 const update_contact_dto_1 = require("./dto/update-contact.dto");
+const create_lead_dto_1 = require("./dto/create-lead.dto");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
@@ -47,9 +48,9 @@ let LeadController = class LeadController {
         const { organization } = user;
         return this.leadService.getLeadColumns(campaignType, organization);
     }
-    insertOne(body, user) {
+    insertOne(body, user, campaignId, campaignName) {
         const { organization, email } = user;
-        return this.leadService.insertOne(body, email, organization);
+        return this.leadService.createLead(body, email, organization, campaignId, campaignName);
     }
     findAll(body, user) {
         const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, } = body;
@@ -185,12 +186,16 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "getAllLeadColumns", null);
 __decorate([
-    common_1.Post(""),
-    swagger_1.ApiOperation({ summary: "Fetches all lead for the given user" }),
+    common_1.Post("/create/:campaignId/:campaignName"),
+    swagger_1.ApiOperation({ summary: "Creates New Lead" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Body()), __param(1, current_user_decorator_1.CurrentUser()),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
+    __param(2, common_1.Param("campaignId")),
+    __param(3, common_1.Param("campaignName")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_lead_dto_1.CreateLeadDto, Object]),
+    __metadata("design:paramtypes", [create_lead_dto_1.CreateLeadDto, Object, String, String]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "insertOne", null);
 __decorate([
@@ -223,7 +228,7 @@ __decorate([
     __param(1, common_1.Body()),
     __param(2, common_1.Param("externalId")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_lead_dto_1.CreateLeadDto, String]),
+    __metadata("design:paramtypes", [Object, update_lead_dto_1.UpdateLeadDto, String]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "updateLead", null);
 __decorate([

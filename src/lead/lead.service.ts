@@ -18,7 +18,7 @@ import { EmailTemplate } from "./interfaces/email-template.interface";
 import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
-import { CreateLeadDto, ReassignmentInfo } from "./dto/create-lead.dto";
+import { UpdateLeadDto, ReassignmentInfo } from "./dto/update-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
@@ -30,6 +30,7 @@ import { AdminAction } from "../user/interfaces/admin-actions.interface";
 import { UploadService } from "../upload/upload.service";
 import { PushNotificationService } from "../push-notification/push-notification.service";
 import { UpdateContactDto } from "./dto/update-contact.dto";
+import { CreateLeadDto } from "./dto/create-lead.dto";
 @Injectable()
 export class LeadService {
   constructor(
@@ -335,6 +336,24 @@ export class LeadService {
       .exec();
   }
 
+  async createLead(
+    body: CreateLeadDto,
+    email: string,
+    organization: string,
+    campaignId: string,
+    campaignName: string
+  ) {
+    const { contact, lead } = body;
+    const draftLead = await this.leadModel.create({
+      ...lead,
+      campaign: campaignName,
+      organization,
+      contact,
+    });
+
+    return draftLead.save();
+  }
+
   async deleteOne(leadId: string, activeUserEmail: string) {
     const result = await this.leadModel.remove({ _id: leadId }).lean().exec();
 
@@ -508,7 +527,7 @@ export class LeadService {
     reassignmentInfo,
     emailForm,
     requestedInformation,
-  }: CreateLeadDto & {
+  }: UpdateLeadDto & {
     externalId: string;
     organization: string;
     loggedInUserEmail: string;

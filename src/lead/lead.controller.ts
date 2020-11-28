@@ -17,7 +17,7 @@ import {
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
 import { FindAllDto } from "./dto/find-all.dto";
-import { CreateLeadDto } from "./dto/create-lead.dto";
+import { UpdateLeadDto } from "./dto/update-lead.dto";
 import { GeoLocationDto } from "./dto/geo-location.dto";
 import { ReassignLeadDto } from "./dto/reassign-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
@@ -35,6 +35,7 @@ import { UserActivityDto } from "../user/dto/user-activity.dto";
 import { FollowUpDto } from "./dto/follow-up.dto";
 import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
+import { CreateLeadDto } from "./dto/create-lead.dto";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -55,12 +56,26 @@ export class LeadController {
     return this.leadService.getLeadColumns(campaignType, organization);
   }
 
-  @Post("")
-  @ApiOperation({ summary: "Fetches all lead for the given user" })
+  /** @Todo to replace campaignName with campaignId */
+  @Post("/create/:campaignId/:campaignName")
+  @ApiOperation({ summary: "Creates New Lead" })
+  @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
-  insertOne(@Body() body: CreateLeadDto, @CurrentUser() user: User) {
+  insertOne(
+    @Body() body: CreateLeadDto,
+    @CurrentUser() user: User,
+    @Param("campaignId") campaignId: string,
+    @Param("campaignName") campaignName: string
+  ) {
     const { organization, email } = user;
-    return this.leadService.insertOne(body, email, organization);
+    return this.leadService.createLead(
+      body,
+      email,
+      organization,
+      campaignId,
+      campaignName
+    );
+    // return this.leadService.insertOne(body, email, organization, campaignId);
   }
 
   @Post("findAll")
@@ -108,7 +123,7 @@ export class LeadController {
   @HttpCode(HttpStatus.OK)
   updateLead(
     @CurrentUser() user: User,
-    @Body() body: CreateLeadDto,
+    @Body() body: UpdateLeadDto,
     @Param("externalId") externalId: string
   ) {
     const { organization, email: loggedInUserEmail } = user;
@@ -222,14 +237,14 @@ export class LeadController {
     @CurrentUser() user: User,
     @Query("limit") limit: number = 10,
     @Query("skip") skip: number = 0,
-    @Query("campaignId") campaignId: string,
+    @Query("campaignId") campaignId: string
   ) {
     const { organization } = user;
     return this.leadService.getAllEmailTemplates(
       limit || 20,
       skip || 0,
       campaignId,
-      organization,
+      organization
     );
   }
 

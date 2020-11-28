@@ -7,7 +7,7 @@ import { EmailTemplate } from "./interfaces/email-template.interface";
 import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
-import { CreateLeadDto } from "./dto/create-lead.dto";
+import { UpdateLeadDto } from "./dto/update-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
@@ -17,6 +17,7 @@ import { AdminAction } from "../user/interfaces/admin-actions.interface";
 import { UploadService } from "../upload/upload.service";
 import { PushNotificationService } from "../push-notification/push-notification.service";
 import { UpdateContactDto } from "./dto/update-contact.dto";
+import { CreateLeadDto } from "./dto/create-lead.dto";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -51,6 +52,7 @@ export declare class LeadService {
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
     findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "contact" | "requestedInformation">>;
     patch(productId: string, body: any[]): Promise<any>;
+    createLead(body: CreateLeadDto, email: string, organization: string, campaignId: string, campaignName: string): Promise<Lead>;
     deleteOne(leadId: string, activeUserEmail: string): Promise<Pick<any, string | number | symbol>>;
     createAlarm(alarmObj: Partial<Alarm>): Promise<Alarm>;
     sendBulkEmails(emails: string[], subject: string, text: string, attachments: any, organization: string): Promise<{
@@ -68,7 +70,7 @@ export declare class LeadService {
     syncPhoneCalls(callLogs: SyncCallLogsDto[], organization: any, user: any): Promise<any>;
     addGeolocation(activeUserId: string, lat: number, lng: number, organization: string): Promise<GeoLocation>;
     getPerformance(): Promise<void>;
-    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }: CreateLeadDto & {
+    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }: UpdateLeadDto & {
         externalId: string;
         organization: string;
         loggedInUserEmail: string;
