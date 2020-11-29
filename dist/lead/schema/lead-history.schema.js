@@ -3,10 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadHistory = void 0;
 const mongoose_1 = require("mongoose");
 exports.LeadHistory = new mongoose_1.Schema({
-    oldUser: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
-    newUser: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
+    oldUser: String,
+    newUser: String,
     lead: { type: mongoose_1.Schema.Types.ObjectId, ref: "Lead", required: true },
-    note: String,
+    notes: String,
     callRecordUrl: String,
     geoLocation: {
         coordinates: [Number],

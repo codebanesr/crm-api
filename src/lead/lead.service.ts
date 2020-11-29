@@ -32,6 +32,7 @@ import { PushNotificationService } from "../push-notification/push-notification.
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
+import { GetTransactionDto } from "./dto/get-transaction.dto";
 @Injectable()
 export class LeadService {
   constructor(
@@ -82,17 +83,17 @@ export class LeadService {
   ) {
     try {
       const assigned = oldUserEmail ? "reassigned" : "assigned";
-      let note = "";
+      let notes = "";
       if (oldUserEmail) {
-        note = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
+        notes = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
       } else {
-        note = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
+        notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
       }
-      const history = {
+      const history: Partial<LeadHistory> = {
         oldUser: oldUserEmail,
         newUser: newUserEmail,
-        note,
-      } as LeadHistory;
+        notes,
+      };
 
       const result = await this.leadModel
         .updateOne(
@@ -556,7 +557,7 @@ export class LeadService {
   /** @Todo trim all string fields otherwise they will give trouble with equality later on */
   async updateLead({
     organization,
-    externalId,
+    leadId,
     lead,
     geoLocation,
     loggedInUserEmail,
@@ -564,7 +565,7 @@ export class LeadService {
     emailForm,
     requestedInformation,
   }: UpdateLeadDto & {
-    externalId: string;
+    leadId: string;
     organization: string;
     loggedInUserEmail: string;
   }) {
@@ -585,13 +586,16 @@ export class LeadService {
     });
 
     const oldLead = await this.leadModel
-      .findOne({ externalId, organization })
+      .findOne({ _id: leadId, organization })
       .lean()
       .exec();
 
     const nextEntryInHistory = {
       geoLocation: {},
     } as LeadHistory;
+
+    /** This is a required property for querying later */
+    nextEntryInHistory.lead = leadId;
 
     // this len condition maybe unnecessary if mongoose itself handles
     // this condition being an array since that is what we defined in
@@ -604,24 +608,18 @@ export class LeadService {
 
     if (!reassignmentInfo) {
       // assign to logged in user and notes will be lead was created by
-      nextEntryInHistory[
-        "notes"
-      ] = `Lead has been assigned to ${loggedInUserEmail} by default`;
-      nextEntryInHistory["newUser"] = loggedInUserEmail;
+      nextEntryInHistory.notes = `Lead has been assigned to ${loggedInUserEmail} by default`;
+      nextEntryInHistory.newUser = loggedInUserEmail;
     }
 
     if (reassignmentInfo && prevHistory?.newUser !== reassignmentInfo.newUser) {
-      nextEntryInHistory[
-        "notes"
-      ] = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
-      nextEntryInHistory["oldUser"] = prevHistory.newUser;
-      nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
+      nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
+      nextEntryInHistory.oldUser = prevHistory.newUser;
+      nextEntryInHistory.newUser = reassignmentInfo.newUser;
     }
 
     if (lead.leadStatus !== oldLead.leadStatus) {
-      nextEntryInHistory[
-        "notes"
-      ] = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+      nextEntryInHistory.notes = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
     }
 
     nextEntryInHistory.geoLocation = geoLocation;
@@ -641,7 +639,7 @@ export class LeadService {
     }
 
     const result = await this.leadModel.findOneAndUpdate(
-      { externalId: externalId, organization },
+      { _id: leadId, organization },
       { $set: filteredObj }
     );
 
@@ -936,6 +934,13 @@ export class LeadService {
     return qb.exec();
   }
 
+  async getTransactions(payload: GetTransactionDto) {
+    const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
+    return this.leadHistoryModel
+      .find()
+      .sort({ [payload.pagination.sortBy]: sortOrder })
+      .limit(payload.pagination.perPage);
+  }
   // date will always be greater than today
   async getFollowUps({
     interval,

@@ -12,6 +12,7 @@ import { FollowUpDto } from "./dto/follow-up.dto";
 import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
+import { GetTransactionDto } from "./dto/get-transaction.dto";
 export declare class LeadController {
     private readonly leadService;
     constructor(leadService: LeadService);
@@ -19,13 +20,14 @@ export declare class LeadController {
         paths: any;
     }>;
     insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<import("./interfaces/lead.interface").Lead>;
+    getTransactions(user: User, body: GetTransactionDto): Promise<import("./interfaces/lead-history.interface").LeadHistory[]>;
     findAll(body: FindAllDto, user: any): Promise<{
         total: any;
         page: any;
         data: any;
     }>;
     addGeoLocation(body: GeoLocationDto, user: any): Promise<import("./interfaces/geo-location.interface").GeoLocation>;
-    updateLead(user: User, body: UpdateLeadDto, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
+    updateLead(user: User, body: UpdateLeadDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
     addContact(body: UpdateContactDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
     reassignLead(body: ReassignLeadDto, user: User, externalId: string): Promise<any>;
     syncPhoneCalls(callLogs: SyncCallLogsDto[], user: User): Promise<any>;

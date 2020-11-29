@@ -13,6 +13,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   PreconditionFailedException,
+  NotImplementedException,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
@@ -36,6 +37,8 @@ import { FollowUpDto } from "./dto/follow-up.dto";
 import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
+import { GetTransactionDto } from "./dto/get-transaction.dto";
+import { get } from "lodash";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -76,6 +79,11 @@ export class LeadController {
       campaignName
     );
     // return this.leadService.insertOne(body, email, organization, campaignId);
+  }
+
+  @Post("transactions")
+  getTransactions(@CurrentUser() user: User, @Body() body: GetTransactionDto) {
+    return this.leadService.getTransactions(body);
   }
 
   @Post("findAll")
@@ -119,14 +127,14 @@ export class LeadController {
     return this.leadService.addGeolocation(_id, lat, lng, organization);
   }
 
-  @Put(":externalId")
+  @Put(":id")
   @ApiOperation({ summary: "Adds users location emitted from the device" })
   @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
   updateLead(
     @CurrentUser() user: User,
     @Body() body: UpdateLeadDto,
-    @Param("externalId") externalId: string
+    @Param("id") leadId: string
   ) {
     const { organization, email: loggedInUserEmail } = user;
     const {
@@ -138,7 +146,7 @@ export class LeadController {
     } = body;
     return this.leadService.updateLead({
       organization,
-      externalId,
+      leadId,
       lead,
       geoLocation,
       loggedInUserEmail,

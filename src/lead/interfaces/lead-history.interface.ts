@@ -4,7 +4,7 @@ export interface LeadHistory extends Document {
   oldUser: string;
   newUser: string;
   lead: String;
-  note: string;
+  notes: string;
   callRecordUrl: string;
   geoLocation: leadHistoryGeoLocation;
   leadStatus: string;

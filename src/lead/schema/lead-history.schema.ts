@@ -2,10 +2,10 @@ import { Schema } from "mongoose";
 
 export const LeadHistory = new Schema({
   /** Old user and new user should be object ids */
-  oldUser: { type: Schema.Types.ObjectId, ref: "User" },
-  newUser: { type: Schema.Types.ObjectId, ref: "User" },
+  oldUser: String,
+  newUser: String,
   lead: { type: Schema.Types.ObjectId, ref: "Lead", required: true },
-  note: String,
+  notes: String,
   callRecordUrl: String,
   geoLocation: {
     coordinates: [Number],

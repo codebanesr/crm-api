@@ -40,6 +40,7 @@ const follow_up_dto_1 = require("./dto/follow-up.dto");
 const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 const update_contact_dto_1 = require("./dto/update-contact.dto");
 const create_lead_dto_1 = require("./dto/create-lead.dto");
+const get_transaction_dto_1 = require("./dto/get-transaction.dto");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
@@ -52,6 +53,9 @@ let LeadController = class LeadController {
         const { organization, email } = user;
         return this.leadService.createLead(body, email, organization, campaignId, campaignName);
     }
+    getTransactions(user, body) {
+        return this.leadService.getTransactions(body);
+    }
     findAll(body, user) {
         const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, typeDict, } = body;
         const { email, roleType, organization } = user;
@@ -62,12 +66,12 @@ let LeadController = class LeadController {
         const { _id, organization } = user;
         return this.leadService.addGeolocation(_id, lat, lng, organization);
     }
-    updateLead(user, body, externalId) {
+    updateLead(user, body, leadId) {
         const { organization, email: loggedInUserEmail } = user;
         const { geoLocation, lead, reassignmentInfo, emailForm, requestedInformation, } = body;
         return this.leadService.updateLead({
             organization,
-            externalId,
+            leadId,
             lead,
             geoLocation,
             loggedInUserEmail,
@@ -199,6 +203,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "insertOne", null);
 __decorate([
+    common_1.Post("transactions"),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, get_transaction_dto_1.GetTransactionDto]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "getTransactions", null);
+__decorate([
     common_1.Post("findAll"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Fetches all lead for the given user" }),
@@ -220,13 +231,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "addGeoLocation", null);
 __decorate([
-    common_1.Put(":externalId"),
+    common_1.Put(":id"),
     swagger_1.ApiOperation({ summary: "Adds users location emitted from the device" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, current_user_decorator_1.CurrentUser()),
     __param(1, common_1.Body()),
-    __param(2, common_1.Param("externalId")),
+    __param(2, common_1.Param("id")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, update_lead_dto_1.UpdateLeadDto, String]),
     __metadata("design:returntype", void 0)

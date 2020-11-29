@@ -19,6 +19,7 @@ import { PushNotificationService } from "../push-notification/push-notification.
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
+import { GetTransactionDto } from "./dto/get-transaction.dto";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -72,8 +73,8 @@ export declare class LeadService {
     syncPhoneCalls(callLogs: SyncCallLogsDto[], organization: any, user: any): Promise<any>;
     addGeolocation(activeUserId: string, lat: number, lng: number, organization: string): Promise<GeoLocation>;
     getPerformance(): Promise<void>;
-    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }: UpdateLeadDto & {
-        externalId: string;
+    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }: UpdateLeadDto & {
+        leadId: string;
         organization: string;
         loggedInUserEmail: string;
     }): Promise<Lead>;
@@ -96,6 +97,7 @@ export declare class LeadService {
         result: any;
     }>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
+    getTransactions(payload: GetTransactionDto): Promise<LeadHistory[]>;
     getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }: {
         interval: any;
         organization: any;

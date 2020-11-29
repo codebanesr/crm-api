@@ -67,17 +67,17 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const assigned = oldUserEmail ? "reassigned" : "assigned";
-                let note = "";
+                let notes = "";
                 if (oldUserEmail) {
-                    note = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
+                    notes = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
                 }
                 else {
-                    note = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
+                    notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
                 }
                 const history = {
                     oldUser: oldUserEmail,
                     newUser: newUserEmail,
-                    note,
+                    notes,
                 };
                 const result = yield this.leadModel
                     .updateOne({ externalId: lead.externalId }, { email: newUserEmail, $push: { history: history } })
@@ -407,7 +407,7 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }) {
+    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }) {
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
             common_1.Logger.debug({ geoLocation, reassignmentInfo });
@@ -421,27 +421,28 @@ let LeadService = class LeadService {
                 }
             });
             const oldLead = yield this.leadModel
-                .findOne({ externalId, organization })
+                .findOne({ _id: leadId, organization })
                 .lean()
                 .exec();
             const nextEntryInHistory = {
                 geoLocation: {},
             };
+            nextEntryInHistory.lead = leadId;
             const [prevHistory] = yield this.leadHistoryModel
                 .find({})
                 .sort({ $natural: -1 })
                 .limit(1);
             if (!reassignmentInfo) {
-                nextEntryInHistory["notes"] = `Lead has been assigned to ${loggedInUserEmail} by default`;
-                nextEntryInHistory["newUser"] = loggedInUserEmail;
+                nextEntryInHistory.notes = `Lead has been assigned to ${loggedInUserEmail} by default`;
+                nextEntryInHistory.newUser = loggedInUserEmail;
             }
             if (reassignmentInfo && (prevHistory === null || prevHistory === void 0 ? void 0 : prevHistory.newUser) !== reassignmentInfo.newUser) {
-                nextEntryInHistory["notes"] = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
-                nextEntryInHistory["oldUser"] = prevHistory.newUser;
-                nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
+                nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
+                nextEntryInHistory.oldUser = prevHistory.newUser;
+                nextEntryInHistory.newUser = reassignmentInfo.newUser;
             }
             if (lead.leadStatus !== oldLead.leadStatus) {
-                nextEntryInHistory["notes"] = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+                nextEntryInHistory.notes = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
             }
             nextEntryInHistory.geoLocation = geoLocation;
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
@@ -451,7 +452,7 @@ let LeadService = class LeadService {
             if (lodash_1.get(reassignmentInfo, "newUser")) {
                 obj.email = reassignmentInfo.newUser;
             }
-            const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: filteredObj });
+            const result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj });
             yield this.leadHistoryModel.create(nextEntryInHistory);
             if (!lodash_1.values(emailForm).every(lodash_1.isEmpty)) {
                 const { subject, attachments, content } = emailForm;
@@ -670,6 +671,15 @@ let LeadService = class LeadService {
             },
         });
         return qb.exec();
+    }
+    getTransactions(payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
+            return this.leadHistoryModel
+                .find()
+                .sort({ [payload.pagination.sortBy]: sortOrder })
+                .limit(payload.pagination.perPage);
+        });
     }
     getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }) {
         return __awaiter(this, void 0, void 0, function* () {
