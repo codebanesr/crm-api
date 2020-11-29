@@ -629,6 +629,10 @@ export class LeadService {
         (ri) => Object.keys(ri).length > 0
       );
     }
+    /** @Todo add dialed phone number */
+    nextEntryInHistory.prospectName = `${lead.firstName} ${lead.lastName}`;
+    nextEntryInHistory.leadStatus = lead.leadStatus;
+    nextEntryInHistory.followUp = lead.followUp?.toString();
 
     /** Do not update contact, there will be a separate api for adding contact information */
     let { contact, ...filteredObj } = obj;

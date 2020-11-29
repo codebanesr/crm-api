@@ -408,6 +408,7 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () { });
     }
     updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
             common_1.Logger.debug({ geoLocation, reassignmentInfo });
@@ -448,6 +449,9 @@ let LeadService = class LeadService {
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
                 nextEntryInHistory["requestedInformation"] = requestedInformation.filter((ri) => Object.keys(ri).length > 0);
             }
+            nextEntryInHistory.prospectName = `${lead.firstName} ${lead.lastName}`;
+            nextEntryInHistory.leadStatus = lead.leadStatus;
+            nextEntryInHistory.followUp = (_a = lead.followUp) === null || _a === void 0 ? void 0 : _a.toString();
             let { contact } = obj, filteredObj = __rest(obj, ["contact"]);
             if (lodash_1.get(reassignmentInfo, "newUser")) {
                 obj.email = reassignmentInfo.newUser;
