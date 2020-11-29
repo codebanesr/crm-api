@@ -912,11 +912,14 @@ export class LeadService {
     singleLeadAgg.project(projection);
     const lead = (await singleLeadAgg.exec())[0];
 
-    const leadHistory = await this.leadHistoryModel
-      .find({ lead: lead._id })
-      .limit(5);
+    /** Only call lead history if there is a lead with the applied filters */
+    if (lead) {
+      const leadHistory = await this.leadHistoryModel
+        .find({ lead: lead._id })
+        .limit(5);
 
-    lead.history = leadHistory;
+      lead.history = leadHistory;
+    }
     return Promise.resolve({ result: lead });
   }
 

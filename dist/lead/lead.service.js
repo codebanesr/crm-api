@@ -652,10 +652,12 @@ let LeadService = class LeadService {
             projection["contact"] = 1;
             singleLeadAgg.project(projection);
             const lead = (yield singleLeadAgg.exec())[0];
-            const leadHistory = yield this.leadHistoryModel
-                .find({ lead: lead._id })
-                .limit(5);
-            lead.history = leadHistory;
+            if (lead) {
+                const leadHistory = yield this.leadHistoryModel
+                    .find({ lead: lead._id })
+                    .limit(5);
+                lead.history = leadHistory;
+            }
             return Promise.resolve({ result: lead });
         });
     }
