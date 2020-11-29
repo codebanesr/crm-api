@@ -18,6 +18,7 @@ import { UploadService } from "../upload/upload.service";
 import { PushNotificationService } from "../push-notification/push-notification.service";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
+import { LeadHistory } from "./interfaces/lead-history.interface";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -26,11 +27,12 @@ export declare class LeadService {
     private readonly campaignModel;
     private readonly emailTemplateModel;
     private readonly callLogModel;
+    private readonly leadHistoryModel;
     private readonly geoLocationModel;
     private readonly alarmModel;
     private readonly s3UploadService;
     private readonly pushNotificationService;
-    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, userModel: Model<User>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, callLogModel: Model<CallLog>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, s3UploadService: UploadService, pushNotificationService: PushNotificationService);
+    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, userModel: Model<User>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, callLogModel: Model<CallLog>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, s3UploadService: UploadService, pushNotificationService: PushNotificationService);
     saveEmailAttachments(files: any): any;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string, templateName: string): Promise<EmailTemplate>;
@@ -50,7 +52,7 @@ export declare class LeadService {
         paths: any;
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
-    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "history" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "contact" | "requestedInformation">>;
+    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "contact" | "requestedInformation">>;
     patch(productId: string, body: any[]): Promise<any>;
     createLead(body: CreateLeadDto, email: string, organization: string, campaignId: string, campaignName: string): Promise<Lead>;
     deleteOne(leadId: string, activeUserEmail: string): Promise<Pick<any, string | number | symbol>>;

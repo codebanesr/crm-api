@@ -53,7 +53,7 @@ let LeadController = class LeadController {
         return this.leadService.createLead(body, email, organization, campaignId, campaignName);
     }
     findAll(body, user) {
-        const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, typeDict } = body;
+        const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, typeDict, } = body;
         const { email, roleType, organization } = user;
         return this.leadService.findAll(page, perPage, sortBy, showCols, searchTerm, filters, email, roleType, organization, typeDict);
     }

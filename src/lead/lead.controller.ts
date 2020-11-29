@@ -91,7 +91,7 @@ export class LeadController {
       showCols,
       searchTerm,
       filters,
-      typeDict
+      typeDict,
     } = body;
 
     const { email, roleType, organization } = user;

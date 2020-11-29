@@ -26,13 +26,11 @@ const dashboard_module_1 = require("./dashboard/dashboard.module");
 const upload_service_1 = require("./upload/upload.service");
 const push_notification_service_1 = require("./push-notification/push-notification.service");
 const config_1 = require("./config");
-const nestjs_pino_1 = require("nestjs-pino");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     common_1.Module({
         imports: [
-            nestjs_pino_1.LoggerModule.forRoot(),
             common_1.CacheModule.register(),
             serve_static_module_1.ServeStaticModule.forRoot({
                 rootPath: path_1.join(__dirname, "..", "client"),

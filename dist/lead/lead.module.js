@@ -23,6 +23,7 @@ const platform_express_1 = require("@nestjs/platform-express");
 const admin_action_schema_1 = require("../user/schemas/admin-action.schema");
 const upload_service_1 = require("../upload/upload.service");
 const push_notification_service_1 = require("../push-notification/push-notification.service");
+const lead_history_schema_1 = require("./schema/lead-history.schema");
 let LeadModule = class LeadModule {
 };
 LeadModule = __decorate([
@@ -41,6 +42,7 @@ LeadModule = __decorate([
                 { name: "User", schema: user_schema_1.UserSchema },
                 { name: "Lead", schema: lead_schema_1.LeadSchema },
                 { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },
+                { name: "LeadHistory", schema: lead_history_schema_1.LeadHistory },
             ]),
         ],
         providers: [lead_service_1.LeadService, upload_service_1.UploadService, push_notification_service_1.PushNotificationService],

@@ -5,22 +5,6 @@ const mongoose_1 = require("mongoose");
 exports.LeadSchema = new mongoose_1.Schema({
     externalId: { type: String },
     email: String,
-    history: [
-        {
-            oldUser: String,
-            newUser: String,
-            note: String,
-            callRecordUrl: String,
-            geoLocation: {
-                coordinates: [Number],
-            },
-            leadStatus: String,
-            attachment: String,
-            phoneNumber: String,
-            createdAt: { type: Date, default: new Date() },
-            requestedInformation: Object,
-        },
-    ],
     contact: [
         {
             label: String,

@@ -1,9 +1,9 @@
 import { Schema, Document } from "mongoose";
+import { LeadHistory } from "./lead-history.interface";
 
 export interface Lead extends Document {
   email: string;
   externalId?: string;
-  history?: LeadHistory[];
   campaign: string;
   firstName: string;
   lastName: string;
@@ -21,20 +21,4 @@ export interface Lead extends Document {
   organization: string;
   contact: { label: String; value: String; category: String }[];
   requestedInformation?: { [key: string]: string }[];
-}
-
-export interface LeadHistory {
-  oldUser: string;
-  newUser: string;
-  note: string;
-  callRecordUrl: string;
-  geoLocation: leadHistoryGeoLocation;
-  leadStatus: string;
-  attachment: string;
-  phoneNumber: string;
-  requestedInformation?: { [key: string]: string }[];
-}
-
-export class leadHistoryGeoLocation {
-  coordinates: number[];
 }

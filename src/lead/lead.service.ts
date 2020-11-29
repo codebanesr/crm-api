@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, NativeError } from "mongoose";
-import { Lead, LeadHistory } from "./interfaces/lead.interface";
+import { Lead } from "./interfaces/lead.interface";
 import { get, isArray, isEmpty, keyBy, keys, values } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
@@ -31,6 +31,7 @@ import { UploadService } from "../upload/upload.service";
 import { PushNotificationService } from "../push-notification/push-notification.service";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
+import { LeadHistory } from "./interfaces/lead-history.interface";
 @Injectable()
 export class LeadService {
   constructor(
@@ -54,6 +55,9 @@ export class LeadService {
 
     @InjectModel("CallLog")
     private readonly callLogModel: Model<CallLog>,
+
+    @InjectModel("LeadHistory")
+    private readonly leadHistoryModel: Model<LeadHistory>,
 
     @InjectModel("GeoLocation")
     private readonly geoLocationModel: Model<GeoLocation>,
@@ -585,7 +589,6 @@ export class LeadService {
       .lean()
       .exec();
 
-    const len = oldLead.history?.length;
     const nextEntryInHistory = {
       geoLocation: {},
     } as LeadHistory;
@@ -593,8 +596,13 @@ export class LeadService {
     // this len condition maybe unnecessary if mongoose itself handles
     // this condition being an array since that is what we defined in
     // the schema, also try
-    const prevHistory = get(oldLead, `history${[len - 1]}`, null);
-    if (len === 0 && !reassignmentInfo) {
+    // const prevHistory = get(oldLead, `history${[len - 1]}`, null);
+    const [prevHistory] = await this.leadHistoryModel
+      .find({})
+      .sort({ $natural: -1 })
+      .limit(1);
+
+    if (!reassignmentInfo) {
       // assign to logged in user and notes will be lead was created by
       nextEntryInHistory[
         "notes"
@@ -625,7 +633,7 @@ export class LeadService {
     }
 
     /** Do not update contact, there will be a separate api for adding contact information */
-    let { history, contact, ...filteredObj } = obj;
+    let { contact, ...filteredObj } = obj;
 
     // if reassignment is required, change that in the lead
     if (get(reassignmentInfo, "newUser")) {
@@ -634,9 +642,10 @@ export class LeadService {
 
     const result = await this.leadModel.findOneAndUpdate(
       { externalId: externalId, organization },
-      { $set: filteredObj, $push: { history: nextEntryInHistory } }
+      { $set: filteredObj }
     );
 
+    await this.leadHistoryModel.create(nextEntryInHistory);
     if (!values(emailForm).every(isEmpty)) {
       const { subject, attachments, content } = emailForm;
       this.sendEmailToLead({
@@ -648,62 +657,6 @@ export class LeadService {
     }
     return result;
   }
-
-  /** Findone and update implementation */
-  // async saveLeads(
-  //   leads: any[],
-  //   campaignName: string,
-  //   originalFileName: string
-  // ) {
-  //   const created = [];
-  //   const updated = [];
-  //   const error = [];
-
-  //   for (const l of leads) {
-  //     const { lastErrorObject, value } = await this.leadModel
-  //       .findOneAndUpdate(
-  //         { externalId: l.externalId },
-  //         { ...l, campaign: campaignName },
-  //         { new: true, upsert: true, rawResult: true }
-  //       )
-  //       .lean()
-  //       .exec();
-  //     if (lastErrorObject.updatedExisting === true) {
-  //       updated.push(value);
-  //     } else if (lastErrorObject.upserted) {
-  //       created.push(value);
-  //     } else {
-  //       error.push(value);
-  //     }
-  //   }
-
-  //   // createExcel files and update them to aws and then store the urls in database with AdminActions
-  //   const created_ws = utils.json_to_sheet(created);
-  //   const updated_ws = utils.json_to_sheet(updated);
-
-  //   const wb = utils.book_new();
-  //   utils.book_append_sheet(wb, updated_ws, "updated");
-  //   utils.book_append_sheet(wb, created_ws, "created");
-
-  //   writeFile(wb, originalFileName + "_system");
-
-  //   const result = await this.s3.upload({
-  //     Key: `lead:${originalFileName}:${new Date().toDateString()}`,
-  //     Body: wb,
-  //     Bucket: AppConfig.s3.region,
-  //     ContentType: "application/vnd.ms-excel",
-  //   });
-
-  //   Logger.debug(result);
-  //   // console.log(
-  //   //   "created: ",
-  //   //   created.length,
-  //   //   "updated: ",
-  //   //   updated.length,
-  //   //   "error:",
-  //   //   error.length
-  //   // );
-  // }
 
   async getSubordinates(email: string, roleType: string) {
     if (roleType === "frontline") {
@@ -957,11 +910,16 @@ export class LeadService {
     projection["contact"] = 1;
 
     // other information that should always show up, one is history
-    projection["history"] = 1;
 
     singleLeadAgg.project(projection);
-    const result = (await singleLeadAgg.exec())[0];
-    return Promise.resolve({ result });
+    const lead = (await singleLeadAgg.exec())[0];
+
+    const leadHistory = await this.leadHistoryModel
+      .find({ lead: lead._id })
+      .limit(5);
+
+    lead.history = leadHistory;
+    return Promise.resolve({ result: lead });
   }
 
   getSaleAmountByLeadStatus(campaignName?: string) {

@@ -1,25 +1,10 @@
-import { Mongoose, Schema } from "mongoose";
+import { Schema } from "mongoose";
+import { LeadHistory } from "./lead-history.schema";
 
 export const LeadSchema = new Schema(
   {
     externalId: { type: String },
     email: String,
-    history: [
-      {
-        oldUser: String,
-        newUser: String,
-        note: String,
-        callRecordUrl: String,
-        geoLocation: {
-          coordinates: [Number],
-        },
-        leadStatus: String,
-        attachment: String,
-        phoneNumber: String,
-        createdAt: { type: Date, default: new Date() },
-        requestedInformation: Object,
-      },
-    ],
     contact: [
       {
         label: String,

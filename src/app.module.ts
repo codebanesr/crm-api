@@ -17,11 +17,11 @@ import { DashboardModule } from "./dashboard/dashboard.module";
 import { UploadService } from "./upload/upload.service";
 import { PushNotificationService } from "./push-notification/push-notification.service";
 import Config from "./config";
-import { LoggerModule } from "nestjs-pino";
+// import { LoggerModule } from "nestjs-pino";
 
 @Module({
   imports: [
-    LoggerModule.forRoot(),
+    // LoggerModule.forRoot(),
     CacheModule.register(),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "..", "client"),

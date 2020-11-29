@@ -46,7 +46,7 @@ const config_1 = require("../config");
 const upload_service_1 = require("../upload/upload.service");
 const push_notification_service_1 = require("../push-notification/push-notification.service");
 let LeadService = class LeadService {
-    constructor(leadModel, adminActionModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel, s3UploadService, pushNotificationService) {
+    constructor(leadModel, adminActionModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, leadHistoryModel, geoLocationModel, alarmModel, s3UploadService, pushNotificationService) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
         this.userModel = userModel;
@@ -54,6 +54,7 @@ let LeadService = class LeadService {
         this.campaignModel = campaignModel;
         this.emailTemplateModel = emailTemplateModel;
         this.callLogModel = callLogModel;
+        this.leadHistoryModel = leadHistoryModel;
         this.geoLocationModel = geoLocationModel;
         this.alarmModel = alarmModel;
         this.s3UploadService = s3UploadService;
@@ -407,7 +408,6 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () { });
     }
     updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }) {
-        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
             common_1.Logger.debug({ geoLocation, reassignmentInfo });
@@ -424,12 +424,14 @@ let LeadService = class LeadService {
                 .findOne({ externalId, organization })
                 .lean()
                 .exec();
-            const len = (_a = oldLead.history) === null || _a === void 0 ? void 0 : _a.length;
             const nextEntryInHistory = {
                 geoLocation: {},
             };
-            const prevHistory = lodash_1.get(oldLead, `history${[len - 1]}`, null);
-            if (len === 0 && !reassignmentInfo) {
+            const [prevHistory] = yield this.leadHistoryModel
+                .find({})
+                .sort({ $natural: -1 })
+                .limit(1);
+            if (!reassignmentInfo) {
                 nextEntryInHistory["notes"] = `Lead has been assigned to ${loggedInUserEmail} by default`;
                 nextEntryInHistory["newUser"] = loggedInUserEmail;
             }
@@ -445,11 +447,12 @@ let LeadService = class LeadService {
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
                 nextEntryInHistory["requestedInformation"] = requestedInformation.filter((ri) => Object.keys(ri).length > 0);
             }
-            let { history, contact } = obj, filteredObj = __rest(obj, ["history", "contact"]);
+            let { contact } = obj, filteredObj = __rest(obj, ["contact"]);
             if (lodash_1.get(reassignmentInfo, "newUser")) {
                 obj.email = reassignmentInfo.newUser;
             }
-            const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: filteredObj, $push: { history: nextEntryInHistory } });
+            const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: filteredObj });
+            yield this.leadHistoryModel.create(nextEntryInHistory);
             if (!lodash_1.values(emailForm).every(lodash_1.isEmpty)) {
                 const { subject, attachments, content } = emailForm;
                 this.sendEmailToLead({
@@ -646,10 +649,13 @@ let LeadService = class LeadService {
                 projection[c] = 1;
             });
             projection["contact"] = 1;
-            projection["history"] = 1;
             singleLeadAgg.project(projection);
-            const result = (yield singleLeadAgg.exec())[0];
-            return Promise.resolve({ result });
+            const lead = (yield singleLeadAgg.exec())[0];
+            const leadHistory = yield this.leadHistoryModel
+                .find({ lead: lead._id })
+                .limit(5);
+            lead.history = leadHistory;
+            return Promise.resolve({ result: lead });
         });
     }
     getSaleAmountByLeadStatus(campaignName) {
@@ -788,9 +794,11 @@ LeadService = __decorate([
     __param(4, mongoose_1.InjectModel("Campaign")),
     __param(5, mongoose_1.InjectModel("EmailTemplate")),
     __param(6, mongoose_1.InjectModel("CallLog")),
-    __param(7, mongoose_1.InjectModel("GeoLocation")),
-    __param(8, mongoose_1.InjectModel("Alarm")),
+    __param(7, mongoose_1.InjectModel("LeadHistory")),
+    __param(8, mongoose_1.InjectModel("GeoLocation")),
+    __param(9, mongoose_1.InjectModel("Alarm")),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,

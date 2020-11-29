@@ -13,8 +13,8 @@ import { OrganizationModule } from "./organization/organization.module";
 import { Logger } from "nestjs-pino";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { logger: false });
-  app.useLogger(app.get(Logger));
+  const app = await NestFactory.create(AppModule);
+  // app.useLogger(app.get(Logger));
 
   app.enableCors();
   // ╦ ╦╔═╗╔═╗  ╔═╗╦  ╔═╗╔╗ ╔═╗╦    ╔═╗╦╔═╗╔═╗╔═╗

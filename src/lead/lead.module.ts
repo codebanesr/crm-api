@@ -14,6 +14,7 @@ import { MulterModule } from "@nestjs/platform-express";
 import { AdminActionSchema } from "../user/schemas/admin-action.schema";
 import { UploadService } from "../upload/upload.service";
 import { PushNotificationService } from "../push-notification/push-notification.service";
+import { LeadHistory } from "./schema/lead-history.schema";
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PushNotificationService } from "../push-notification/push-notification.
       { name: "User", schema: UserSchema },
       { name: "Lead", schema: LeadSchema },
       { name: "AdminAction", schema: AdminActionSchema },
+      { name: "LeadHistory", schema: LeadHistory },
     ]),
   ],
   providers: [LeadService, UploadService, PushNotificationService],
