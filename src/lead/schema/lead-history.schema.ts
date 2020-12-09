@@ -19,4 +19,6 @@ export const LeadHistory = new Schema({
   attachment: String,
   createdAt: { type: Date, default: new Date() },
   requestedInformation: Object,
+  nextAction: String,
+  organization: {type: Schema.Types.ObjectId, ref:"Organization"}
 });

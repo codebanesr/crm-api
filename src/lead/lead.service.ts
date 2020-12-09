@@ -251,7 +251,8 @@ export class LeadService {
     if (assigned) {
       const subordinateEmails = await this.getSubordinates(
         activeUserEmail,
-        roleType
+        roleType,
+        organization
       );
 
       leadAgg.match({
@@ -633,6 +634,8 @@ export class LeadService {
     nextEntryInHistory.prospectName = `${lead.firstName} ${lead.lastName}`;
     nextEntryInHistory.leadStatus = lead.leadStatus;
     nextEntryInHistory.followUp = lead.followUp?.toString();
+    nextEntryInHistory.organization = organization;
+    lead.nextAction && (nextEntryInHistory.nextAction = lead.nextAction);
 
     /** Do not update contact, there will be a separate api for adding contact information */
     let { contact, ...filteredObj } = obj;
@@ -660,12 +663,12 @@ export class LeadService {
     return result;
   }
 
-  async getSubordinates(email: string, roleType: string) {
+  async getSubordinates(email: string, roleType: string, organization: string) {
     if (roleType === "frontline") {
       return [email];
     }
     const fq: any = [
-      { $match: { email: email, verified: true } },
+      { $match: { organization, email: email, verified: true } },
       {
         $graphLookup: {
           from: "users",
@@ -685,7 +688,7 @@ export class LeadService {
     ];
 
     const result = await this.userModel.aggregate(fq);
-    return result[0].subordinates;
+    return [email, ...result[0].subordinates];
   }
 
   async parseLeadFiles(
@@ -910,6 +913,7 @@ export class LeadService {
 
     /** @Todo Quick fix for sending contact ionformation to frontend, to put some effort into this if required */
     projection["contact"] = 1;
+    projection["nextAction"] = 1;
 
     // other information that should always show up, one is history
 
@@ -941,10 +945,12 @@ export class LeadService {
     return qb.exec();
   }
 
-  async getTransactions(payload: GetTransactionDto) {
+  async getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto) {
+    // get email ids of users after him
+    const subordinateEmails = await this.getSubordinates(email, roleType, organization);
     const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
     return this.leadHistoryModel
-      .find()
+      .find({organization, newUser: {$in: subordinateEmails}})
       .sort({ [payload.pagination.sortBy]: sortOrder })
       .limit(payload.pagination.perPage);
   }

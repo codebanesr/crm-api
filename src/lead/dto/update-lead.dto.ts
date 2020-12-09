@@ -210,6 +210,9 @@ export class Lead {
   @IsNumber()
   @IsOptional()
   pincode: number;
+
+  @IsString()
+  nextAction?: string;
 }
 
 export class UpdateLeadDto {

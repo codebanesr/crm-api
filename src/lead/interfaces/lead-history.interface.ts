@@ -14,7 +14,9 @@ export interface LeadHistory extends Document {
   geoLocation: leadHistoryGeoLocation;
   leadStatus: string;
   attachment: string;
+  nextAction: string;
   requestedInformation?: { [key: string]: string }[];
+  organization: string;
 }
 
 export class leadHistoryGeoLocation {

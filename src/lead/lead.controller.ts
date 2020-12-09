@@ -81,9 +81,18 @@ export class LeadController {
     // return this.leadService.insertOne(body, email, organization, campaignId);
   }
 
+
+  /**
+   * 
+   * @param user User
+   * @param body GetTransationDto
+   * who can see these transactions - one who is assigned, his managers or admin
+   */
   @Post("transactions")
+  @UseGuards(AuthGuard("jwt"))
   getTransactions(@CurrentUser() user: User, @Body() body: GetTransactionDto) {
-    return this.leadService.getTransactions(body);
+    const { organization, email, roleType } = user;
+    return this.leadService.getTransactions(organization, email, roleType, body);
   }
 
   @Post("findAll")

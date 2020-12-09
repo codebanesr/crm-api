@@ -26,6 +26,7 @@ export const LeadSchema = new Schema(
     bucket: String,
     operationalArea: String,
     pincode: Number,
+    nextAction: String,
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
   },
   {
