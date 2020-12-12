@@ -1,5 +1,7 @@
 import {
+  IsDate,
   IsEnum,
+  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -27,10 +29,30 @@ class Pagination {
   sortOrder?: SortOrder;
 }
 
+class TransactionFilter {
+  @IsDate()
+  startDate: Date;
+
+  @IsDate()
+  endDate: Date;
+
+  @IsString({each: true})
+  handler: string[];
+
+  @IsString()
+  prospectName: string;
+
+  @IsMongoId()
+  campaign: string;
+}
+
 export class GetTransactionDto {
   @IsNotEmpty()
   @ValidateNested({ message: "this is a required field" })
   pagination: Pagination;
 
-  filters: any;
+  @IsOptional()
+  @ValidateNested()
+  filters?: TransactionFilter;
 }
+

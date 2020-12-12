@@ -11,6 +11,7 @@ import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { CampaignForm } from "./interfaces/campaign-form.interface";
 import { Lead } from "../lead/interfaces/lead.interface";
 import { keyBy } from "lodash";
+import { UpdateConfigsDto } from "./dto/update-configs.dto";
 
 @Injectable()
 export class CampaignService {
@@ -83,20 +84,8 @@ export class CampaignService {
 
   //   campaign id from params.campaignId
 
-  async findOneByIdOrName(campaignId, identifier) {
-    let result;
-    switch (identifier) {
-      case "campaignName":
-        result = await this.campaignModel
-          .findOne({ campaignName: campaignId })
-          .sort({ updatedAt: -1 })
-          .lean()
-          .exec();
-        break;
-      default:
-        result = await this.campaignModel.findById(campaignId).lean().exec();
-    }
-    return result;
+  async findOneByIdOrName(campaignId) {
+    return this.campaignModel.findById(campaignId).lean().exec();
   }
 
   async patch(campaignId, requestBody) {
@@ -364,7 +353,7 @@ export class CampaignService {
     campaignNames: string[],
     organization: string
   ) {
-    /** also add organiztion because two campaigns can have same names between different organization */
+    /** also add organization because two campaigns can have same names between different organization */
     const quickStatsAgg = this.leadModel.aggregate();
     quickStatsAgg.match({
       organization,
@@ -401,5 +390,21 @@ export class CampaignService {
 
     const quickStatsArr = await quickStatsAgg.exec();
     return keyBy(quickStatsArr, "campaign");
+  }
+
+
+  // <filter>,
+  // <update>,
+  // {
+  //   upsert: <boolean>,
+  //   writeConcern: <document>,
+  //   collation: <document>,
+  //   arrayFilters: [ <filterdocument1>, ... ]
+  // }
+  updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string) {
+    if(config._id)
+      return this.campaignConfigModel.findOneAndUpdate({_id: config._id}, {...config, name: campaignName, organization, campaignId}, {upsert: true}).lean().exec();
+    else
+      return this.campaignConfigModel.create({...config, name: campaignName, organization, campaignId, checked: true});
   }
 }

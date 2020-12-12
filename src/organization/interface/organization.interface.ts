@@ -7,5 +7,6 @@ export interface Organization extends Document {
     phoneNumber: String,
     phoneNumberPrefix: string,
     email: string,
-    lastActive: string
+    lastActive: string,
+    organizationImage: string
 }

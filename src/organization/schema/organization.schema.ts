@@ -32,7 +32,8 @@ export const OrganizationSchema = new mongoose.Schema ({
         type: String,
         enum : Object.keys(OrganizationalType),
         default: OrganizationalType.TRIAL
-    }
+    },
+    organizationImage: String,
 }, {
     versionKey: false,
     timestamps: true,

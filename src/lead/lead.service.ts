@@ -1,12 +1,14 @@
 import {
+  ImATeapotException,
   Injectable,
   Logger,
   PreconditionFailedException,
+  UnprocessableEntityException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, NativeError } from "mongoose";
 import { Lead } from "./interfaces/lead.interface";
-import { get, isArray, isEmpty, keyBy, keys, values } from "lodash";
+import { difference, get, intersection, isArray, isEmpty, keyBy, keys, values } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
@@ -33,6 +35,7 @@ import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
+import { AssertionError } from "assert";
 @Injectable()
 export class LeadService {
   constructor(
@@ -319,19 +322,11 @@ export class LeadService {
     };
   }
 
-  async getLeadColumns(campaignType: string = "core", organization: string) {
-    if (campaignType !== "core") {
-      const campaign: any = await this.campaignModel
-        .findOne({ _id: Types.ObjectId(campaignType), organization })
-        .lean()
-        .exec();
-      campaignType = campaign.campaignName;
-    }
-    const matchQ: any = { name: campaignType };
+  async getLeadColumns(campaignId: string = "core", organization: string) {
+    /** @Todo take the campaign id directly and not search by name */
+    const campaign = await this.campaignModel.findOne({_id: campaignId});
 
-    const paths = await this.campaignConfigModel
-      .aggregate([{ $match: matchQ }])
-      .exec();
+    const paths = await this.campaignConfigModel.find({name: campaign.campaignName, organization});
 
     return { paths: paths };
   }
@@ -860,10 +855,8 @@ export class LeadService {
       .lean()
       .exec();
 
-    if (!campaign.browsableCols || !campaign.editableCols) {
-      throw new NativeError(
-        "Please add browsable and editable columns for this campaign"
-      );
+    if (!campaign || !campaign.browsableCols || !campaign.editableCols) {
+      throw new UnprocessableEntityException();
     }
 
     const singleLeadAgg = this.leadModel.aggregate();
@@ -947,10 +940,34 @@ export class LeadService {
 
   async getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto) {
     // get email ids of users after him
-    const subordinateEmails = await this.getSubordinates(email, roleType, organization);
+    let conditionalQueries = {};
+    let subordinateEmails = await this.getSubordinates(email, roleType, organization);
+
+    // if the user only wants to see results for some subordinates this will filter it out
+    if(payload.filters?.handler?.length > 0) {
+      subordinateEmails = intersection(payload.filters.handler, subordinateEmails, [email])
+    };
+
+    if(payload.filters?.prospectName) {
+      /** @Todo to be filled later, we have firstname, lastname, fullName, these should be combined in a text index for search */ 
+    }
+
+    if(payload.filters?.campaign) {
+      conditionalQueries["campaign"] = payload.filters.campaign;
+    }
+
+    if(payload.filters?.startDate) {
+      conditionalQueries["createdAt"] = {};
+      conditionalQueries["createdAt"]["$gte"] = new Date(payload.filters.startDate);
+    }
+
+    if(payload.filters?.endDate) {
+      conditionalQueries["createdAt"]["$lte"] = new Date(payload.filters.endDate);
+    }
+
     const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
     return this.leadHistoryModel
-      .find({organization, newUser: {$in: subordinateEmails}})
+      .find({organization, newUser: {$in: subordinateEmails}, ...conditionalQueries})
       .sort({ [payload.pagination.sortBy]: sortOrder })
       .limit(payload.pagination.perPage);
   }

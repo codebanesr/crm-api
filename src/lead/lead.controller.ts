@@ -45,18 +45,18 @@ import { get } from "lodash";
 export class LeadController {
   constructor(private readonly leadService: LeadService) {}
 
-  @Get("getAllLeadColumns")
+  @Get("getAllLeadColumns/:campaignId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Get lead by id",
   })
   @UseGuards(AuthGuard("jwt"))
   getAllLeadColumns(
-    @Query("campaignType") campaignType: string,
+    @Param("campaignId") campaignId: string,
     @CurrentUser() user
   ) {
     const { organization } = user;
-    return this.leadService.getLeadColumns(campaignType, organization);
+    return this.leadService.getLeadColumns(campaignId, organization);
   }
 
   /** @Todo to replace campaignName with campaignId */

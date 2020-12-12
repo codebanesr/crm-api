@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, MinLength, MaxLength, IsEmail, IsEnum, IsDateString, IsDate, IsIn, IsOptional } from "class-validator";
+import { IsNotEmpty, IsString, MinLength, MaxLength, IsEmail, IsEnum, IsDateString, IsDate, IsIn, IsOptional, IsUrl } from "class-validator";
 import { OrganizationalType } from "../../utils/organizational.enum";
 
 /** @Todo add phone number and email as well with @OneOf */
@@ -106,4 +106,12 @@ export class CreateOrganizationDto {
       @MinLength(4)
       @MaxLength(14)
       password: string
+
+      @ApiProperty({
+        example: "https://s3.ap-south-1.amazonaws.com/molecule.static.files/_1607512889676anjeline.jpg",
+        description: 'Enter the image for the organization for white labelling',
+        type: String,
+      })
+      @IsUrl()
+      organizationImage: string;
 }

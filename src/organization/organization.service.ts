@@ -94,8 +94,6 @@ export class OrganizationService {
     createOrganizationDto: CreateOrganizationDto
   ) {
     const correctOTP = await this.getOTPForNumber(
-      createOrganizationDto.phoneNumberPrefix +
-        "" +
         createOrganizationDto.phoneNumber
     );
     const { email, phoneNumber, organizationName } = createOrganizationDto;

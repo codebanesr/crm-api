@@ -4,6 +4,7 @@ export interface LeadHistory extends Document {
   oldUser: string;
   newUser: string;
   lead: string;
+  campaign: string;
   campaignName: string;
   prospectName: string;
   phoneNumber: string;
