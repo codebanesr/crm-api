@@ -3,6 +3,7 @@ export declare class FiltersDto {
     assigned: true;
     dateRange: string[];
     selectedCampaign: string;
+    leadStatusKeys: string[];
 }
 export declare class FindAllDto {
     readonly page: number;

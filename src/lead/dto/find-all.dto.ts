@@ -33,6 +33,9 @@ export class FiltersDto {
 
   @IsMongoId()
   selectedCampaign: string = undefined;
+
+  @IsString({each: true})
+  leadStatusKeys: string[]
 }
 
 export class FindAllDto {

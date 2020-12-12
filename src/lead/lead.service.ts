@@ -209,7 +209,7 @@ export class LeadService {
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
-    const { assigned, selectedCampaign, dateRange, ...otherFilters } = filters;
+    const { assigned, selectedCampaign, dateRange, leadStatusKeys, ...otherFilters } = filters;
     const [startDate, endDate] = dateRange || [];
 
     const leadAgg = this.leadModel.aggregate();
@@ -219,6 +219,10 @@ export class LeadService {
     }
 
     const matchQuery = { organization };
+
+    if(leadStatusKeys?.length > 0) {
+      matchQuery["leadStatusKeys"] = {$in: leadStatusKeys};
+    }
 
     Object.keys(otherFilters).forEach((k) => {
       if (!otherFilters[k]) {

@@ -159,13 +159,16 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
-            const { assigned, selectedCampaign, dateRange } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange"]);
+            const { assigned, selectedCampaign, dateRange, leadStatusKeys } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange", "leadStatusKeys"]);
             const [startDate, endDate] = dateRange || [];
             const leadAgg = this.leadModel.aggregate();
             if (searchTerm) {
                 leadAgg.match({ $text: { $search: searchTerm } });
             }
             const matchQuery = { organization };
+            if ((leadStatusKeys === null || leadStatusKeys === void 0 ? void 0 : leadStatusKeys.length) > 0) {
+                matchQuery["leadStatusKeys"] = { $in: leadStatusKeys };
+            }
             Object.keys(otherFilters).forEach((k) => {
                 if (!otherFilters[k]) {
                     delete otherFilters[k];

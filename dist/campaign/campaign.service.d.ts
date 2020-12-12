@@ -27,7 +27,7 @@ export declare class CampaignService {
         metadata: any;
         quickStatsAgg: import("lodash").Dictionary<any>;
     }>;
-    findOneByIdOrName(campaignId: any): Promise<Pick<Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "archived" | "campaignName" | "workflow" | "createdBy" | "interval" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo">>;
+    findOneByIdOrName(campaignId: any): Promise<Pick<Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "archived" | "campaignName" | "startDate" | "endDate" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo">>;
     patch(campaignId: any, requestBody: any): Promise<any>;
     deleteOne(campaignId: any): Promise<{
         ok?: number;
