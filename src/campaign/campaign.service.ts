@@ -12,6 +12,8 @@ import { CampaignForm } from "./interfaces/campaign-form.interface";
 import { Lead } from "../lead/interfaces/lead.interface";
 import { keyBy } from "lodash";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
+import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
+import { coreConfig } from "./core-config";
 
 @Injectable()
 export class CampaignService {
@@ -166,10 +168,9 @@ export class CampaignService {
     const excelObject = parseExcel(path);
   }
 
-  //   disposition data and campaign infor from body
+  /** */
   async createCampaignAndDisposition({
     activeUserId,
-    file,
     dispositionData,
     campaignInfo,
     organization,
@@ -180,29 +181,9 @@ export class CampaignService {
     assignTo,
     advancedSettings,
     groups,
-  }: {
-    activeUserId: string;
-    file: any;
-    dispositionData: any;
-    campaignInfo: any;
-    organization: string;
-    editableCols: string;
-    browsableCols: string;
-    uniqueCols: string;
-    formModel: any;
-    assignTo: string;
-    advancedSettings: string;
-    groups: string;
-  }) {
-    dispositionData = JSON.parse(dispositionData);
-    campaignInfo = JSON.parse(campaignInfo);
-    editableCols = JSON.parse(editableCols);
-    browsableCols = JSON.parse(browsableCols);
-    uniqueCols = JSON.parse(uniqueCols);
-    formModel = JSON.parse(formModel);
-    assignTo = JSON.parse(assignTo);
-    advancedSettings = JSON.parse(advancedSettings);
-    groups = JSON.parse(groups);
+    isNew
+  }: CreateCampaignAndDispositionDto & {activeUserId: string, organization: string}) {
+
 
     const campaign = await this.campaignModel.findOneAndUpdate(
       { campaignName: campaignInfo.campaignName, organization },
@@ -221,11 +202,14 @@ export class CampaignService {
       { new: true, upsert: true, rawResult: true }
     );
 
-    // let disposition = new this.dispositionModel({
-    //   options: dispositionData,
-    //   campaign: campaign.value.id,
-    // });
-    // disposition = await disposition.save();
+    if(isNew) {
+      coreConfig.forEach(config=>{
+        config.organization = organization;
+        config.campaignId = campaign.value._id;
+      })
+
+      await this.campaignConfigModel.insertMany(coreConfig);
+    }
 
     const disposition = await this.dispositionModel.findOneAndUpdate(
       { campaign: campaign.value.id, organization },
@@ -236,29 +220,9 @@ export class CampaignService {
       { new: true, upsert: true, rawResult: true }
     );
 
-    let filePath = "";
-    if (file) {
-      const ccJSON = await parseExcel(file.path);
-      filePath = await this.saveCampaignSchema(ccJSON, {
-        schemaName: campaignInfo.campaignName,
-        organization,
-      });
-
-      const adminActions = new this.adminActionModel({
-        userid: activeUserId,
-        actionType: "error",
-        filePath,
-        savedOn: "disk",
-        fileType: "campaignConfig",
-      });
-
-      adminActions.save();
-    }
-
     return {
       campaign: campaign.value,
       disposition,
-      filePath,
     };
   }
 
@@ -393,18 +357,14 @@ export class CampaignService {
   }
 
 
-  // <filter>,
-  // <update>,
-  // {
-  //   upsert: <boolean>,
-  //   writeConcern: <document>,
-  //   collation: <document>,
-  //   arrayFilters: [ <filterdocument1>, ... ]
-  // }
   updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string) {
     if(config._id)
       return this.campaignConfigModel.findOneAndUpdate({_id: config._id}, {...config, name: campaignName, organization, campaignId}, {upsert: true}).lean().exec();
     else
       return this.campaignConfigModel.create({...config, name: campaignName, organization, campaignId, checked: true});
+  }
+
+  createCampaignConfigs() {
+    
   }
 }

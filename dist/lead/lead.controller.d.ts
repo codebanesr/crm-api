@@ -19,7 +19,7 @@ export declare class LeadController {
     getAllLeadColumns(campaignId: string, user: any): Promise<{
         paths: import("./interfaces/campaign-config.interface").CampaignConfig[];
     }>;
-    insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<import("./interfaces/lead.interface").Lead>;
+    insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<void>;
     getTransactions(user: User, body: GetTransactionDto): Promise<import("./interfaces/lead-history.interface").LeadHistory[]>;
     findAll(body: FindAllDto, user: any): Promise<{
         total: any;
@@ -52,7 +52,7 @@ export declare class LeadController {
         result: void;
     }>;
     saveEmailAttachments(files: any): any;
-    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "nextAction" | "contact" | "requestedInformation">>;
+    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "pincode" | "nextAction" | "contact" | "requestedInformation" | "state">>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;
     fetchNextLead(user: User, campaignId: string, body: FetchNextLeadDto): Promise<{
         result: any;

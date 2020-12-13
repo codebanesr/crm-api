@@ -47,7 +47,7 @@ let LeadController = class LeadController {
     }
     getAllLeadColumns(campaignId, user) {
         const { organization } = user;
-        return this.leadService.getLeadColumns(campaignId, organization);
+        return this.leadService.getLeadColumns(campaignId);
     }
     insertOne(body, user, campaignId, campaignName) {
         const { organization, email } = user;
@@ -121,8 +121,8 @@ let LeadController = class LeadController {
     }
     uploadMultipleLeadFiles(user, body) {
         const { email, organization, _id, pushtoken } = user;
-        const { campaignName, files } = body;
-        return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization, _id, pushtoken);
+        const { campaignName, files, campaignId } = body;
+        return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization, _id, pushtoken, campaignId);
     }
     saveEmailAttachments(files) {
         return this.leadService.saveEmailAttachments(files);

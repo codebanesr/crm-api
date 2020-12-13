@@ -22,6 +22,11 @@ __decorate([
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], UploadMultipleFilesDto.prototype, "campaignName", void 0);
+__decorate([
+    class_validator_1.IsNotEmpty(),
+    class_validator_1.IsMongoId(),
+    __metadata("design:type", String)
+], UploadMultipleFilesDto.prototype, "campaignId", void 0);
 exports.UploadMultipleFilesDto = UploadMultipleFilesDto;
 class S3UploadedFiles {
 }

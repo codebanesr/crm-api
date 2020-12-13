@@ -326,12 +326,8 @@ export class LeadService {
     };
   }
 
-  async getLeadColumns(campaignId: string = "core", organization: string) {
-    /** @Todo take the campaign id directly and not search by name */
-    const campaign = await this.campaignModel.findOne({_id: campaignId});
-
-    const paths = await this.campaignConfigModel.find({name: campaign.campaignName, organization});
-
+  async getLeadColumns(campaignId: string = "core") {
+    const paths = await this.campaignConfigModel.find({campaignId});
     return { paths: paths };
   }
 
@@ -381,14 +377,12 @@ export class LeadService {
     campaignName: string
   ) {
     const { contact, lead } = body;
-    const draftLead = await this.leadModel.create({
+    await this.leadModel.create({
       ...lead,
       campaign: campaignName,
       organization,
       contact,
     });
-
-    return draftLead.save();
   }
 
   async deleteOne(leadId: string, activeUserEmail: string) {
@@ -479,31 +473,33 @@ export class LeadService {
     uploader: string,
     organization: string,
     userId: string,
-    pushtoken: any
+    pushtoken: any,
+    campaignId: string
   ) {
-    const ccnfg = (await this.campaignConfigModel
-      .find(
-        { name: campaignName, organization },
-        { readableField: 1, internalField: 1, _id: 0 }
-      )
-      .lean()
-      .exec()) as IConfig[];
+    // const ccnfg = (await this.campaignConfigModel
+    //   .find(
+    //     { name: campaignName, organization },
+    //     { readableField: 1, internalField: 1, _id: 0 }
+    //   )
+    //   .lean()
+    //   .exec()) as IConfig[];
+    const ccnfg = await this.campaignConfigModel.find({campaignId}, {readableField: 1, internalField: 1, _id: 0});
+
     if (!ccnfg) {
       throw new Error(
         `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`
       );
     }
 
-    const adminActions = new this.adminActionModel({
+    await this.adminActionModel.create({
       userid: userId,
       organization,
       actionType: "lead",
       filePath: files[0].Location,
       savedOn: "s3",
+      campaign: campaignId,
       fileType: "campaignConfig",
     });
-
-    await adminActions.save();
 
     const result = await this.parseLeadFiles(
       files,
@@ -512,7 +508,8 @@ export class LeadService {
       organization,
       uploader,
       userId,
-      pushtoken
+      pushtoken,
+      campaignId
     );
     // parse data here
     return { files, result };
@@ -697,7 +694,8 @@ export class LeadService {
     organization: string,
     uploader: string,
     uploaderId: string,
-    pushtoken
+    pushtoken: string,
+    campaignId: string
   ) {
     files.forEach(async (file) => {
       const jsonRes = await parseExcel(file.Location, ccnfg);
@@ -708,7 +706,8 @@ export class LeadService {
         organization,
         uploader,
         uploaderId,
-        pushtoken
+        pushtoken,
+        campaignId
       );
     });
   }
@@ -720,7 +719,8 @@ export class LeadService {
     organization: string,
     uploader: string,
     uploaderId: string,
-    pushtoken
+    pushtoken,
+    campaignId: string
   ) {
     const created = [];
     const updated = [];
@@ -750,7 +750,7 @@ export class LeadService {
       const { lastErrorObject, value } = await this.leadModel
         .findOneAndUpdate(
           { externalId: lead.externalId },
-          { ...lead, campaign: campaignName, contact, organization, uploader },
+          { ...lead, campaign: campaignName, contact, organization, uploader, campaignId },
           { new: true, upsert: true, rawResult: true }
         )
         .lean()

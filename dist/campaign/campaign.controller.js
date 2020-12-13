@@ -21,6 +21,7 @@ const find_campaigns_dto_1 = require("./dto/find-campaigns.dto");
 const passport_1 = require("@nestjs/passport");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const update_configs_dto_1 = require("./dto/update-configs.dto");
+const create_campaign_disposition_dto_1 = require("./dto/create-campaign-disposition.dto");
 let CampaignController = class CampaignController {
     constructor(campaignService) {
         this.campaignService = campaignService;
@@ -62,23 +63,9 @@ let CampaignController = class CampaignController {
     findOneByIdOrName(campaignId) {
         return this.campaignService.findOneByIdOrName(campaignId);
     }
-    createCampaignAndDisposition(currrentUser, file, body) {
+    createCampaignAndDisposition(currrentUser, body) {
         const { id: activeUserId, organization } = currrentUser;
-        const { dispositionData, campaignInfo, editableCols, browsableCols, uniqueCols, formModel, assignTo, advancedSettings, groups, } = body;
-        return this.campaignService.createCampaignAndDisposition({
-            activeUserId,
-            file,
-            dispositionData,
-            campaignInfo,
-            organization,
-            editableCols,
-            browsableCols,
-            formModel,
-            uniqueCols,
-            assignTo,
-            advancedSettings,
-            groups,
-        });
+        return this.campaignService.createCampaignAndDisposition(Object.assign(Object.assign({}, body), { activeUserId, organization }));
     }
     getDispositionByCampaignName(campaignName, user) {
         const { organization } = user;
@@ -173,10 +160,9 @@ __decorate([
     }),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, current_user_decorator_1.CurrentUser()),
-    __param(1, common_1.UploadedFile()),
-    __param(2, common_1.Body()),
+    __param(1, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:paramtypes", [Object, create_campaign_disposition_dto_1.CreateCampaignAndDispositionDto]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "createCampaignAndDisposition", null);
 __decorate([

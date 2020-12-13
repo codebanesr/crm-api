@@ -5,6 +5,7 @@ const mongoose_1 = require("mongoose");
 exports.AdminActionSchema = new mongoose_1.Schema({
     userid: { type: mongoose_1.Schema.Types.ObjectId, ref: "User" },
     organization: { type: mongoose_1.Schema.Types.ObjectId, ref: "Organization" },
+    campaign: { type: mongoose_1.Schema.Types.ObjectId, ref: "Campaign" },
     actionType: String,
     filePath: String,
     savedOn: {

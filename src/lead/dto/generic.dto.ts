@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { IsMongoId, IsNotEmpty, IsString } from "class-validator";
 
 export class UploadMultipleFilesDto {
   @ApiProperty({
@@ -9,6 +9,11 @@ export class UploadMultipleFilesDto {
   })
   @IsString()
   campaignName: string;
+
+
+  @IsNotEmpty()
+  @IsMongoId()
+  campaignId: string;
 
   files: S3UploadedFiles[];
 }

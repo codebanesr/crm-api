@@ -7,6 +7,7 @@ import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { CampaignForm } from "./interfaces/campaign-form.interface";
 import { Lead } from "../lead/interfaces/lead.interface";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
+import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
 export declare class CampaignService {
     private readonly campaignModel;
     private readonly campaignConfigModel;
@@ -52,23 +53,12 @@ export declare class CampaignService {
         error?: undefined;
     }>;
     uploadConfig(file: any): Promise<void>;
-    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, }: {
+    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew }: CreateCampaignAndDispositionDto & {
         activeUserId: string;
-        file: any;
-        dispositionData: any;
-        campaignInfo: any;
         organization: string;
-        editableCols: string;
-        browsableCols: string;
-        uniqueCols: string;
-        formModel: any;
-        assignTo: string;
-        advancedSettings: string;
-        groups: string;
     }): Promise<{
         campaign: Campaign;
         disposition: import("mongodb").FindAndModifyWriteOpResultObject<Disposition>;
-        filePath: string;
     }>;
     saveCampaignSchema(ccJSON: any[], others: any & {
         organization: string;
@@ -82,4 +72,5 @@ export declare class CampaignService {
     archiveCampaign(campaign: any): Promise<Campaign>;
     getQuickStatsForCampaigns(campaignNames: string[], organization: string): Promise<import("lodash").Dictionary<any>>;
     updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string): Promise<Pick<CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "campaignId" | "internalField" | "checked">>;
+    createCampaignConfigs(): void;
 }

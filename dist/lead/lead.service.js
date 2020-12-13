@@ -249,10 +249,9 @@ let LeadService = class LeadService {
             };
         });
     }
-    getLeadColumns(campaignId = "core", organization) {
+    getLeadColumns(campaignId = "core") {
         return __awaiter(this, void 0, void 0, function* () {
-            const campaign = yield this.campaignModel.findOne({ _id: campaignId });
-            const paths = yield this.campaignConfigModel.find({ name: campaign.campaignName, organization });
+            const paths = yield this.campaignConfigModel.find({ campaignId });
             return { paths: paths };
         });
     }
@@ -296,9 +295,8 @@ let LeadService = class LeadService {
     createLead(body, email, organization, campaignId, campaignName) {
         return __awaiter(this, void 0, void 0, function* () {
             const { contact, lead } = body;
-            const draftLead = yield this.leadModel.create(Object.assign(Object.assign({}, lead), { campaign: campaignName, organization,
+            yield this.leadModel.create(Object.assign(Object.assign({}, lead), { campaign: campaignName, organization,
                 contact }));
-            return draftLead.save();
         });
     }
     deleteOne(leadId, activeUserEmail) {
@@ -349,25 +347,22 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken) {
+    uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const ccnfg = (yield this.campaignConfigModel
-                .find({ name: campaignName, organization }, { readableField: 1, internalField: 1, _id: 0 })
-                .lean()
-                .exec());
+            const ccnfg = yield this.campaignConfigModel.find({ campaignId }, { readableField: 1, internalField: 1, _id: 0 });
             if (!ccnfg) {
                 throw new Error(`Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`);
             }
-            const adminActions = new this.adminActionModel({
+            yield this.adminActionModel.create({
                 userid: userId,
                 organization,
                 actionType: "lead",
                 filePath: files[0].Location,
                 savedOn: "s3",
+                campaign: campaignId,
                 fileType: "campaignConfig",
             });
-            yield adminActions.save();
-            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader, userId, pushtoken);
+            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader, userId, pushtoken, campaignId);
             return { files, result };
         });
     }
@@ -494,15 +489,15 @@ let LeadService = class LeadService {
             return [email, ...result[0].subordinates];
         });
     }
-    parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId, pushtoken) {
+    parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId, pushtoken, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
             files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
                 const jsonRes = yield parseExcel_1.default(file.Location, ccnfg);
-                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader, uploaderId, pushtoken);
+                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader, uploaderId, pushtoken, campaignId);
             }));
         });
     }
-    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader, uploaderId, pushtoken) {
+    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader, uploaderId, pushtoken, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
             const created = [];
             const updated = [];
@@ -527,7 +522,7 @@ let LeadService = class LeadService {
                     }
                 });
                 const { lastErrorObject, value } = yield this.leadModel
-                    .findOneAndUpdate({ externalId: lead.externalId }, Object.assign(Object.assign({}, lead), { campaign: campaignName, contact, organization, uploader }), { new: true, upsert: true, rawResult: true })
+                    .findOneAndUpdate({ externalId: lead.externalId }, Object.assign(Object.assign({}, lead), { campaign: campaignName, contact, organization, uploader, campaignId }), { new: true, upsert: true, rawResult: true })
                     .lean()
                     .exec();
                 if (lastErrorObject.updatedExisting === true) {

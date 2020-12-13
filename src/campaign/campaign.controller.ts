@@ -21,6 +21,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../user/interfaces/user.interface";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
+import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
 
 @ApiTags("Campaign")
 @Controller("campaign")
@@ -114,36 +115,10 @@ export class CampaignController {
   @HttpCode(HttpStatus.OK)
   createCampaignAndDisposition(
     @CurrentUser() currrentUser: User,
-    @UploadedFile() file,
-    @Body() body
+    @Body() body: CreateCampaignAndDispositionDto
   ) {
     const { id: activeUserId, organization } = currrentUser;
-    const {
-      dispositionData,
-      campaignInfo,
-      editableCols,
-      browsableCols,
-      uniqueCols,
-      formModel,
-      assignTo,
-      advancedSettings,
-      groups,
-    } = body;
-
-    return this.campaignService.createCampaignAndDisposition({
-      activeUserId,
-      file,
-      dispositionData,
-      campaignInfo,
-      organization,
-      editableCols,
-      browsableCols,
-      formModel,
-      uniqueCols,
-      assignTo,
-      advancedSettings,
-      groups,
-    });
+    return this.campaignService.createCampaignAndDisposition({...body, activeUserId, organization});
   }
 
   @Get("disposition/campaignName/:campaignName")

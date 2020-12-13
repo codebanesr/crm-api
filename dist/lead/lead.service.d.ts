@@ -49,13 +49,13 @@ export declare class LeadService {
         page: any;
         data: any;
     }>;
-    getLeadColumns(campaignId: string, organization: string): Promise<{
+    getLeadColumns(campaignId?: string): Promise<{
         paths: CampaignConfig[];
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
-    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "remarks" | "product" | "bucket" | "operationalArea" | "pincode" | "nextAction" | "contact" | "requestedInformation">>;
+    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "pincode" | "nextAction" | "contact" | "requestedInformation" | "state">>;
     patch(productId: string, body: any[]): Promise<any>;
-    createLead(body: CreateLeadDto, email: string, organization: string, campaignId: string, campaignName: string): Promise<Lead>;
+    createLead(body: CreateLeadDto, email: string, organization: string, campaignId: string, campaignName: string): Promise<void>;
     deleteOne(leadId: string, activeUserEmail: string): Promise<Pick<any, string | number | symbol>>;
     createAlarm(alarmObj: Partial<Alarm>): Promise<Alarm>;
     sendBulkEmails(emails: string[], subject: string, text: string, attachments: any, organization: string): Promise<{
@@ -66,7 +66,7 @@ export declare class LeadService {
         success?: undefined;
     }>;
     suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit?: number): Promise<any>;
-    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string, pushtoken: any): Promise<{
+    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string, pushtoken: any, campaignId: string): Promise<{
         files: S3UploadedFiles[];
         result: void;
     }>;
@@ -79,8 +79,8 @@ export declare class LeadService {
         loggedInUserEmail: string;
     }): Promise<Lead>;
     getSubordinates(email: string, roleType: string, organization: string): Promise<any[]>;
-    parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string, uploaderId: string, pushtoken: any): Promise<void>;
-    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string, uploaderId: string, pushtoken: any): Promise<any>;
+    parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string, uploaderId: string, pushtoken: string, campaignId: string): Promise<void>;
+    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string, uploaderId: string, pushtoken: any, campaignId: string): Promise<any>;
     leadActivityByUser(startDate: string, endDate: string, email: string): Promise<any>;
     getUpdatedAtQuery(startDate: string, endDate: string): Promise<{
         updatedAt: {

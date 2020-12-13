@@ -56,7 +56,7 @@ export class LeadController {
     @CurrentUser() user
   ) {
     const { organization } = user;
-    return this.leadService.getLeadColumns(campaignId, organization);
+    return this.leadService.getLeadColumns(campaignId);
   }
 
   /** @Todo to replace campaignName with campaignId */
@@ -322,14 +322,15 @@ export class LeadController {
   ) {
     /** @Todo add organization to lead file uploads also */
     const { email, organization, _id, pushtoken } = user;
-    const { campaignName, files } = body;
+    const { campaignName, files, campaignId } = body;
     return this.leadService.uploadMultipleLeadFiles(
       files,
       campaignName,
       email,
       organization,
       _id,
-      pushtoken
+      pushtoken,
+      campaignId
     );
   }
 
