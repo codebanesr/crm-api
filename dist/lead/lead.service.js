@@ -199,7 +199,10 @@ let LeadService = class LeadService {
             if (assigned) {
                 const subordinateEmails = yield this.getSubordinates(activeUserEmail, roleType, organization);
                 leadAgg.match({
-                    email: { $in: [...subordinateEmails, activeUserEmail] },
+                    $or: [
+                        { email: { $in: [...subordinateEmails, activeUserEmail] } },
+                        { email: { $exists: false } },
+                    ],
                 });
             }
             if (startDate) {
@@ -349,7 +352,8 @@ let LeadService = class LeadService {
     }
     uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const ccnfg = yield this.campaignConfigModel.find({ campaignId }, { readableField: 1, internalField: 1, _id: 0 });
+            const uniqueAttr = yield this.campaignModel.findOne({ _id: campaignId }, { uniqueCols: 1 }).lean().exec();
+            const ccnfg = yield this.campaignConfigModel.find({ campaignId }, { readableField: 1, internalField: 1, _id: 0 }).lean().exec();
             if (!ccnfg) {
                 throw new Error(`Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`);
             }
@@ -362,7 +366,7 @@ let LeadService = class LeadService {
                 campaign: campaignId,
                 fileType: "campaignConfig",
             });
-            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader, userId, pushtoken, campaignId);
+            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader, userId, pushtoken, campaignId, uniqueAttr);
             return { files, result };
         });
     }
@@ -489,15 +493,15 @@ let LeadService = class LeadService {
             return [email, ...result[0].subordinates];
         });
     }
-    parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId, pushtoken, campaignId) {
+    parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId, pushtoken, campaignId, uniqueAttr) {
         return __awaiter(this, void 0, void 0, function* () {
             files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
                 const jsonRes = yield parseExcel_1.default(file.Location, ccnfg);
-                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader, uploaderId, pushtoken, campaignId);
+                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader, uploaderId, pushtoken, campaignId, uniqueAttr);
             }));
         });
     }
-    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader, uploaderId, pushtoken, campaignId) {
+    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader, uploaderId, pushtoken, campaignId, uniqueAttr) {
         return __awaiter(this, void 0, void 0, function* () {
             const created = [];
             const updated = [];
@@ -509,20 +513,14 @@ let LeadService = class LeadService {
             })
                 .lean()
                 .exec();
-            const leadMappings = lodash_1.keyBy(leadColumns, "internalField");
             for (const lead of leads) {
-                let contact = [];
-                Object.keys(lead).forEach((key) => {
-                    if (leadMappings[key].group === "contact") {
-                        contact.push({
-                            label: leadMappings[key].readableField,
-                            value: lead[key],
-                        });
-                        delete lead[key];
-                    }
+                let findUniqueLeadQuery = {};
+                uniqueAttr.uniqueCols.forEach(col => {
+                    findUniqueLeadQuery[col] = lead[col];
                 });
+                findUniqueLeadQuery["campaignId"] = campaignId;
                 const { lastErrorObject, value } = yield this.leadModel
-                    .findOneAndUpdate({ externalId: lead.externalId }, Object.assign(Object.assign({}, lead), { campaign: campaignName, contact, organization, uploader, campaignId }), { new: true, upsert: true, rawResult: true })
+                    .findOneAndUpdate(findUniqueLeadQuery, Object.assign(Object.assign({}, lead), { campaign: campaignName, organization, uploader, campaignId }), { new: true, upsert: true, rawResult: true })
                     .lean()
                     .exec();
                 if (lastErrorObject.updatedExisting === true) {

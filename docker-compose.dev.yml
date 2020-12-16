@@ -60,6 +60,16 @@ services:
       - "6379:6379"
     networks:
       - webnet
+  # minio:
+  #   image: 'bitnami/minio:latest'
+  #   ports:
+  #     - '9009:9000'
+  #   environment:
+  #     - MINIO_ACCESS_KEY=AKIARGBOXP35BONONB4J
+  #     - MINIO_SECRET_KEY=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
+  #   networks:
+  #     - webnet
+
 
 networks:
   webnet:

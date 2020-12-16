@@ -35,7 +35,7 @@ import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
-import { AssertionError } from "assert";
+import { isString } from "lodash";
 @Injectable()
 export class LeadService {
   constructor(
@@ -262,8 +262,16 @@ export class LeadService {
         organization
       );
 
+      // leadAgg.match({
+      //   email: { $in: [...subordinateEmails, activeUserEmail] },
+      // });
+
+
       leadAgg.match({
-        email: { $in: [...subordinateEmails, activeUserEmail] },
+        $or: [
+          { email: { $in: [...subordinateEmails, activeUserEmail] } },
+          { email: { $exists: false } },
+        ],
       });
     }
 
@@ -476,14 +484,8 @@ export class LeadService {
     pushtoken: any,
     campaignId: string
   ) {
-    // const ccnfg = (await this.campaignConfigModel
-    //   .find(
-    //     { name: campaignName, organization },
-    //     { readableField: 1, internalField: 1, _id: 0 }
-    //   )
-    //   .lean()
-    //   .exec()) as IConfig[];
-    const ccnfg = await this.campaignConfigModel.find({campaignId}, {readableField: 1, internalField: 1, _id: 0});
+    const uniqueAttr = await this.campaignModel.findOne({_id: campaignId}, {uniqueCols: 1}).lean().exec();
+    const ccnfg = await this.campaignConfigModel.find({campaignId}, {readableField: 1, internalField: 1, _id: 0}).lean().exec();
 
     if (!ccnfg) {
       throw new Error(
@@ -509,7 +511,8 @@ export class LeadService {
       uploader,
       userId,
       pushtoken,
-      campaignId
+      campaignId,
+      uniqueAttr
     );
     // parse data here
     return { files, result };
@@ -695,7 +698,8 @@ export class LeadService {
     uploader: string,
     uploaderId: string,
     pushtoken: string,
-    campaignId: string
+    campaignId: string,
+    uniqueAttr: Partial<Campaign>
   ) {
     files.forEach(async (file) => {
       const jsonRes = await parseExcel(file.Location, ccnfg);
@@ -707,7 +711,8 @@ export class LeadService {
         uploader,
         uploaderId,
         pushtoken,
-        campaignId
+        campaignId,
+        uniqueAttr
       );
     });
   }
@@ -720,7 +725,8 @@ export class LeadService {
     uploader: string,
     uploaderId: string,
     pushtoken,
-    campaignId: string
+    campaignId: string,
+    uniqueAttr: Partial<Campaign>
   ) {
     const created = [];
     const updated = [];
@@ -734,23 +740,39 @@ export class LeadService {
       .lean()
       .exec();
 
-    const leadMappings = keyBy(leadColumns, "internalField");
+    // const leadMappings = keyBy(leadColumns, "internalField");
     for (const lead of leads) {
-      let contact = [];
-      Object.keys(lead).forEach((key) => {
-        if (leadMappings[key].group === "contact") {
-          contact.push({
-            label: leadMappings[key].readableField,
-            value: lead[key],
-          });
-          delete lead[key];
-        }
-      });
+      // let contact = [];
+      // Object.keys(lead).forEach((key) => {
+      //   if (leadMappings[key].group === "contact") {
+      //     contact.push({
+      //       label: leadMappings[key].readableField,
+      //       value: lead[key],
+      //       // automating it for now even though it should come from the lead file, this logic should strictly be placed in the ui
+      //       // use a library like lodash to find if the value is an email or not
+      //       category: isString(lead[key]) && lead[key]?.indexOf("@") > 0 ? 'email': 'mobile'
+      //     });
+      //     delete lead[key];
+      //   }
+      // });
+
+      let findUniqueLeadQuery = {};
+      uniqueAttr.uniqueCols.forEach(col=>{
+        findUniqueLeadQuery[col] = lead[col];
+      })
+
+
+      /** @Todo to improve update speed use an index of campaignId, @Note mongoose already understands that campaignId is ObjectId
+       * no need to convert it;; organization filter is not required since campaignId is mongoose id which is going to be unique
+       * throughout
+       */
+      findUniqueLeadQuery["campaignId"] = campaignId;
 
       const { lastErrorObject, value } = await this.leadModel
         .findOneAndUpdate(
-          { externalId: lead.externalId },
-          { ...lead, campaign: campaignName, contact, organization, uploader, campaignId },
+          findUniqueLeadQuery,
+          // { ...lead, campaign: campaignName, contact, organization, uploader, campaignId },
+          { ...lead, campaign: campaignName, organization, uploader, campaignId },
           { new: true, upsert: true, rawResult: true }
         )
         .lean()

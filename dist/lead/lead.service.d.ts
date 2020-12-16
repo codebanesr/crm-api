@@ -79,8 +79,8 @@ export declare class LeadService {
         loggedInUserEmail: string;
     }): Promise<Lead>;
     getSubordinates(email: string, roleType: string, organization: string): Promise<any[]>;
-    parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string, uploaderId: string, pushtoken: string, campaignId: string): Promise<void>;
-    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string, uploaderId: string, pushtoken: any, campaignId: string): Promise<any>;
+    parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string, uploaderId: string, pushtoken: string, campaignId: string, uniqueAttr: Partial<Campaign>): Promise<void>;
+    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string, uploaderId: string, pushtoken: any, campaignId: string, uniqueAttr: Partial<Campaign>): Promise<any>;
     leadActivityByUser(startDate: string, endDate: string, email: string): Promise<any>;
     getUpdatedAtQuery(startDate: string, endDate: string): Promise<{
         updatedAt: {

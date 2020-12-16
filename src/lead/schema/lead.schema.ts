@@ -1,5 +1,4 @@
 import { Schema } from "mongoose";
-import { LeadHistory } from "./lead-history.schema";
 
 export const LeadSchema = new Schema(
   {

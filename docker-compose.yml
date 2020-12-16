@@ -26,6 +26,16 @@ services:
       - webnet
     restart: always
 
+  # minio:
+  #   image: 'bitnami/minio:latest'
+  #   ports:
+  #     - '9000:9000'
+  #   environment:
+  #     - MINIO_ACCESS_KEY=
+  #     - MINIO_SECRET_KEY=
+  #   networks:
+  #     - webnet
+
   mongodb:
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
     ports:
