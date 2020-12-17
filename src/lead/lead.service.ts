@@ -312,7 +312,8 @@ export class LeadService {
     const projectQ = {} as any;
 
     flds.forEach((fld: string) => {
-      projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
+      // projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
+      projectQ[fld] = 1;
     });
 
     if (Object.keys(projectQ).length > 0) {
@@ -360,9 +361,18 @@ export class LeadService {
 
   async findOneById(leadId: string, organization: string) {
     const lead = await this.leadModel
-      .findOne({ _id: leadId, organization })
+      .findById(leadId)
       .lean()
       .exec();
+
+
+    if(lead) {
+      const leadHistory = await this.leadHistoryModel
+      .find({ lead: lead._id })
+      .limit(5);
+
+      (lead as any).history = leadHistory;
+    }
     return lead;
   }
 
@@ -564,6 +574,7 @@ export class LeadService {
     reassignmentInfo,
     emailForm,
     requestedInformation,
+    campaignId
   }: UpdateLeadDto & {
     leadId: string;
     organization: string;
@@ -573,7 +584,7 @@ export class LeadService {
     Logger.debug({ geoLocation, reassignmentInfo });
     const keysToUpdate = Object.keys(lead);
 
-    if (keysToUpdate.length > 25) {
+    if (keysToUpdate.length > 40) {
       throw new PreconditionFailedException(
         null,
         "Cannot have more than 25 fields in the lead schema"
@@ -619,7 +630,7 @@ export class LeadService {
     }
 
     if (lead.leadStatus !== oldLead.leadStatus) {
-      nextEntryInHistory.notes = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+      nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
     }
 
     nextEntryInHistory.geoLocation = geoLocation;
@@ -634,6 +645,7 @@ export class LeadService {
     nextEntryInHistory.leadStatus = lead.leadStatus;
     nextEntryInHistory.followUp = lead.followUp?.toString();
     nextEntryInHistory.organization = organization;
+    nextEntryInHistory.campaign = campaignId;
     lead.nextAction && (nextEntryInHistory.nextAction = lead.nextAction);
 
     /** Do not update contact, there will be a separate api for adding contact information */
@@ -947,7 +959,7 @@ export class LeadService {
 
       lead.history = leadHistory;
     }
-    return Promise.resolve({ result: lead });
+    return { result: lead };
   }
 
   getSaleAmountByLeadStatus(campaignName?: string) {

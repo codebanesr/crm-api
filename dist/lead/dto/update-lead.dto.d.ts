@@ -39,6 +39,7 @@ export declare class UpdateLeadDto {
         content: string;
         subject: string;
     };
+    campaignId: string;
     requestedInformation?: {
         [key: string]: string;
     }[];

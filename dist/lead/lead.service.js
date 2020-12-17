@@ -234,7 +234,7 @@ let LeadService = class LeadService {
             }
             const projectQ = {};
             flds.forEach((fld) => {
-                projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
+                projectQ[fld] = 1;
             });
             if (Object.keys(projectQ).length > 0) {
                 leadAgg.project(projectQ);
@@ -277,9 +277,15 @@ let LeadService = class LeadService {
     findOneById(leadId, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             const lead = yield this.leadModel
-                .findOne({ _id: leadId, organization })
+                .findById(leadId)
                 .lean()
                 .exec();
+            if (lead) {
+                const leadHistory = yield this.leadHistoryModel
+                    .find({ lead: lead._id })
+                    .limit(5);
+                lead.history = leadHistory;
+            }
             return lead;
         });
     }
@@ -400,13 +406,13 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }) {
+    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, campaignId }) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
             common_1.Logger.debug({ geoLocation, reassignmentInfo });
             const keysToUpdate = Object.keys(lead);
-            if (keysToUpdate.length > 25) {
+            if (keysToUpdate.length > 40) {
                 throw new common_1.PreconditionFailedException(null, "Cannot have more than 25 fields in the lead schema");
             }
             keysToUpdate.forEach((key) => {
@@ -436,7 +442,7 @@ let LeadService = class LeadService {
                 nextEntryInHistory.newUser = reassignmentInfo.newUser;
             }
             if (lead.leadStatus !== oldLead.leadStatus) {
-                nextEntryInHistory.notes = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+                nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
             }
             nextEntryInHistory.geoLocation = geoLocation;
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
@@ -446,6 +452,7 @@ let LeadService = class LeadService {
             nextEntryInHistory.leadStatus = lead.leadStatus;
             nextEntryInHistory.followUp = (_a = lead.followUp) === null || _a === void 0 ? void 0 : _a.toString();
             nextEntryInHistory.organization = organization;
+            nextEntryInHistory.campaign = campaignId;
             lead.nextAction && (nextEntryInHistory.nextAction = lead.nextAction);
             let { contact } = obj, filteredObj = __rest(obj, ["contact"]);
             if (lodash_1.get(reassignmentInfo, "newUser")) {
@@ -652,7 +659,7 @@ let LeadService = class LeadService {
                     .limit(5);
                 lead.history = leadHistory;
             }
-            return Promise.resolve({ result: lead });
+            return { result: lead };
         });
     }
     getSaleAmountByLeadStatus(campaignName) {

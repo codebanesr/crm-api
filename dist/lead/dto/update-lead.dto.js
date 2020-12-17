@@ -248,5 +248,10 @@ __decorate([
     class_validator_1.IsOptional(),
     __metadata("design:type", Object)
 ], UpdateLeadDto.prototype, "emailForm", void 0);
+__decorate([
+    class_validator_1.IsNotEmpty(),
+    class_validator_1.IsMongoId(),
+    __metadata("design:type", String)
+], UpdateLeadDto.prototype, "campaignId", void 0);
 exports.UpdateLeadDto = UpdateLeadDto;
 //# sourceMappingURL=update-lead.dto.js.map

@@ -6,6 +6,8 @@ import {
   IsDateString,
   IsOptional,
   ValidateNested,
+  IsMongoId,
+  IsNotEmpty,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
@@ -231,6 +233,10 @@ export class UpdateLeadDto {
     content: string;
     subject: string;
   };
+
+  @IsNotEmpty()
+  @IsMongoId()
+  campaignId: string;
 
   requestedInformation?: { [key: string]: string }[];
 }

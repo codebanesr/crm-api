@@ -152,6 +152,7 @@ export class LeadController {
       reassignmentInfo,
       emailForm,
       requestedInformation,
+      campaignId
     } = body;
     return this.leadService.updateLead({
       organization,
@@ -162,6 +163,7 @@ export class LeadController {
       reassignmentInfo,
       emailForm,
       requestedInformation,
+      campaignId
     });
   }
 
