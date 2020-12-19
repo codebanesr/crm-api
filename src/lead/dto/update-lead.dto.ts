@@ -215,6 +215,10 @@ export class Lead {
 
   @IsString()
   nextAction?: string;
+
+  @IsOptional()
+  @IsString({each: true})
+  documentLinks?: string[]
 }
 
 export class UpdateLeadDto {

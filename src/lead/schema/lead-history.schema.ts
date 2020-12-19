@@ -23,5 +23,6 @@ export const LeadHistory = new Schema({
   createdAt: { type: Date, default: new Date() },
   requestedInformation: Object,
   nextAction: String,
-  organization: {type: Schema.Types.ObjectId, ref:"Organization"}
+  organization: {type: Schema.Types.ObjectId, ref:"Organization"},
+  documentLinks: [String]
 });

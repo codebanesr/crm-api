@@ -22,6 +22,7 @@ exports.LeadHistory = new mongoose_1.Schema({
     createdAt: { type: Date, default: new Date() },
     requestedInformation: Object,
     nextAction: String,
-    organization: { type: mongoose_1.Schema.Types.ObjectId, ref: "Organization" }
+    organization: { type: mongoose_1.Schema.Types.ObjectId, ref: "Organization" },
+    documentLinks: [String]
 });
 //# sourceMappingURL=lead-history.schema.js.map

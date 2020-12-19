@@ -26,6 +26,7 @@ exports.LeadSchema = new mongoose_1.Schema({
     pincode: Number,
     nextAction: String,
     organization: { type: mongoose_1.Schema.Types.ObjectId, ref: "Organization" },
+    documentLinks: [String]
 }, {
     timestamps: true,
     autoIndex: true,

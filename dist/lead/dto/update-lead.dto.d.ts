@@ -26,6 +26,7 @@ export declare class Lead {
     operationalArea: string;
     pincode: number;
     nextAction?: string;
+    documentLinks?: string[];
 }
 export declare class UpdateLeadDto {
     lead: Lead;

@@ -280,13 +280,13 @@ let LeadService = class LeadService {
                 .findById(leadId)
                 .lean()
                 .exec();
+            let leadHistory = [];
             if (lead) {
-                const leadHistory = yield this.leadHistoryModel
+                leadHistory = yield this.leadHistoryModel
                     .find({ lead: lead._id })
                     .limit(5);
-                lead.history = leadHistory;
             }
-            return lead;
+            return { lead, leadHistory };
         });
     }
     patch(productId, body) {
@@ -435,6 +435,9 @@ let LeadService = class LeadService {
             if (!reassignmentInfo) {
                 nextEntryInHistory.notes = `Lead has been assigned to ${loggedInUserEmail} by default`;
                 nextEntryInHistory.newUser = loggedInUserEmail;
+            }
+            if (lead.documentLinks.length > 0) {
+                nextEntryInHistory.documentLinks = lead.documentLinks;
             }
             if (reassignmentInfo && (prevHistory === null || prevHistory === void 0 ? void 0 : prevHistory.newUser) !== reassignmentInfo.newUser) {
                 nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
@@ -653,13 +656,13 @@ let LeadService = class LeadService {
             projection["nextAction"] = 1;
             singleLeadAgg.project(projection);
             const lead = (yield singleLeadAgg.exec())[0];
+            let leadHistory = [];
             if (lead) {
-                const leadHistory = yield this.leadHistoryModel
+                leadHistory = yield this.leadHistoryModel
                     .find({ lead: lead._id })
                     .limit(5);
-                lead.history = leadHistory;
             }
-            return { result: lead };
+            return { lead, leadHistory };
         });
     }
     getSaleAmountByLeadStatus(campaignName) {

@@ -19,6 +19,7 @@ export interface LeadHistory extends Document {
         [key: string]: string;
     }[];
     organization: string;
+    documentLinks: string[];
 }
 export declare class leadHistoryGeoLocation {
     coordinates: number[];

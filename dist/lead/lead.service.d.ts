@@ -53,7 +53,10 @@ export declare class LeadService {
         paths: CampaignConfig[];
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
-    findOneById(leadId: string, organization: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "pincode" | "nextAction" | "contact" | "requestedInformation" | "state">>;
+    findOneById(leadId: string, organization: string): Promise<{
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "pincode" | "nextAction" | "documentLinks" | "contact" | "requestedInformation" | "state">;
+        leadHistory: any[];
+    }>;
     patch(productId: string, body: any[]): Promise<any>;
     createLead(body: CreateLeadDto, email: string, organization: string, campaignId: string, campaignName: string): Promise<void>;
     deleteOne(leadId: string, activeUserEmail: string): Promise<Pick<any, string | number | symbol>>;
@@ -94,7 +97,8 @@ export declare class LeadService {
         organization: string;
         typeDict: Map<string, any>;
     }): Promise<{
-        result: any;
+        lead: any;
+        leadHistory: any[];
     }>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
     getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto): Promise<LeadHistory[]>;

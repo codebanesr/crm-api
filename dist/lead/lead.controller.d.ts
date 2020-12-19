@@ -52,10 +52,14 @@ export declare class LeadController {
         result: void;
     }>;
     saveEmailAttachments(files: any): any;
-    findOneById(leadId: string, user: User): Promise<Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "pincode" | "nextAction" | "contact" | "requestedInformation" | "state">>;
+    findOneById(leadId: string, user: User): Promise<{
+        lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "pincode" | "nextAction" | "documentLinks" | "contact" | "requestedInformation" | "state">;
+        leadHistory: any[];
+    }>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;
     fetchNextLead(user: User, campaignId: string, body: FetchNextLeadDto): Promise<{
-        result: any;
+        lead: any;
+        leadHistory: any[];
     }>;
     getAllAlarms(user: User, body: any): Promise<any>;
     usersActivityLog(userActivityDto: UserActivityDto, user: User): Promise<any>;

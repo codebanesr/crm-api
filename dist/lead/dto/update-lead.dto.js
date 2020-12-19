@@ -237,6 +237,11 @@ __decorate([
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], Lead.prototype, "nextAction", void 0);
+__decorate([
+    class_validator_1.IsOptional(),
+    class_validator_1.IsString({ each: true }),
+    __metadata("design:type", Array)
+], Lead.prototype, "documentLinks", void 0);
 exports.Lead = Lead;
 class UpdateLeadDto {
 }

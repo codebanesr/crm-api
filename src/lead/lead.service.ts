@@ -366,14 +366,13 @@ export class LeadService {
       .exec();
 
 
+    let leadHistory = []
     if(lead) {
-      const leadHistory = await this.leadHistoryModel
+      leadHistory = await this.leadHistoryModel
       .find({ lead: lead._id })
       .limit(5);
-
-      (lead as any).history = leadHistory;
     }
-    return lead;
+    return {lead, leadHistory};
   }
 
   async patch(productId: string, body: any[]) {
@@ -621,6 +620,11 @@ export class LeadService {
       // assign to logged in user and notes will be lead was created by
       nextEntryInHistory.notes = `Lead has been assigned to ${loggedInUserEmail} by default`;
       nextEntryInHistory.newUser = loggedInUserEmail;
+    }
+
+
+    if(lead.documentLinks.length>0) {
+      nextEntryInHistory.documentLinks = lead.documentLinks;
     }
 
     if (reassignmentInfo && prevHistory?.newUser !== reassignmentInfo.newUser) {
@@ -952,14 +956,13 @@ export class LeadService {
     const lead = (await singleLeadAgg.exec())[0];
 
     /** Only call lead history if there is a lead with the applied filters */
+    let leadHistory = [];
     if (lead) {
-      const leadHistory = await this.leadHistoryModel
+      leadHistory = await this.leadHistoryModel
         .find({ lead: lead._id })
         .limit(5);
-
-      lead.history = leadHistory;
     }
-    return { result: lead };
+    return { lead, leadHistory };
   }
 
   getSaleAmountByLeadStatus(campaignName?: string) {
