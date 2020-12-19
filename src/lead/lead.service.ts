@@ -623,7 +623,7 @@ export class LeadService {
     }
 
 
-    if(lead.documentLinks.length>0) {
+    if(lead.documentLinks?.length>0) {
       nextEntryInHistory.documentLinks = lead.documentLinks;
     }
 

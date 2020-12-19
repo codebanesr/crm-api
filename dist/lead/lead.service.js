@@ -407,7 +407,7 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () { });
     }
     updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, campaignId }) {
-        var _a;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
             common_1.Logger.debug({ geoLocation, reassignmentInfo });
@@ -436,7 +436,7 @@ let LeadService = class LeadService {
                 nextEntryInHistory.notes = `Lead has been assigned to ${loggedInUserEmail} by default`;
                 nextEntryInHistory.newUser = loggedInUserEmail;
             }
-            if (lead.documentLinks.length > 0) {
+            if (((_a = lead.documentLinks) === null || _a === void 0 ? void 0 : _a.length) > 0) {
                 nextEntryInHistory.documentLinks = lead.documentLinks;
             }
             if (reassignmentInfo && (prevHistory === null || prevHistory === void 0 ? void 0 : prevHistory.newUser) !== reassignmentInfo.newUser) {
@@ -453,7 +453,7 @@ let LeadService = class LeadService {
             }
             nextEntryInHistory.prospectName = `${lead.firstName} ${lead.lastName}`;
             nextEntryInHistory.leadStatus = lead.leadStatus;
-            nextEntryInHistory.followUp = (_a = lead.followUp) === null || _a === void 0 ? void 0 : _a.toString();
+            nextEntryInHistory.followUp = (_b = lead.followUp) === null || _b === void 0 ? void 0 : _b.toString();
             nextEntryInHistory.organization = organization;
             nextEntryInHistory.campaign = campaignId;
             lead.nextAction && (nextEntryInHistory.nextAction = lead.nextAction);
