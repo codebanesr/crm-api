@@ -978,7 +978,13 @@ export class LeadService {
     return qb.exec();
   }
 
-  async getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto) {
+  async getTransactions(
+      organization: string, 
+      email: string, 
+      roleType: string, 
+      payload: GetTransactionDto, 
+      isStreamable: boolean
+    ) {
     // get email ids of users after him
     let conditionalQueries = {};
     let subordinateEmails = await this.getSubordinates(email, roleType, organization);
@@ -990,6 +996,8 @@ export class LeadService {
 
     if(payload.filters?.prospectName) {
       /** @Todo to be filled later, we have firstname, lastname, fullName, these should be combined in a text index for search */ 
+      const expr = new RegExp(payload.filters.prospectName);
+      conditionalQueries['prospectName'] = { $regex: expr, $options: "i" }
     }
 
     if(payload.filters?.campaign) {
@@ -1006,10 +1014,15 @@ export class LeadService {
     }
 
     const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
-    return this.leadHistoryModel
+    const result = this.leadHistoryModel
       .find({organization, newUser: {$in: subordinateEmails}, ...conditionalQueries})
-      .sort({ [payload.pagination.sortBy]: sortOrder })
-      .limit(payload.pagination.perPage);
+      .sort({ [payload.pagination.sortBy]: sortOrder });
+
+    if(!isStreamable) {
+      result.limit(payload.pagination.perPage);
+    }
+
+    return result.lean().exec();
   }
   // date will always be greater than today
   async getFollowUps({

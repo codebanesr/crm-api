@@ -13,7 +13,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   PreconditionFailedException,
-  NotImplementedException,
+  Res,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
@@ -38,7 +38,9 @@ import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
-import { get } from "lodash";
+import { utils, writeFile, WritingOptions } from "xlsx";
+import { createReadStream } from "fs";
+import { Response } from "express";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -90,9 +92,39 @@ export class LeadController {
    */
   @Post("transactions")
   @UseGuards(AuthGuard("jwt"))
-  getTransactions(@CurrentUser() user: User, @Body() body: GetTransactionDto) {
+  async getTransactions(
+      @CurrentUser() user: User, 
+      @Body() body: GetTransactionDto, 
+      @Query('isStreamable') isStreamable: boolean,
+      @Res() res: Response
+    ) {
     const { organization, email, roleType } = user;
-    return this.leadService.getTransactions(organization, email, roleType, body);
+
+    const result = await this.leadService.getTransactions(organization, email, roleType, body, isStreamable);
+    if(!isStreamable) {
+      return res.status(200).send(result);
+    }
+
+    // convert to excel sheet and pipe the response to the frontend
+    if(isStreamable) {
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+      res.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx");
+
+      const wb = utils.book_new();                     // create workbook
+      /** @Todo too computationally intensive, to be replaced by mongoose */
+      const ws = utils.json_to_sheet(JSON.parse(JSON.stringify(result)));
+      utils.book_append_sheet(wb, ws, 'transactions');  // add sheet to workbook
+
+      const filename = "transactions.xlsx";
+      const wb_opts: WritingOptions = {bookType: 'xlsx', type: 'binary'};   // workbook options
+      writeFile(wb, filename, wb_opts);                // write workbook file
+
+      const stream = createReadStream(filename);         // create read stream
+      stream.pipe(res);     
+      stream.on("close", () => {
+        return res.end();
+      });
+    }
   }
 
   @Post("findAll")
