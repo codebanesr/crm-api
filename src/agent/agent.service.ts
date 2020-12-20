@@ -18,41 +18,47 @@ export class AgentService {
     skip,
     fileType,
     sortBy = "handler",
-    me
+    me,
+    campaign: string
   ) {
-    const fq = this.adminActionModel.aggregate();
-    fq.match({ organization });
 
-    if (me) {
-      fq.match({ userid: activeUserId });
-    }
+    return this.adminActionModel.find({
+      campaign,
+      organization
+    }).sort({createdAt: -1}).limit(20).lean().exec();
+    // const fq = this.adminActionModel.aggregate();
+    // fq.match({ organization, campaign });
 
-    // if (fileType) {
-    //   fq.match({ fileType });
+    // if (me) {
+    //   fq.match({ userid: activeUserId });
     // }
 
-    fq.lookup({
-      from: "users",
-      localField: "userid",
-      foreignField: "_id",
-      as: "userdetails",
-    });
+    // // if (fileType) {
+    // //   fq.match({ fileType });
+    // // }
 
-    fq.unwind({ path: "$userdetails" });
+    // fq.lookup({
+    //   from: "users",
+    //   localField: "userid",
+    //   foreignField: "_id",
+    //   as: "userdetails",
+    // });
 
-    fq.project({
-      email: "$userdetails.email",
-      savedOn: "$userdetails.savedOn",
-      filePath: "$filePath",
-      actionType: "$actionType",
-      createdAt: "$createdAt",
-      label: "$label",
-    });
+    // fq.unwind({ path: "$userdetails" });
 
-    fq.sort({ createdAt: -1 });
-    fq.skip(Number(skip));
-    fq.limit(20);
-    return fq.exec();
+    // fq.project({
+    //   email: "$userdetails.email",
+    //   savedOn: "$userdetails.savedOn",
+    //   filePath: "$filePath",
+    //   actionType: "$actionType",
+    //   createdAt: "$createdAt",
+    //   label: "$label",
+    // });
+
+    // fq.sort({ createdAt: -1 });
+    // fq.skip(Number(skip));
+    // fq.limit(20);
+    // return fq.exec();
   }
 
   async downloadFile(location: string, res: Response) {

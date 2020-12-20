@@ -819,17 +819,16 @@ export class LeadService {
     const fileName = `result-${originalFileName}`;
     const result = await this.s3UploadService.uploadFileBuffer(fileName, wbOut);
 
-    const adminActions = new this.adminActionModel({
-      label: fileName,
-      userid: uploaderId,
-      organization,
-      actionType: "lead",
-      filePath: result.Location,
-      savedOn: "s3",
-      fileType: "lead",
-    });
 
-    await adminActions.save();
+    await this.adminActionModel.create({
+        userid: uploaderId,
+        organization,
+        actionType: "lead",
+        filePath: result.Location,
+        savedOn: "s3",
+        fileType: "lead",
+        campaign: campaignId
+    })
 
     await this.pushNotificationService.sendPushNotification(pushtoken, {
       notification: {

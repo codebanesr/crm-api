@@ -26,24 +26,27 @@ export class AgentController {
   @Get("listActions")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "List all admin actions" })
-  @Roles('admin')
+  @Roles('admin', 'manager')
   @HttpCode(HttpStatus.OK)
   getUsersPerformance(
     @CurrentUser() user: User,
     @Query("skip") skip: number = 0,
     @Query("fileType") fileType: string,
     @Query("sortBy") sortBy: string = 'handler',
-    @Query("me") me: boolean
+    @Query("me") me: boolean,
+    @Query("campaign") campaign: string
   ) {
     const { id: activeUserId, organization } = user;
 
+    /** remove aggregation and add stricter types using QueryParams and class validators */
     return this.agentService.listActions(
       activeUserId,
       organization,
       skip,
       fileType,
       sortBy,
-      me
+      me,
+      campaign
     );
   }
 
