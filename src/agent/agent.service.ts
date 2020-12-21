@@ -76,10 +76,10 @@ export class AgentService {
   }
 
 
-  async updateBatteryStatus(userId: string, batLvl: BatteryStatusDto) {
+  async updateBatteryStatus(userId: string, batLvlDto: BatteryStatusDto) {
     return this.userModel.findByIdAndUpdate(userId, {
       $set: {
-        batLvl
+        batLvl: batLvlDto.batLvl
       }
     });
   }

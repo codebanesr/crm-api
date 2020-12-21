@@ -12,6 +12,7 @@ export interface User extends Document {
   blockExpires?: Date;
   bankAccountNumber?: string;
   bankAccountName?: string;
+  batLvl: number;
   roleType: string;
   manages: string[];
   history: string[];
