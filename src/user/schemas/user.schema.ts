@@ -61,7 +61,6 @@ export const UserSchema = new Schema(
       ref: "Organization",
       default: null,
     },
-
     pushtoken: {
       endpoint: String,
       expirationTime: String,
@@ -70,6 +69,7 @@ export const UserSchema = new Schema(
         auth: String,
       },
     },
+    batLvl: Number
   },
   {
     versionKey: false,

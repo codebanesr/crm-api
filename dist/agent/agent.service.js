@@ -27,8 +27,9 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const fs_1 = require("fs");
 let AgentService = class AgentService {
-    constructor(adminActionModel) {
+    constructor(adminActionModel, userModel) {
         this.adminActionModel = adminActionModel;
+        this.userModel = userModel;
     }
     listActions(activeUserId, organization, skip, fileType, sortBy = "handler", me, campaign) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -47,11 +48,22 @@ let AgentService = class AgentService {
             readStream.pipe(res);
         });
     }
+    updateBatteryStatus(userId, batLvl) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.userModel.findByIdAndUpdate(userId, {
+                $set: {
+                    batLvl
+                }
+            });
+        });
+    }
 };
 AgentService = __decorate([
     common_1.Injectable(),
     __param(0, mongoose_1.InjectModel("AdminAction")),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, mongoose_1.InjectModel("User")),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model])
 ], AgentService);
 exports.AgentService = AgentService;
 //# sourceMappingURL=agent.service.js.map

@@ -77,6 +77,7 @@ exports.UserSchema = new mongoose_1.Schema({
             auth: String,
         },
     },
+    batLvl: Number
 }, {
     versionKey: false,
     timestamps: true,

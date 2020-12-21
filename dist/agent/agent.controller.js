@@ -20,6 +20,7 @@ const passport_1 = require("@nestjs/passport");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const battery_status_dto_1 = require("./schemas/battery-status.dto");
 let AgentController = class AgentController {
     constructor(agentService) {
         this.agentService = agentService;
@@ -30,6 +31,10 @@ let AgentController = class AgentController {
     }
     downloadFile(res, location) {
         this.agentService.downloadFile(location, res);
+    }
+    batteryStatus(batLvl, user) {
+        const { _id } = user;
+        return this.agentService.updateBatteryStatus(_id, batLvl);
     }
 };
 __decorate([
@@ -58,6 +63,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], AgentController.prototype, "downloadFile", null);
+__decorate([
+    common_1.Post("batteryStatus"),
+    swagger_1.ApiOperation({ summary: "Updates the battery status when it changes" }),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [battery_status_dto_1.BatteryStatusDto, Object]),
+    __metadata("design:returntype", void 0)
+], AgentController.prototype, "batteryStatus", null);
 AgentController = __decorate([
     swagger_1.ApiTags("Agent"),
     common_1.Controller("agent"),

@@ -4,12 +4,18 @@ import { Model, Types } from "mongoose";
 import { createReadStream } from "fs";
 import { Response } from "express";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
+import { User } from "../user/interfaces/user.interface";
+import { BatteryStatusDto } from "./schemas/battery-status.dto";
 
 @Injectable()
 export class AgentService {
   constructor(
     @InjectModel("AdminAction")
-    private readonly adminActionModel: Model<AdminAction>
+    private readonly adminActionModel: Model<AdminAction>,
+
+
+    @InjectModel("User")
+    private readonly userModel: Model<User>
   ) {}
 
   async listActions(
@@ -67,5 +73,14 @@ export class AgentService {
       res.end();
     });
     readStream.pipe(res);
+  }
+
+
+  async updateBatteryStatus(userId: string, batLvl: BatteryStatusDto) {
+    return this.userModel.findByIdAndUpdate(userId, {
+      $set: {
+        batLvl
+      }
+    });
   }
 }

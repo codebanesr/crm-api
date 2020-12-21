@@ -7,6 +7,8 @@ import {
   Query,
   Res,
   UseGuards,
+  Post,
+  Body,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AgentService } from "./agent.service";
@@ -16,6 +18,7 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { User } from "../user/interfaces/user.interface";
 import { Roles } from "../auth/decorators/roles.decorator";
+import { BatteryStatusDto } from "./schemas/battery-status.dto";
 
 @ApiTags("Agent")
 @Controller("agent")
@@ -58,5 +61,18 @@ export class AgentController {
     @Query("location") location: string,
   ) {
     this.agentService.downloadFile(location, res);
+  }
+
+
+  @Post("batteryStatus")
+  @ApiOperation({ summary: "Updates the battery status when it changes" })
+  @HttpCode(HttpStatus.OK)
+  batteryStatus(
+    @Body() batLvl: BatteryStatusDto,
+    @CurrentUser() user: User
+  ) {
+
+    const { _id } = user;
+    return this.agentService.updateBatteryStatus(_id, batLvl);
   }
 }
