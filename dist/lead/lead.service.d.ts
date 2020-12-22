@@ -44,12 +44,12 @@ export declare class LeadService {
         result: any[];
         total: number;
     }>;
-    findAll(page: number, perPage: number, sortBy: string, showCols: string[], searchTerm: string, filters: FiltersDto, activeUserEmail: string, roleType: string, organization: string, typeDict: any): Promise<{
+    findAll(page: number, perPage: number, sortBy: string, showCols: string[], searchTerm: string, filters: FiltersDto, activeUserEmail: string, roleType: string, organization: string, typeDict: any, campaignId: string): Promise<{
         total: any;
         page: any;
         data: any;
     }>;
-    getLeadColumns(campaignId?: string): Promise<{
+    getLeadColumns(campaignId: any): Promise<{
         paths: CampaignConfig[];
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;

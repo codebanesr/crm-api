@@ -154,7 +154,7 @@ let LeadService = class LeadService {
             return { result, total };
         });
     }
-    findAll(page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, activeUserEmail, roleType, organization, typeDict) {
+    findAll(page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, activeUserEmail, roleType, organization, typeDict, campaignId) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
@@ -166,6 +166,9 @@ let LeadService = class LeadService {
                 leadAgg.match({ $text: { $search: searchTerm } });
             }
             const matchQuery = { organization };
+            if (campaignId !== 'all') {
+                matchQuery['campaignId'] = mongoose_3.Types.ObjectId(campaignId);
+            }
             if ((leadStatusKeys === null || leadStatusKeys === void 0 ? void 0 : leadStatusKeys.length) > 0) {
                 matchQuery["leadStatusKeys"] = { $in: leadStatusKeys };
             }
@@ -252,7 +255,7 @@ let LeadService = class LeadService {
             };
         });
     }
-    getLeadColumns(campaignId = "core") {
+    getLeadColumns(campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
             const paths = yield this.campaignConfigModel.find({ campaignId });
             return { paths: paths };

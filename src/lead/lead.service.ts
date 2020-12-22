@@ -8,7 +8,7 @@ import {
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, NativeError } from "mongoose";
 import { Lead } from "./interfaces/lead.interface";
-import { difference, get, intersection, isArray, isEmpty, keyBy, keys, values } from "lodash";
+import { get, intersection, isArray, isEmpty, values } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
@@ -35,7 +35,7 @@ import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
-import { isString } from "lodash";
+import { fstat } from "fs/promises";
 @Injectable()
 export class LeadService {
   constructor(
@@ -205,7 +205,8 @@ export class LeadService {
     activeUserEmail: string,
     roleType: string,
     organization: string,
-    typeDict
+    typeDict,
+    campaignId: string
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
@@ -219,6 +220,10 @@ export class LeadService {
     }
 
     const matchQuery = { organization };
+
+    if(campaignId!=='all') {
+      matchQuery['campaignId'] = Types.ObjectId(campaignId);
+    }
 
     if(leadStatusKeys?.length > 0) {
       matchQuery["leadStatusKeys"] = {$in: leadStatusKeys};
@@ -335,7 +340,7 @@ export class LeadService {
     };
   }
 
-  async getLeadColumns(campaignId: string = "core") {
+  async getLeadColumns(campaignId) {
     const paths = await this.campaignConfigModel.find({campaignId});
     return { paths: paths };
   }

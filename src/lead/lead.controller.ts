@@ -141,6 +141,7 @@ export class LeadController {
       searchTerm,
       filters,
       typeDict,
+      campaignId
     } = body;
 
     const { email, roleType, organization } = user;
@@ -154,7 +155,8 @@ export class LeadController {
       email,
       roleType,
       organization,
-      typeDict
+      typeDict,
+      campaignId
     );
   }
 

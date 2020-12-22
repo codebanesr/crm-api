@@ -80,9 +80,9 @@ let LeadController = class LeadController {
         });
     }
     findAll(body, user) {
-        const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, typeDict, } = body;
+        const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, typeDict, campaignId } = body;
         const { email, roleType, organization } = user;
-        return this.leadService.findAll(page, perPage, sortBy, showCols, searchTerm, filters, email, roleType, organization, typeDict);
+        return this.leadService.findAll(page, perPage, sortBy, showCols, searchTerm, filters, email, roleType, organization, typeDict, campaignId);
     }
     addGeoLocation(body, user) {
         const { lat, lng } = body;

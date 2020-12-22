@@ -19,6 +19,7 @@ import {
   ValidateNested,
   IsMongoId,
   IsPositive,
+  IsNotEmpty,
 } from "class-validator";
 
 export class FiltersDto {
@@ -94,4 +95,7 @@ export class FindAllDto {
   readonly filters?: FiltersDto;
 
   readonly typeDict?: any;
+
+  // @IsString()
+  campaignId: string;
 }
