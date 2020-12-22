@@ -77,6 +77,7 @@ export class AgentService {
 
 
   async updateBatteryStatus(userId: string, batLvlDto: BatteryStatusDto) {
+    Logger.debug(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}`)
     return this.userModel.findByIdAndUpdate(userId, {
       $set: {
         batLvl: batLvlDto.batLvl

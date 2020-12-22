@@ -15,7 +15,6 @@ class BatteryStatusDto {
 }
 __decorate([
     class_validator_1.IsNotEmpty(),
-    class_validator_1.IsNumber(),
     __metadata("design:type", Number)
 ], BatteryStatusDto.prototype, "batLvl", void 0);
 exports.BatteryStatusDto = BatteryStatusDto;

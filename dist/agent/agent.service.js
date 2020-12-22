@@ -50,6 +50,7 @@ let AgentService = class AgentService {
     }
     updateBatteryStatus(userId, batLvlDto) {
         return __awaiter(this, void 0, void 0, function* () {
+            common_1.Logger.debug(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}`);
             return this.userModel.findByIdAndUpdate(userId, {
                 $set: {
                     batLvl: batLvlDto.batLvl
