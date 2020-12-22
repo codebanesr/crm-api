@@ -3,7 +3,7 @@ import { Schema } from "mongoose";
 export const VisitTrackSchema = new Schema({
     userId: String,
 
-    batteryStatus: Number,
+    batLvl: Number,
 
 
     isGpsEnabled: Boolean,

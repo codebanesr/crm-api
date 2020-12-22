@@ -10,7 +10,7 @@ interface Location {
 
 export interface VisitTrack extends Document {
     userId: string;
-    batteryStatus: number;
+    batLvl: number;
     isGpsEnabled: boolean;
     locations: Location[]
 }
