@@ -6,6 +6,9 @@ import { Response } from "express";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
 import { User } from "../user/interfaces/user.interface";
 import { BatteryStatusDto } from "./schemas/battery-status.dto";
+import { VisitTrack } from "./interface/visit-track.interface";
+import { AddLocationDto } from "./dto/add-location.dto";
+import { intersection } from "lodash";
 
 @Injectable()
 export class AgentService {
@@ -13,6 +16,8 @@ export class AgentService {
     @InjectModel("AdminAction")
     private readonly adminActionModel: Model<AdminAction>,
 
+    @InjectModel("VisitTrack")
+    private readonly visitTrackModel: Model<VisitTrack>,
 
     @InjectModel("User")
     private readonly userModel: Model<User>
@@ -77,11 +82,65 @@ export class AgentService {
 
 
   async updateBatteryStatus(userId: string, batLvlDto: BatteryStatusDto) {
-    Logger.debug(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}`)
-    return this.userModel.findByIdAndUpdate(userId, {
+    Logger.debug(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}, ${batLvlDto.batLvl}`)
+    return this.visitTrackModel.findOneAndUpdate({userId}, {
       $set: {
         batLvl: batLvlDto.batLvl
       }
-    });
+    }, {upsert: true});
+  }
+
+
+  async addVisitTrack(userId: string, payload: AddLocationDto) {
+    Logger.debug(`userid: ${userId}, coorinates: ${payload.coordinate}`);
+
+    return this.visitTrackModel.findOneAndUpdate({userId}, {
+      $push: {
+        locations: {...payload.coordinate, timestamp: new Date()}
+      }
+    }, {upsert: true})
+  }
+
+
+  async getVisitTrack(id: string, roleType: string, organization: string ,userIds: string[]) {
+    const subordinateIds = await this.getSubordinates(id, roleType); 
+
+    /** @Todo check if intersection works as expected */
+    const validUserIds = intersection(userIds, subordinateIds, [id])
+
+    Logger.debug(`validUserIds ${validUserIds}`);
+    return this.visitTrackModel.find({ userId: {$in: validUserIds}});
+  }
+
+
+    /** @Todo replace getSubordinates in user.service with this one, checked: true is missing over there, and this should be
+   * moved into a shared service
+   */
+  async getSubordinates(id: string, roleType: string) {
+    if (roleType === "frontline") {
+      return [id];
+    }
+    const fq: any = [
+      { $match: { _id: id } },
+      {
+        $graphLookup: {
+          from: "users",
+          startWith: "$manages",
+          connectFromField: "manages",
+          connectToField: "_id",
+          as: "subordinates",
+        },
+      },
+      {
+        $project: {
+          subordinates: "$subordinates._id",
+          roleType: "$roleType",
+          hierarchyWeight: 1,
+        },
+      },
+    ];
+
+    const result = await this.userModel.aggregate(fq);
+    return [id, ...result[0].subordinates];
   }
 }

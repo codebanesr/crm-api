@@ -678,6 +678,10 @@ export class LeadService {
     return result;
   }
 
+
+  /** @Todo replace getSubordinates in user.service with this one, checked: true is missing over there, and this should be
+   * moved into a shared service
+   */
   async getSubordinates(email: string, roleType: string, organization: string) {
     if (roleType === "frontline") {
       return [email];

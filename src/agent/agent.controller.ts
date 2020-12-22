@@ -19,6 +19,8 @@ import { RolesGuard } from "../auth/guards/roles.guard";
 import { User } from "../user/interfaces/user.interface";
 import { Roles } from "../auth/decorators/roles.decorator";
 import { BatteryStatusDto } from "./schemas/battery-status.dto";
+import { AddLocationDto } from "./dto/add-location.dto";
+import { GetUsersLocationsDto } from "./dto/get-user-locations.dto";
 
 @ApiTags("Agent")
 @Controller("agent")
@@ -31,7 +33,7 @@ export class AgentController {
   @ApiOperation({ summary: "List all admin actions" })
   @Roles('admin', 'manager')
   @HttpCode(HttpStatus.OK)
-  getUsersPerformance(
+  async getUsersPerformance(
     @CurrentUser() user: User,
     @Query("skip") skip: number = 0,
     @Query("fileType") fileType: string,
@@ -55,8 +57,9 @@ export class AgentController {
 
   @Get("download")
   @ApiOperation({ summary: "Get all admin actions" })
+  @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
-  downloadFile(
+  async downloadFile(
     @Res() res: Response,
     @Query("location") location: string,
   ) {
@@ -67,12 +70,33 @@ export class AgentController {
   @Post("batteryStatus")
   @ApiOperation({ summary: "Updates the battery status when it changes" })
   @HttpCode(HttpStatus.OK)
-  batteryStatus(
+  @UseGuards(AuthGuard("jwt"))
+  async batteryStatus(
     @Body() batLvl: BatteryStatusDto,
     @CurrentUser() user: User
   ) {
 
     const { _id } = user;
     return this.agentService.updateBatteryStatus(_id, batLvl);
+  }
+
+
+
+  @Post("visitTrack")
+  @ApiOperation({ summary: "Update users visiting location" })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard("jwt"))
+  async addVisitTrack(@CurrentUser() user: User, @Body() payload: AddLocationDto) {
+    const {_id} = user;
+    return this.agentService.addVisitTrack(_id, payload);
+  }
+
+
+
+  @Post("visitTrack/get")
+  async getVisitTrack(@Body() body: GetUsersLocationsDto, @CurrentUser() user: User) {
+    const { userIds } = body;
+    const {email, organization, roleType} = user;
+    return this.agentService.getVisitTrack(email, roleType, organization ,userIds);
   }
 }
