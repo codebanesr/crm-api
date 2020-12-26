@@ -17,7 +17,7 @@ export class CreateOrganizationDto {
       @MinLength(5)
       @MaxLength(255)
       @IsString()
-      readonly organizationName: string;
+      readonly name: string;
 
 
       @ApiProperty({

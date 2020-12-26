@@ -14,7 +14,7 @@ const class_validator_1 = require("class-validator");
 class ValidateNewOrganizationDto {
 }
 __decorate([
-    class_validator_1.IsIn(["email", "organizationName"]),
+    class_validator_1.IsIn(["email", "name"]),
     __metadata("design:type", String)
 ], ValidateNewOrganizationDto.prototype, "label", void 0);
 __decorate([

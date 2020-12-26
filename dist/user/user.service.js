@@ -54,6 +54,15 @@ let UserService = class UserService {
             return this.buildRegistrationInfo(user);
         });
     }
+    createReseller(createResellerDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = new this.userModel(Object.assign(Object.assign({}, createResellerDto), { verified: true, roles: ["reseller"], roleType: 'reseller' }));
+            yield this.isEmailUnique(user.email);
+            this.setRegistrationInfo(user);
+            yield user.save();
+            return this.buildRegistrationInfo(user);
+        });
+    }
     verifyEmail(req, verifyUuidDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.findByVerification(verifyUuidDto.verification);

@@ -54,7 +54,7 @@ export declare class LeadService {
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
     findOneById(leadId: string, organization: string): Promise<{
-        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "companyName" | "pincode" | "nextAction" | "documentLinks" | "contact" | "requestedInformation" | "state">;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "companyName" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "contact" | "requestedInformation" | "state">;
         leadHistory: any[];
     }>;
     patch(productId: string, body: any[]): Promise<any>;

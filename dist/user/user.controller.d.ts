@@ -9,10 +9,12 @@ import { User } from "./interfaces/user.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
+import { CreateResellerDto } from "./dto/create-reseller.dto";
 export declare class UserController {
     private readonly userService;
     constructor(userService: UserService);
     register(createUserDto: CreateUserDto, user: User): Promise<any>;
+    registerReseller(createResellerDto: CreateResellerDto, user: User): Promise<any>;
     getAllUsersHack(user: User): Promise<any>;
     getUserById(user: User, userid: string): Promise<User>;
     verifyEmail(req: IRequest, verifyUuidDto: VerifyUuidDto): Promise<{

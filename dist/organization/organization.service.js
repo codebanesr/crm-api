@@ -30,36 +30,45 @@ const shared_service_1 = require("../shared/shared.service");
 const nestjs_redis_1 = require("nestjs-redis");
 const config_1 = require("../config");
 const user_service_1 = require("../user/user.service");
+const moment = require("moment");
 let OrganizationService = class OrganizationService {
-    constructor(organizationalModel, twilioService, sharedService, redisService, userService) {
+    constructor(organizationalModel, resellerOrganizationModel, transactionModel, twilioService, sharedService, redisService, userService) {
         this.organizationalModel = organizationalModel;
+        this.resellerOrganizationModel = resellerOrganizationModel;
+        this.transactionModel = transactionModel;
         this.twilioService = twilioService;
         this.sharedService = sharedService;
         this.redisService = redisService;
         this.userService = userService;
     }
-    createOrganization(createOrganizationDto) {
+    createOrganization(createOrganizationDto, resellerId, resellerName) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, fullName, password, phoneNumber } = createOrganizationDto;
             yield this.isOrganizationalPayloadValid(createOrganizationDto);
-            try {
-                const organization = new this.organizationalModel(createOrganizationDto);
-                const result = yield organization.save();
-                yield this.userService.create({
-                    email,
-                    fullName,
-                    password,
-                    roleType: "admin",
-                    roles: ["admin", "user"],
-                    manages: [],
-                    reportsTo: "",
-                    phoneNumber
-                }, result._id);
-            }
-            catch (e) {
-                return new common_1.ImATeapotException(e.message);
-            }
-            return;
+            const organization = new this.organizationalModel(createOrganizationDto);
+            const result = yield organization.save();
+            yield this.resellerOrganizationModel.create({
+                credit: 300,
+                orgId: result._id,
+                orgName: result.name,
+                resellerId,
+                resellerName
+            });
+            yield this.userService.create({
+                email,
+                fullName,
+                password,
+                roleType: "admin",
+                roles: ["admin"],
+                manages: [],
+                reportsTo: "",
+                phoneNumber
+            }, result._id);
+        });
+    }
+    getAllResellerOrganization(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.resellerOrganizationModel.find({ resellerId: id });
         });
     }
     generateToken(generateTokenDto) {
@@ -100,9 +109,9 @@ let OrganizationService = class OrganizationService {
     isOrganizationalPayloadValid(createOrganizationDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const correctOTP = yield this.getOTPForNumber(createOrganizationDto.phoneNumber);
-            const { email, phoneNumber, organizationName } = createOrganizationDto;
+            const { email, phoneNumber, name } = createOrganizationDto;
             const count = yield this.organizationalModel.count({
-                $or: [{ name: organizationName }, { email }, { phoneNumber }],
+                $or: [{ name }, { email }, { phoneNumber }],
             });
             common_1.Logger.debug({ count });
             if (createOrganizationDto.otp !== correctOTP) {
@@ -113,11 +122,33 @@ let OrganizationService = class OrganizationService {
             }
         });
     }
+    createOrUpdateUserQuota(obj) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { discount, months, perUserRate, seats, total: UITotal, organization } = obj;
+            const total = perUserRate * (1 - 0.01 * discount) * seats * months;
+            if (total !== UITotal) {
+                throw new common_1.PreconditionFailedException();
+            }
+            const expiresOn = moment().add(months, 'M');
+            return this.transactionModel.create({
+                discount,
+                perUserRate,
+                seats,
+                total,
+                expiresOn: expiresOn.toDate(),
+                organization
+            });
+        });
+    }
 };
 OrganizationService = __decorate([
     common_1.Injectable(),
     __param(0, mongoose_1.InjectModel("Organization")),
+    __param(1, mongoose_1.InjectModel("ResellerOrganization")),
+    __param(2, mongoose_1.InjectModel("Transaction")),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
         twilio_nestjs_1.TwilioService,
         shared_service_1.SharedService,
         nestjs_redis_1.RedisService,

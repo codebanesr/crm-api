@@ -34,7 +34,7 @@ __decorate([
     class_validator_1.MaxLength(255),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateOrganizationDto.prototype, "organizationName", void 0);
+], CreateOrganizationDto.prototype, "name", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: 'shanur@gmail.com',

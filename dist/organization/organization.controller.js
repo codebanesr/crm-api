@@ -23,24 +23,40 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrganizationController = void 0;
 const common_1 = require("@nestjs/common");
+const passport_1 = require("@nestjs/passport");
 const swagger_1 = require("@nestjs/swagger");
+const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const create_organization_dto_1 = require("./dto/create-organization.dto");
 const generate_token_dto_1 = require("./dto/generate-token.dto");
 const validation_dto_1 = require("./dto/validation.dto");
 const organization_service_1 = require("./organization.service");
+const update_quota_dto_1 = require("./dto/update-quota.dto");
 let OrganizationController = class OrganizationController {
     constructor(organizationService) {
         this.organizationService = organizationService;
     }
-    register(createOrganizationDto) {
+    register(createOrganizationDto, user) {
         return __awaiter(this, void 0, void 0, function* () {
             common_1.Logger.debug(createOrganizationDto);
-            return yield this.organizationService.createOrganization(createOrganizationDto);
+            const { _id, fullName } = user;
+            return this.organizationService.createOrganization(createOrganizationDto, _id, fullName);
+        });
+    }
+    getAllResellerOrganizations(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { _id } = user;
+            return this.organizationService.getAllResellerOrganization(_id);
         });
     }
     generateToken(generateTokenDto) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this.organizationService.generateToken(generateTokenDto);
+        });
+    }
+    createOrUpdateUserQuota(updateQuota) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield this.organizationService.createOrUpdateUserQuota(updateQuota);
         });
     }
     isValidAttribute(validateNewOrganizationDto) {
@@ -52,15 +68,29 @@ let OrganizationController = class OrganizationController {
 __decorate([
     common_1.Post(),
     common_1.HttpCode(common_1.HttpStatus.CREATED),
-    swagger_1.ApiOperation({ summary: "Register user" }),
+    swagger_1.ApiOperation({ summary: "Registers Organization and automatically creates a user for that organization" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("reseller"),
     swagger_1.ApiCreatedResponse({}),
-    __param(0, common_1.Body()),
+    __param(0, common_1.Body()), __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_organization_dto_1.CreateOrganizationDto]),
+    __metadata("design:paramtypes", [create_organization_dto_1.CreateOrganizationDto, Object]),
     __metadata("design:returntype", Promise)
 ], OrganizationController.prototype, "register", null);
 __decorate([
+    swagger_1.ApiOperation({ summary: "Get all organization details for logged in reseller" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("reseller"),
+    common_1.Get('reseller'),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], OrganizationController.prototype, "getAllResellerOrganizations", null);
+__decorate([
     common_1.Post("otp"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("reseller"),
     common_1.HttpCode(common_1.HttpStatus.CREATED),
     swagger_1.ApiOperation({ summary: "Generates an otp for given mobile number and sends it to that number" }),
     swagger_1.ApiCreatedResponse({}),
@@ -70,7 +100,20 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], OrganizationController.prototype, "generateToken", null);
 __decorate([
+    common_1.Post("quota"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("reseller"),
+    common_1.HttpCode(common_1.HttpStatus.CREATED),
+    swagger_1.ApiOperation({ summary: "Generates an otp for given mobile number and sends it to that number" }),
+    swagger_1.ApiCreatedResponse({}),
+    __param(0, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [update_quota_dto_1.UpdateQuotaDto]),
+    __metadata("design:returntype", Promise)
+], OrganizationController.prototype, "createOrUpdateUserQuota", null);
+__decorate([
     common_1.Post("isValid"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Validate create-organization paylod" }),
     swagger_1.ApiCreatedResponse({}),
     __param(0, common_1.Body()),

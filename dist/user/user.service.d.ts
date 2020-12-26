@@ -12,6 +12,7 @@ import { Request } from "express";
 import { AdminAction } from "./interfaces/admin-actions.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
+import { CreateResellerDto } from "./dto/create-reseller.dto";
 export declare class UserService {
     private readonly userModel;
     private readonly forgotPasswordModel;
@@ -22,6 +23,7 @@ export declare class UserService {
     LOGIN_ATTEMPTS_TO_BLOCK: number;
     constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, authService: AuthService);
     create(createUserDto: CreateUserDto, organization: string): Promise<any>;
+    createReseller(createResellerDto: CreateResellerDto): Promise<any>;
     verifyEmail(req: Request, verifyUuidDto: VerifyUuidDto): Promise<{
         fullName: string;
         email: string;

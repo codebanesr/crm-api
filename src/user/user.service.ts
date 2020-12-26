@@ -10,6 +10,7 @@ import {
   HttpException,
   HttpStatus,
   MethodNotAllowedException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
@@ -32,6 +33,7 @@ import { default as config } from "../config";
 import { createTransport } from "nodemailer";
 import { getForgotPasswordTemplate } from "../utils/forgot-password-template";
 import { PushNotificationDto } from "./dto/push-notification.dto";
+import { CreateResellerDto } from "./dto/create-reseller.dto";
 
 @Injectable()
 export class UserService {
@@ -45,6 +47,7 @@ export class UserService {
     private readonly forgotPasswordModel: Model<ForgotPassword>,
     @InjectModel("AdminAction")
     private readonly adminActionModel: Model<AdminAction>,
+
     private readonly authService: AuthService
   ) {}
 
@@ -58,6 +61,20 @@ export class UserService {
       ...createUserDto,
       organization,
       verified: true,
+    });
+    await this.isEmailUnique(user.email);
+    this.setRegistrationInfo(user);
+    await user.save();
+    return this.buildRegistrationInfo(user);
+  }
+
+
+  async createReseller(createResellerDto: CreateResellerDto) {
+    const user = new this.userModel({
+      ...createResellerDto,
+      verified: true,
+      roles: ["reseller"],
+      roleType: 'reseller'
     });
     await this.isEmailUnique(user.email);
     this.setRegistrationInfo(user);

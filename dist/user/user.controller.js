@@ -39,6 +39,7 @@ const current_user_decorator_1 = require("../auth/decorators/current-user.decora
 const find_all_dto_1 = require("../lead/dto/find-all.dto");
 const create_forgot_password_dto_1 = require("./dto/create-forgot-password.dto");
 const push_notification_dto_1 = require("./dto/push-notification.dto");
+const create_reseller_dto_1 = require("./dto/create-reseller.dto");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
@@ -47,6 +48,11 @@ let UserController = class UserController {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization } = user;
             return this.userService.create(createUserDto, organization);
+        });
+    }
+    registerReseller(createResellerDto, user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.userService.createReseller(createResellerDto);
         });
     }
     getAllUsersHack(user) {
@@ -125,7 +131,7 @@ __decorate([
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     roles_decorator_1.Roles("admin"),
     common_1.HttpCode(common_1.HttpStatus.CREATED),
-    swagger_1.ApiOperation({ summary: "Register user" }),
+    swagger_1.ApiOperation({ summary: "Registers user/admin" }),
     swagger_1.ApiCreatedResponse({}),
     __param(0, common_1.Body()),
     __param(1, current_user_decorator_1.CurrentUser()),
@@ -133,6 +139,19 @@ __decorate([
     __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto, Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "register", null);
+__decorate([
+    common_1.Post("reseller"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("superadmin"),
+    common_1.HttpCode(common_1.HttpStatus.CREATED),
+    swagger_1.ApiOperation({ summary: "Registers user/admin/reseller" }),
+    swagger_1.ApiCreatedResponse({}),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_reseller_dto_1.CreateResellerDto, Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "registerReseller", null);
 __decorate([
     common_1.Get(),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),

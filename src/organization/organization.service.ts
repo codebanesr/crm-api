@@ -6,6 +6,7 @@ import {
   ImATeapotException,
   Injectable,
   Logger,
+  PreconditionFailedException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
@@ -17,39 +18,63 @@ import { RedisService } from "nestjs-redis";
 import config from "../config";
 import { ValidateNewOrganizationDto } from "./dto/validation.dto";
 import { UserService } from "../user/user.service";
+import { ResellerOrganization } from "src/organization/interface/reseller-organization.interface";
+import { UpdateQuotaDto } from "./dto/update-quota.dto";
+import * as moment from "moment";
+import { Transaction } from "./interface/transaction.interface";
 
 @Injectable()
 export class OrganizationService {
   constructor(
     @InjectModel("Organization")
     private readonly organizationalModel: Model<Organization>,
+
+
+    @InjectModel("ResellerOrganization")
+    private readonly resellerOrganizationModel: Model<ResellerOrganization>,
+
+    @InjectModel("Transaction")
+    private readonly transactionModel: Model<Transaction>,
+
     private readonly twilioService: TwilioService,
     private readonly sharedService: SharedService,
     private readonly redisService: RedisService,
     private userService: UserService
   ) {}
 
-  async createOrganization(createOrganizationDto: CreateOrganizationDto) {
+  /** @Todo everything should happen in a transaction */
+  async createOrganization(createOrganizationDto: CreateOrganizationDto, resellerId: string, resellerName: string) {
     const { email, fullName, password, phoneNumber } = createOrganizationDto;
     await this.isOrganizationalPayloadValid(createOrganizationDto);
     // now save organization information in the user schema...
-    try {
-      const organization = new this.organizationalModel(createOrganizationDto);
-      const result = await organization.save();
-      await this.userService.create({
-        email,
-        fullName,
-        password,
-        roleType: "admin",
-        roles: ["admin", "user"],
-        manages: [],
-        reportsTo: "",
-        phoneNumber
-      }, result._id);
-    }catch(e) {
-      return new ImATeapotException(e.message);
-    }
-    return 
+    const organization = new this.organizationalModel(createOrganizationDto);
+    const result = await organization.save();
+
+    await this.resellerOrganizationModel.create({
+      credit: 300,
+      orgId: result._id,
+      orgName: result.name,
+      resellerId,
+      resellerName
+    });
+
+    await this.userService.create({
+      email,
+      fullName,
+      password,
+      roleType: "admin",
+      roles: ["admin"],
+      manages: [],
+      reportsTo: "",
+      phoneNumber
+    }, result._id);
+  }
+
+
+
+
+  async getAllResellerOrganization(id: string) {
+    return this.resellerOrganizationModel.find({resellerId: id});
   }
 
   async generateToken(generateTokenDto: GenerateTokenDto) {
@@ -96,9 +121,9 @@ export class OrganizationService {
     const correctOTP = await this.getOTPForNumber(
         createOrganizationDto.phoneNumber
     );
-    const { email, phoneNumber, organizationName } = createOrganizationDto;
+    const { email, phoneNumber, name } = createOrganizationDto;
     const count = await this.organizationalModel.count({
-      $or: [{ name: organizationName }, { email }, { phoneNumber }],
+      $or: [{ name }, { email }, { phoneNumber }],
     });
     Logger.debug({ count });
     if (createOrganizationDto.otp !== correctOTP) {
@@ -107,5 +132,25 @@ export class OrganizationService {
     if (count !== 0) {
       throw new ConflictException();
     }
+  }
+
+
+  async createOrUpdateUserQuota(obj: UpdateQuotaDto) {
+    const { discount, months, perUserRate, seats, total: UITotal, organization } = obj;
+    const total = perUserRate * (1-0.01*discount) * seats * months;
+    
+    if( total!== UITotal ) {
+      throw new PreconditionFailedException();
+    }
+
+    const expiresOn = moment().add(months, 'M');
+    return this.transactionModel.create({
+      discount,
+      perUserRate,
+      seats,
+      total,
+      expiresOn: expiresOn.toDate(),
+      organization
+    });
   }
 }

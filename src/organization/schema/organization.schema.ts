@@ -2,7 +2,7 @@ import * as mongoose from 'mongoose';
 import { OrganizationalType } from '../../utils/organizational.enum';
 
 export const OrganizationSchema = new mongoose.Schema ({
-    organizationName: {
+    name: {
         type: String,
         minlength: 6,
         maxlength: 255,

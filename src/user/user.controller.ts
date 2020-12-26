@@ -44,6 +44,7 @@ import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { UserActivityDto } from "./dto/user-activity.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
+import { CreateResellerDto } from "./dto/create-reseller.dto";
 
 @ApiTags("User")
 @Controller("user")
@@ -58,14 +59,29 @@ export class UserController {
   @UseGuards(AuthGuard("jwt"))
   @Roles("admin")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Register user" })
+  @ApiOperation({ summary: "Registers user/admin" })
   @ApiCreatedResponse({})
   async register(
     @Body() createUserDto: CreateUserDto,
     @CurrentUser() user: User
   ) {
+    // liu -> logged in user
     const { organization } = user;
     return this.userService.create(createUserDto, organization);
+  }
+
+
+  @Post("reseller")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("superadmin")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Registers user/admin/reseller" })
+  @ApiCreatedResponse({})
+  async registerReseller(
+    @Body() createResellerDto: CreateResellerDto,
+    @CurrentUser() user: User
+  ) {
+    return this.userService.createReseller(createResellerDto);
   }
 
   @Get()

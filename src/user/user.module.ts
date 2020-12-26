@@ -7,14 +7,13 @@ import { ForgotPasswordSchema } from "./schemas/forgot-password.schema";
 import { AdminActionSchema } from "./schemas/admin-action.schema";
 import { MulterModule } from "@nestjs/platform-express";
 import { MongooseModule } from "@nestjs/mongoose";
-import { PushNotificationService } from "src/push-notification/push-notification.service";
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: "User", schema: UserSchema },
       { name: "ForgotPassword", schema: ForgotPasswordSchema },
-      { name: "AdminAction", schema: AdminActionSchema },
+      { name: "AdminAction", schema: AdminActionSchema }
     ]),
     MulterModule.register({
       dest: "~/.upload/users",

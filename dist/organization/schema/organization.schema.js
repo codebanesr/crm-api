@@ -4,7 +4,7 @@ exports.OrganizationSchema = void 0;
 const mongoose = require("mongoose");
 const organizational_enum_1 = require("../../utils/organizational.enum");
 exports.OrganizationSchema = new mongoose.Schema({
-    organizationName: {
+    name: {
         type: String,
         minlength: 6,
         maxlength: 255,
