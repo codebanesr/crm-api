@@ -91,6 +91,7 @@ services:
 
 networks:
   webnet:
+    # driver: bridge
 volumes:
   certbot-etc:
   certbot-var:
