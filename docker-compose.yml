@@ -60,31 +60,20 @@ services:
     networks:
       - webnet
   
-  # certbot:
-  #   image: certbot/certbot
-  #   container_name: certbot
-  #   volumes:
-  #     - certbot-etc:/etc/letsencrypt
-  #     - certbot-var:/var/lib/letsencrypt
-  #     - web-root:/var/www/html
-  #   depends_on:
-  #     - webserver
-  #   command: certonly --webroot --webroot-path=/var/www/html --email shanur.cse.nitap@gmail.com --agree-tos --no-eff-email --staging -d moleculesystem.com  -d www.moleculesystem.com
-
   webserver:
-    image: nginx:mainline-alpine
-    container_name: webserver
     restart: unless-stopped
+    image: staticfloat/nginx-certbot
     ports:
-      - "443:443"
-      - "80:80"
+        - 80:80/tcp
+        - 443:443/tcp
+    environment:
+        CERTBOT_EMAIL: moleculesystem.com
+        # variable names are space-separated
+        ENVSUBST_VARS: FQDN
+        FQDN: moleculesystem.com
     volumes:
-      - web-root:/var/www/html
-      - ./nginx-conf:/etc/nginx/conf.d
-    #   - certbot-etc:/etc/letsencrypt
-    #   - certbot-var:/var/lib/letsencrypt
-    #   - dhparam:/etc/ssl/certs
-    # command: ls -sail /etc/letsencrypt/live
+      - ./conf.d:/etc/nginx/user.conf.d:ro
+      - letsencrypt:/etc/letsencrypt
     depends_on:
       - main
     networks:
@@ -93,20 +82,7 @@ services:
 networks:
   webnet:
 volumes:
-  certbot-etc:
-  certbot-var:
-  web-root:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/ec2-user/crm-api/client
-      o: bind
-  # dhparam:
-  #   driver: local
-  #   driver_opts:
-  #     type: none
-  #     device: /home/ec2-user/crm-api/dhparam
-  #     o: bind
+  letsencrypt:
   pgdata:
   mongodb_data:
     driver: local
