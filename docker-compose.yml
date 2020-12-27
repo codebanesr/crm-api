@@ -1,3 +1,6 @@
+# generating ssl certs
+# sudo openssl dhparam -out dhparam-2048.pem 2048
+# docker-compose up --force-recreate --no-deps certbot, after adding A records to point to the correct ip address
 version: '3.7'
 
 services:
@@ -16,8 +19,8 @@ services:
     volumes:
       - .:/usr/src/app
       # - /usr/app/node_modules
-    ports:
-      - "3000:3000"
+    # ports:
+    #   - "80:3000"
     tty: true
     command: "yarn start"
     env_file:
@@ -26,15 +29,15 @@ services:
       - webnet
     restart: always
 
-  # minio:
-  #   image: 'bitnami/minio:latest'
-  #   ports:
-  #     - '9000:9000'
-  #   environment:
-  #     - MINIO_ACCESS_KEY=
-  #     - MINIO_SECRET_KEY=
-  #   networks:
-  #     - webnet
+  minio:
+    image: 'bitnami/minio:latest'
+    ports:
+      - '9000:9000'
+    environment:
+      - MINIO_ACCESS_KEY=shanur
+      - MINIO_SECRET_KEY=shanurrahman123
+    networks:
+      - webnet
 
   mongodb:
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
@@ -55,10 +58,53 @@ services:
       - "6379:6379"
     networks:
       - webnet
+  
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - web-root:/var/www/html
+    depends_on:
+      - webserver
+    command: certonly --webroot --webroot-path=/var/www/html --email shanur.cse.nitap@gmail.com --agree-tos --no-eff-email --staging -d moleculesystem.com  -d www.moleculesystem.com
+
+  webserver:
+    image: nginx:mainline-alpine
+    container_name: webserver
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - web-root:/var/www/html
+      - ./nginx-conf:/etc/nginx/conf.d
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - dhparam:/etc/ssl/certs
+    depends_on:
+      - main
+    networks:
+      - webnet
 
 networks:
   webnet:
 volumes:
+  certbot-etc:
+  certbot-var:
+  web-root:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/shanur/Documents/personal/nest-crm-api/client
+      o: bind
+  dhparam:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/shanur/Documents/personal/nest-crm-api/dhparam
+      o: bind
   pgdata:
   mongodb_data:
     driver: local
