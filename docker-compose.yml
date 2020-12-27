@@ -18,7 +18,7 @@ services:
       - VERSION=1.0
     volumes:
       - .:/usr/src/app
-      # - /usr/app/node_modules
+      - /usr/app/node_modules
     # ports:
     #   - "80:3000"
     tty: true
