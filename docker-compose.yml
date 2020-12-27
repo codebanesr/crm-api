@@ -97,13 +97,13 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/shanur/Documents/personal/nest-crm-api/client
+      device: /home/ec2-user/crm-api/client
       o: bind
   dhparam:
     driver: local
     driver_opts:
       type: none
-      device: /home/shanur/Documents/personal/nest-crm-api/dhparam
+      device: /home/ec2-user/crm-api/dhparam
       o: bind
   pgdata:
   mongodb_data:
