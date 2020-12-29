@@ -10,11 +10,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.slim
-      target: production
+      target: development
     user: "node"
     working_dir: /usr/src/app
     environment:
-      - NODE_ENV=production
+      # - NODE_ENV=production
       - VERSION=1.0
     volumes:
       - .:/usr/src/app

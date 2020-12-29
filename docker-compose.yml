@@ -10,7 +10,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-      # target: production
+      target: production
     user: "node"
     working_dir: /usr/src/app
     environment:
@@ -20,8 +20,8 @@ services:
     # volumes:
     #   - /usr/src/app
     #   - /usr/app/node_modules
-    # ports:
-    #   - "80:3000"
+    ports:
+      - "3000:3000"
     tty: true
     command: "yarn start"
     env_file:

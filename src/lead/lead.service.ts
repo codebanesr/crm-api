@@ -1115,10 +1115,8 @@ export class LeadService {
       userAgg.match({ createdAt: { $gte: startDate, $lt: endDate } });
     }
 
-    // project fields that we want
     userAgg.project({ amount: "$amount", leadStatus: "$leadStatus" });
 
-    // group by lead status
     userAgg.group({ _id: "$leadStatus", amount: { $sum: "$amount" } });
 
     return userAgg.exec();

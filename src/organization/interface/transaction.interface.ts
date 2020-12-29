@@ -1,7 +1,7 @@
 import {Document} from "mongoose";
 
 export interface Transaction  extends Document{
-    organization: number,
+    organization: string,
     discount: number,
     expiresOn: Date,
     perUserRate: number,
