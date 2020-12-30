@@ -30,25 +30,25 @@ async function bootstrap() {
   // ╔═╗╦ ╦╔═╗╔═╗╔═╗╔═╗╦═╗
   // ╚═╗║║║╠═╣║ ╦║ ╦║╣ ╠╦╝
   // ╚═╝╚╩╝╩ ╩╚═╝╚═╝╚═╝╩╚═
-  if(process.env.NODE_ENV !== 'production') {
-    const options = new DocumentBuilder()
-    .setTitle("API")
-    .setDescription("API description")
-    .setVersion("1.0")
-    .addTag("API")
-    .build();
-    const document = SwaggerModule.createDocument(app, options, {
-      include: [
-        UserModule,
-        ArticleModule,
-        LeadModule,
-        CampaignModule,
-        AgentModule,
-        OrganizationModule,
-      ],
-    });
-    SwaggerModule.setup("api", app, document);
-  }
+  app.setGlobalPrefix('api');
+
+  const options = new DocumentBuilder()
+  .setTitle("API")
+  .setDescription("API description")
+  .setVersion("1.0")
+  .addTag("API")
+  .build();
+  const document = SwaggerModule.createDocument(app, options, {
+    include: [
+      UserModule,
+      ArticleModule,
+      LeadModule,
+      CampaignModule,
+      AgentModule,
+      OrganizationModule,
+    ],
+  });
+  SwaggerModule.setup("swagger", app, document);
 
   // ╔╦╗╔═╗╔═╗╦╔╗╔╔═╗  ╔═╗╔╗╔╔╦╗  ╦  ╦╔═╗╔╦╗╔═╗╔╗╔  ╔╦╗╔═╗  ╔═╗╔═╗╦═╗╔╦╗
   // ║║║╣ ╠╣ ║║║║║╣    ╠═╣║║║ ║║  ║  ║╚═╗ ║ ║╣ ║║║   ║ ║ ║  ╠═╝║ ║╠╦╝ ║
