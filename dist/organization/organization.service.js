@@ -140,6 +140,11 @@ let OrganizationService = class OrganizationService {
             });
         });
     }
+    getAllPayments(organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.transactionModel.find({ organization }).sort({ _id: 1 }).limit(15);
+        });
+    }
 };
 OrganizationService = __decorate([
     common_1.Injectable(),

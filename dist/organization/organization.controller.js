@@ -64,6 +64,12 @@ let OrganizationController = class OrganizationController {
             return this.organizationService.isAttributeValid(validateNewOrganizationDto);
         });
     }
+    getPayments(organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            common_1.Logger.debug(organization);
+            return this.organizationService.getAllPayments(organization);
+        });
+    }
 };
 __decorate([
     common_1.Post(),
@@ -121,6 +127,16 @@ __decorate([
     __metadata("design:paramtypes", [validation_dto_1.ValidateNewOrganizationDto]),
     __metadata("design:returntype", Promise)
 ], OrganizationController.prototype, "isValidAttribute", null);
+__decorate([
+    common_1.Get("transactions"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOperation({ summary: "Validate create-organization paylod" }),
+    swagger_1.ApiCreatedResponse({}),
+    __param(0, common_1.Query('organization')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], OrganizationController.prototype, "getPayments", null);
 OrganizationController = __decorate([
     common_1.Controller('organization'),
     swagger_1.ApiTags("organization"),

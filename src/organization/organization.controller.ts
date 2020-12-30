@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Post, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -69,5 +69,14 @@ export class OrganizationController {
   @ApiCreatedResponse({})
   async isValidAttribute(@Body() validateNewOrganizationDto: ValidateNewOrganizationDto) {
     return this.organizationService.isAttributeValid(validateNewOrganizationDto);
+  }
+
+  @Get("transactions")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Validate create-organization paylod"})
+  @ApiCreatedResponse({})
+  async getPayments(@Query('organization') organization: string) {
+    Logger.debug(organization);
+    return this.organizationService.getAllPayments(organization);
   }
 }

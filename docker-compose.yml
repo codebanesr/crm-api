@@ -10,7 +10,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-      target: production
+      # target: production
     user: "node"
     working_dir: /usr/src/app
     environment:

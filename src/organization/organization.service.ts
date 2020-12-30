@@ -153,4 +153,9 @@ export class OrganizationService {
       organization
     });
   }
+
+
+  async getAllPayments(organization) {
+    return this.transactionModel.find({organization}).sort({_id: 1}).limit(15);
+  }
 }

@@ -28,23 +28,25 @@ function bootstrap() {
         app.useGlobalPipes(new common_1.ValidationPipe({
             transform: true,
         }));
-        const options = new swagger_1.DocumentBuilder()
-            .setTitle("API")
-            .setDescription("API description")
-            .setVersion("1.0")
-            .addTag("API")
-            .build();
-        const document = swagger_1.SwaggerModule.createDocument(app, options, {
-            include: [
-                user_module_1.UserModule,
-                article_module_1.ArticleModule,
-                lead_module_1.LeadModule,
-                campaign_module_1.CampaignModule,
-                agent_module_1.AgentModule,
-                organization_module_1.OrganizationModule,
-            ],
-        });
-        swagger_1.SwaggerModule.setup("api", app, document);
+        if (process.env.NODE_ENV !== 'production') {
+            const options = new swagger_1.DocumentBuilder()
+                .setTitle("API")
+                .setDescription("API description")
+                .setVersion("1.0")
+                .addTag("API")
+                .build();
+            const document = swagger_1.SwaggerModule.createDocument(app, options, {
+                include: [
+                    user_module_1.UserModule,
+                    article_module_1.ArticleModule,
+                    lead_module_1.LeadModule,
+                    campaign_module_1.CampaignModule,
+                    agent_module_1.AgentModule,
+                    organization_module_1.OrganizationModule,
+                ],
+            });
+            swagger_1.SwaggerModule.setup("api", app, document);
+        }
         const PORT = process.env.PORT || 3000;
         yield app.listen(PORT);
         console_1.warn(`APP IS LISTENING TO PORT ${PORT}`);

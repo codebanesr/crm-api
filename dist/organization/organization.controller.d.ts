@@ -12,4 +12,5 @@ export declare class OrganizationController {
     generateToken(generateTokenDto: GenerateTokenDto): Promise<import("twilio/lib/rest/api/v2010/account/message").MessageInstance>;
     createOrUpdateUserQuota(updateQuota: UpdateQuotaDto): Promise<import("./interface/transaction.interface").Transaction>;
     isValidAttribute(validateNewOrganizationDto: ValidateNewOrganizationDto): Promise<void>;
+    getPayments(organization: string): Promise<import("./interface/transaction.interface").Transaction[]>;
 }

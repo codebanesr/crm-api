@@ -30,29 +30,32 @@ async function bootstrap() {
   // ╔═╗╦ ╦╔═╗╔═╗╔═╗╔═╗╦═╗
   // ╚═╗║║║╠═╣║ ╦║ ╦║╣ ╠╦╝
   // ╚═╝╚╩╝╩ ╩╚═╝╚═╝╚═╝╩╚═
-  const options = new DocumentBuilder()
+  if(process.env.NODE_ENV !== 'production') {
+    const options = new DocumentBuilder()
     .setTitle("API")
     .setDescription("API description")
     .setVersion("1.0")
     .addTag("API")
     .build();
-  const document = SwaggerModule.createDocument(app, options, {
-    include: [
-      UserModule,
-      ArticleModule,
-      LeadModule,
-      CampaignModule,
-      AgentModule,
-      OrganizationModule,
-    ],
-  });
-  SwaggerModule.setup("api", app, document);
+    const document = SwaggerModule.createDocument(app, options, {
+      include: [
+        UserModule,
+        ArticleModule,
+        LeadModule,
+        CampaignModule,
+        AgentModule,
+        OrganizationModule,
+      ],
+    });
+    SwaggerModule.setup("api", app, document);
+  }
 
   // ╔╦╗╔═╗╔═╗╦╔╗╔╔═╗  ╔═╗╔╗╔╔╦╗  ╦  ╦╔═╗╔╦╗╔═╗╔╗╔  ╔╦╗╔═╗  ╔═╗╔═╗╦═╗╔╦╗
   // ║║║╣ ╠╣ ║║║║║╣    ╠═╣║║║ ║║  ║  ║╚═╗ ║ ║╣ ║║║   ║ ║ ║  ╠═╝║ ║╠╦╝ ║
   // ═╩╝╚═╝╚  ╩╝╚╝╚═╝  ╩ ╩╝╚╝═╩╝  ╩═╝╩╚═╝ ╩ ╚═╝╝╚╝   ╩ ╚═╝  ╩  ╚═╝╩╚═ ╩
   const PORT = process.env.PORT || 3000;
   await app.listen(PORT);
+  warn(process.env.NODE_ENV)
   warn(`APP IS LISTENING TO PORT ${PORT}`);
 }
 bootstrap();

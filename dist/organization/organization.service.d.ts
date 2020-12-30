@@ -27,4 +27,5 @@ export declare class OrganizationService {
     isAttributeValid(validationDto: ValidateNewOrganizationDto): Promise<void>;
     isOrganizationalPayloadValid(createOrganizationDto: CreateOrganizationDto): Promise<void>;
     createOrUpdateUserQuota(obj: UpdateQuotaDto): Promise<Transaction>;
+    getAllPayments(organization: any): Promise<Transaction[]>;
 }
