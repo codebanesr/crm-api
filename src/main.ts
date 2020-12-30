@@ -55,7 +55,6 @@ async function bootstrap() {
   // ═╩╝╚═╝╚  ╩╝╚╝╚═╝  ╩ ╩╝╚╝═╩╝  ╩═╝╩╚═╝ ╩ ╚═╝╝╚╝   ╩ ╚═╝  ╩  ╚═╝╩╚═ ╩
   const PORT = process.env.PORT || 3000;
   await app.listen(PORT);
-  warn(process.env.NODE_ENV)
   warn(`APP IS LISTENING TO PORT ${PORT}`);
 }
 bootstrap();
