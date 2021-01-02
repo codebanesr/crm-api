@@ -81,6 +81,13 @@ export class AgentController {
   }
 
 
+  @Post("visitTrack/get")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Updates the battery status when it changes" })
+  async getVisitTrack(@Body() userLocationDto: GetUsersLocationsDto, @CurrentUser() user: User) {
+    const {_id, organization, roleType} = user;
+    return this.agentService.getVisitTrack(_id, roleType, organization ,userLocationDto);
+  }
 
   @Post("visitTrack")
   @ApiOperation({ summary: "Update users visiting location" })
@@ -89,14 +96,5 @@ export class AgentController {
   async addVisitTrack(@CurrentUser() user: User, @Body() payload: AddLocationDto) {
     const {_id} = user;
     return this.agentService.addVisitTrack(_id, payload);
-  }
-
-
-
-  @Post("visitTrack/get")
-  async getVisitTrack(@Body() body: GetUsersLocationsDto, @CurrentUser() user: User) {
-    const { userIds } = body;
-    const {email, organization, roleType} = user;
-    return this.agentService.getVisitTrack(email, roleType, organization ,userIds);
   }
 }

@@ -49,7 +49,7 @@ export const UserSchema = new Schema(
       default: Date.now,
     },
     roleType: { type: String, required: true },
-    manages: [String],
+    manages: [{String}],
     reportsTo: { type: String, default: null },
 
     /**@todo this default has to be removed */
