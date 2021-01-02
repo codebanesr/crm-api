@@ -1,7 +1,7 @@
 import { Schema } from "mongoose";
 
 export const VisitTrackSchema = new Schema({
-    userId: String,
+    userId: {type: Schema.Types.ObjectId, ref: "User"},
 
     batLvl: Number,
 

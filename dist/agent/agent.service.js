@@ -27,6 +27,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const fs_1 = require("fs");
 const lodash_1 = require("lodash");
+const moment = require("moment");
 let AgentService = class AgentService {
     constructor(adminActionModel, visitTrackModel, userModel) {
         this.adminActionModel = adminActionModel;
@@ -63,7 +64,9 @@ let AgentService = class AgentService {
     addVisitTrack(userId, payload) {
         return __awaiter(this, void 0, void 0, function* () {
             common_1.Logger.debug(`userid: ${userId}, coorinates: ${payload.coordinate}`);
-            return this.visitTrackModel.findOneAndUpdate({ userId }, {
+            const start = moment().startOf('day');
+            const end = moment().endOf('day');
+            return this.visitTrackModel.findOneAndUpdate({ userId, createdAt: { $gte: start, $lt: end } }, {
                 $push: {
                     locations: Object.assign(Object.assign({}, payload.coordinate), { timestamp: new Date() })
                 }

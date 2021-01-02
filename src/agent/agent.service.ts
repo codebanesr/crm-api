@@ -10,6 +10,7 @@ import { VisitTrack } from "./interface/visit-track.interface";
 import { AddLocationDto } from "./dto/add-location.dto";
 import { intersection, union } from "lodash";
 import { GetUsersLocationsDto } from "./dto/get-user-locations.dto";
+import * as moment from "moment";
 
 @Injectable()
 export class AgentService {
@@ -95,7 +96,11 @@ export class AgentService {
   async addVisitTrack(userId: string, payload: AddLocationDto) {
     Logger.debug(`userid: ${userId}, coorinates: ${payload.coordinate}`);
 
-    return this.visitTrackModel.findOneAndUpdate({userId}, {
+
+    const start = moment().startOf('day');
+    const end = moment().endOf('day');
+
+    return this.visitTrackModel.findOneAndUpdate({userId, createdAt: {$gte: start, $lt: end}}, {
       $push: {
         locations: {...payload.coordinate, timestamp: new Date()}
       }
