@@ -8,7 +8,7 @@ import { User } from "../user/interfaces/user.interface";
 import { BatteryStatusDto } from "./schemas/battery-status.dto";
 import { VisitTrack } from "./interface/visit-track.interface";
 import { AddLocationDto } from "./dto/add-location.dto";
-import { intersection } from "lodash";
+import { intersection, union } from "lodash";
 import { GetUsersLocationsDto } from "./dto/get-user-locations.dto";
 
 @Injectable()
@@ -109,9 +109,9 @@ export class AgentService {
 
     const { campaign, startDate, endDate, userIds } = userLocationDto;
     /** @Todo check if intersection works as expected */
-    const validUserIds = intersection(userIds, subordinateIds, [id])
+    let validUserIds = intersection(userIds, subordinateIds);
+    validUserIds = union(validUserIds, [id.toString()]);
 
-    Logger.debug(`validUserIds ${validUserIds}`);
     return this.visitTrackModel.find({
       userId: {$in: validUserIds},
       createdAt: { $gte: startDate, $lte: endDate }

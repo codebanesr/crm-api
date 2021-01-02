@@ -1,4 +1,4 @@
-import { Schema, HookNextFunction } from "mongoose";
+import { Schema, HookNextFunction, Types } from "mongoose";
 import validator from "validator";
 import * as bcrypt from "bcryptjs";
 
@@ -49,7 +49,7 @@ export const UserSchema = new Schema(
       default: Date.now,
     },
     roleType: { type: String, required: true },
-    manages: [{String}],
+    manages: [{type: Schema.Types.ObjectId, ref: "User"}],
     reportsTo: { type: String, default: null },
 
     /**@todo this default has to be removed */
