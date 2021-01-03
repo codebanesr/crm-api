@@ -91,3 +91,15 @@ UserSchema.pre("save", async function (next: HookNextFunction) {
     return next(err);
   }
 });
+
+UserSchema.pre("update", async function (next: HookNextFunction) {
+  try {
+    // tslint:disable-next-line:no-string-literal
+    const hashed = await bcrypt.hash(this["password"], 10);
+    // tslint:disable-next-line:no-string-literal
+    this["password"] = hashed;
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+});
