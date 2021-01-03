@@ -34,6 +34,7 @@ import { createTransport } from "nodemailer";
 import { getForgotPasswordTemplate } from "../utils/forgot-password-template";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
+import { hashPassword } from "src/utils/crypto.utils";
 
 @Injectable()
 export class UserService {
@@ -620,6 +621,7 @@ export class UserService {
   }
 
   async updateUser(userid: string, user: CreateUserDto) {
+    user.password = await hashPassword(user.password);
     return this.userModel.updateOne({ _id: userid }, user);
   }
 

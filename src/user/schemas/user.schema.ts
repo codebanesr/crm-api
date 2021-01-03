@@ -1,6 +1,7 @@
 import { Schema, HookNextFunction, Types } from "mongoose";
 import validator from "validator";
 import * as bcrypt from "bcryptjs";
+import { hashPassword } from "src/utils/crypto.utils";
 
 export const UserSchema = new Schema(
   {
@@ -83,19 +84,7 @@ UserSchema.pre("save", async function (next: HookNextFunction) {
       return next();
     }
     // tslint:disable-next-line:no-string-literal
-    const hashed = await bcrypt.hash(this["password"], 10);
-    // tslint:disable-next-line:no-string-literal
-    this["password"] = hashed;
-    return next();
-  } catch (err) {
-    return next(err);
-  }
-});
-
-UserSchema.pre("update", async function (next: HookNextFunction) {
-  try {
-    // tslint:disable-next-line:no-string-literal
-    const hashed = await bcrypt.hash(this["password"], 10);
+    const hashed = await hashPassword(this["password"]);
     // tslint:disable-next-line:no-string-literal
     this["password"] = hashed;
     return next();

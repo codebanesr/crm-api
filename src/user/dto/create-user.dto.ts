@@ -57,7 +57,8 @@ export class CreateUserDto {
   @IsString()
   @MinLength(5)
   @MaxLength(1024)
-  readonly password: string;
+  // password is not readonly because it can be modified later on
+  password: string;
 
   @ApiProperty({
     example: "manager",
