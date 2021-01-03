@@ -1,13 +1,14 @@
 import { Schema, HookNextFunction, Types } from "mongoose";
 import validator from "validator";
 import * as bcrypt from "bcryptjs";
-import { hashPassword } from "src/utils/crypto.utils";
+import { hashPassword } from "../../utils/crypto.utils";
 
+/** Same validations of min length and max length should be used in models as well other wise there are going to be errors while fetching */
 export const UserSchema = new Schema(
   {
     fullName: {
       type: String,
-      minlength: 6,
+      minlength: 5,
       maxlength: 255,
       required: [true, "NAME_IS_BLANK"],
     },

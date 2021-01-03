@@ -18,7 +18,7 @@ import { RedisService } from "nestjs-redis";
 import config from "../config";
 import { ValidateNewOrganizationDto } from "./dto/validation.dto";
 import { UserService } from "../user/user.service";
-import { ResellerOrganization } from "src/organization/interface/reseller-organization.interface";
+import { ResellerOrganization } from "../organization/interface/reseller-organization.interface";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import * as moment from "moment";
 import { Transaction } from "./interface/transaction.interface";
