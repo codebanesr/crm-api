@@ -22,6 +22,7 @@ export const CampaignSchema = new Schema(
     assignTo: [String],
     advancedSettings: [String],
     formModel: Object,
+    autodialSettings: Object,
     groups: [
       {
         label: String,

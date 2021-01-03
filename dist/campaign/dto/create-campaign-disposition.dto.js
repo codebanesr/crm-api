@@ -34,5 +34,9 @@ __decorate([
     class_validator_1.IsBoolean(),
     __metadata("design:type", Boolean)
 ], CreateCampaignAndDispositionDto.prototype, "isNew", void 0);
+__decorate([
+    class_validator_1.IsObject(),
+    __metadata("design:type", Object)
+], CreateCampaignAndDispositionDto.prototype, "autodialSettings", void 0);
 exports.CreateCampaignAndDispositionDto = CreateCampaignAndDispositionDto;
 //# sourceMappingURL=create-campaign-disposition.dto.js.map

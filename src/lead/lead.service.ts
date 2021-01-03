@@ -272,6 +272,7 @@ export class LeadService {
       // });
 
 
+      /** @Todo this should be changed to use userid and not email */
       leadAgg.match({
         $or: [
           { email: { $in: [...subordinateEmails, activeUserEmail] } },
@@ -886,12 +887,14 @@ export class LeadService {
     email,
     organization,
     typeDict,
+    roleType
   }: {
     campaignId: string;
     filters: Map<string, string>;
     email: string;
     organization: string;
     typeDict: Map<string, any>;
+    roleType: string
   }) {
     // Null value removal
     Object.keys(filters).forEach((k) => {
@@ -910,7 +913,23 @@ export class LeadService {
     }
 
     const singleLeadAgg = this.leadModel.aggregate();
-    singleLeadAgg.match({ campaign: campaign.campaignName, email });
+    singleLeadAgg.match({ campaignId: campaign._id });
+
+
+    /** @Todo Try to cache this call */
+    const subordinateEmails = await this.getSubordinates(
+      email,
+      roleType,
+      organization
+    );
+
+
+    singleLeadAgg.match({
+      $or: [
+        { email: { $in: [...subordinateEmails, email] } },
+        { email: { $exists: false } },
+      ],
+    })
 
     Object.keys(filters).forEach((key) => {
       switch (typeDict[key].type) {

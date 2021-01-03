@@ -158,7 +158,7 @@ let LeadController = class LeadController {
         return this.leadService.leadActivityByUser(startDate, endDate, email);
     }
     fetchNextLead(user, campaignId, body) {
-        const { organization, email } = user;
+        const { organization, email, roleType } = user;
         const { filters, typeDict } = body;
         return this.leadService.fetchNextLead({
             campaignId,
@@ -166,6 +166,7 @@ let LeadController = class LeadController {
             email,
             organization,
             typeDict,
+            roleType
         });
     }
     getAllAlarms(user, body) {

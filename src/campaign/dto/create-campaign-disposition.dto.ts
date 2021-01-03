@@ -1,4 +1,4 @@
-import { IsBoolean, IsJSON, IsMongoId, IsNotEmpty, IsString } from "class-validator";
+import { IsBoolean, IsJSON, IsMongoId, IsNotEmpty, IsObject, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateCampaignAndDispositionDto {
@@ -47,4 +47,8 @@ export class CreateCampaignAndDispositionDto {
     @IsNotEmpty()
     @IsBoolean()
     isNew: boolean;
+
+    /** @Todo add better validations here, form is strictly defined */
+    @IsObject()
+    autodialSettings: JSON
 }

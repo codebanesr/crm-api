@@ -404,8 +404,6 @@ export class LeadController {
     return this.leadService.leadActivityByUser(startDate, endDate, email);
   }
 
-  // router.get("/fetchNextLead/:campaignId/:leadStatus", passportConfig.authenticateJWT, leadController.fetchNextLead);
-
   @Post("fetchNextLead/:campaignId")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({
@@ -419,7 +417,7 @@ export class LeadController {
     @Param("campaignId") campaignId: string,
     @Body() body: FetchNextLeadDto
   ) {
-    const { organization, email } = user;
+    const { organization, email, roleType } = user;
     const { filters, typeDict } = body;
     return this.leadService.fetchNextLead({
       campaignId,
@@ -427,6 +425,7 @@ export class LeadController {
       email,
       organization,
       typeDict,
+      roleType
     });
   }
 

@@ -602,7 +602,7 @@ let LeadService = class LeadService {
             return uq;
         });
     }
-    fetchNextLead({ campaignId, filters, email, organization, typeDict, }) {
+    fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType }) {
         return __awaiter(this, void 0, void 0, function* () {
             Object.keys(filters).forEach((k) => {
                 if (!filters[k]) {
@@ -617,7 +617,14 @@ let LeadService = class LeadService {
                 throw new common_1.UnprocessableEntityException();
             }
             const singleLeadAgg = this.leadModel.aggregate();
-            singleLeadAgg.match({ campaign: campaign.campaignName, email });
+            singleLeadAgg.match({ campaignId: campaign._id });
+            const subordinateEmails = yield this.getSubordinates(email, roleType, organization);
+            singleLeadAgg.match({
+                $or: [
+                    { email: { $in: [...subordinateEmails, email] } },
+                    { email: { $exists: false } },
+                ],
+            });
             Object.keys(filters).forEach((key) => {
                 switch (typeDict[key].type) {
                     case "string":

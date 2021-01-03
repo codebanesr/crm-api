@@ -23,6 +23,7 @@ exports.CampaignSchema = new mongoose_1.Schema({
     assignTo: [String],
     advancedSettings: [String],
     formModel: Object,
+    autodialSettings: Object,
     groups: [
         {
             label: String,

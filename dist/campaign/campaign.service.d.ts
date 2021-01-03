@@ -28,7 +28,7 @@ export declare class CampaignService {
         metadata: any;
         quickStatsAgg: import("lodash").Dictionary<any>;
     }>;
-    findOneByIdOrName(campaignId: any): Promise<Pick<Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "archived" | "campaignName" | "startDate" | "endDate" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo">>;
+    findOneByIdOrName(campaignId: any): Promise<Pick<Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "archived" | "campaignName" | "startDate" | "endDate" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo" | "autodialSettings">>;
     patch(campaignId: any, requestBody: any): Promise<any>;
     deleteOne(campaignId: any): Promise<{
         ok?: number;
@@ -53,7 +53,7 @@ export declare class CampaignService {
         error?: undefined;
     }>;
     uploadConfig(file: any): Promise<void>;
-    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew }: CreateCampaignAndDispositionDto & {
+    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew, autodialSettings }: CreateCampaignAndDispositionDto & {
         activeUserId: string;
         organization: string;
     }): Promise<{

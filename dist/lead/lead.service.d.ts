@@ -90,12 +90,13 @@ export declare class LeadService {
             $gt: Date;
         };
     }>;
-    fetchNextLead({ campaignId, filters, email, organization, typeDict, }: {
+    fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType }: {
         campaignId: string;
         filters: Map<string, string>;
         email: string;
         organization: string;
         typeDict: Map<string, any>;
+        roleType: string;
     }): Promise<{
         lead: any;
         leadHistory: any[];

@@ -151,7 +151,7 @@ let CampaignService = class CampaignService {
             const excelObject = parseExcel_1.default(path);
         });
     }
-    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew }) {
+    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew, autodialSettings }) {
         return __awaiter(this, void 0, void 0, function* () {
             const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
                 browsableCols,
@@ -160,7 +160,8 @@ let CampaignService = class CampaignService {
                 formModel,
                 advancedSettings,
                 assignTo,
-                groups }), { new: true, upsert: true, rawResult: true });
+                groups,
+                autodialSettings }), { new: true, upsert: true, rawResult: true });
             if (isNew) {
                 core_config_1.coreConfig.forEach(config => {
                     config.organization = organization;

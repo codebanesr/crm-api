@@ -9,4 +9,5 @@ export declare class CreateCampaignAndDispositionDto {
     advancedSettings: string;
     groups: string;
     isNew: boolean;
+    autodialSettings: JSON;
 }

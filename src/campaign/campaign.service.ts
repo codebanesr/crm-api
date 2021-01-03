@@ -181,7 +181,8 @@ export class CampaignService {
     assignTo,
     advancedSettings,
     groups,
-    isNew
+    isNew,
+    autodialSettings
   }: CreateCampaignAndDispositionDto & {activeUserId: string, organization: string}) {
 
 
@@ -198,6 +199,7 @@ export class CampaignService {
         advancedSettings,
         assignTo,
         groups,
+        autodialSettings
       },
       { new: true, upsert: true, rawResult: true }
     );

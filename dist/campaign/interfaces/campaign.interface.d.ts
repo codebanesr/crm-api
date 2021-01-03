@@ -16,6 +16,7 @@ export interface Campaign extends Document {
     advancedSettings: string[];
     archived: boolean;
     assignTo: string[];
+    autodialSettings: Object;
     groups: {
         label: string;
         value: string[];
