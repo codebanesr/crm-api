@@ -58,15 +58,15 @@ let LeadController = class LeadController {
     getTransactions(user, body, isStreamable, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization, email, roleType } = user;
-            const result = yield this.leadService.getTransactions(organization, email, roleType, body, isStreamable);
+            const { response, total } = yield this.leadService.getTransactions(organization, email, roleType, body, isStreamable);
             if (!isStreamable) {
-                return res.status(200).send(result);
+                return res.status(200).send({ response, total });
             }
             if (isStreamable) {
                 res.setHeader('Content-Type', 'application/vnd.openxmlformats');
                 res.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx");
                 const wb = xlsx_1.utils.book_new();
-                const ws = xlsx_1.utils.json_to_sheet(JSON.parse(JSON.stringify(result)));
+                const ws = xlsx_1.utils.json_to_sheet(JSON.parse(JSON.stringify(response)));
                 xlsx_1.utils.book_append_sheet(wb, ws, 'transactions');
                 const filename = "transactions.xlsx";
                 const wb_opts = { bookType: 'xlsx', type: 'binary' };

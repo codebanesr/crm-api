@@ -100,9 +100,9 @@ export class LeadController {
     ) {
     const { organization, email, roleType } = user;
 
-    const result = await this.leadService.getTransactions(organization, email, roleType, body, isStreamable);
+    const {response, total} = await this.leadService.getTransactions(organization, email, roleType, body, isStreamable);
     if(!isStreamable) {
-      return res.status(200).send(result);
+      return res.status(200).send({response, total});
     }
 
     // convert to excel sheet and pipe the response to the frontend
@@ -112,7 +112,7 @@ export class LeadController {
 
       const wb = utils.book_new();                     // create workbook
       /** @Todo too computationally intensive, to be replaced by mongoose */
-      const ws = utils.json_to_sheet(JSON.parse(JSON.stringify(result)));
+      const ws = utils.json_to_sheet(JSON.parse(JSON.stringify(response)));
       utils.book_append_sheet(wb, ws, 'transactions');  // add sheet to workbook
 
       const filename = "transactions.xlsx";

@@ -702,13 +702,17 @@ let LeadService = class LeadService {
                 conditionalQueries["createdAt"]["$lte"] = new Date(payload.filters.endDate);
             }
             const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
+            const query = Object.assign({ organization, newUser: { $in: subordinateEmails } }, conditionalQueries);
             const result = this.leadHistoryModel
-                .find(Object.assign({ organization, newUser: { $in: subordinateEmails } }, conditionalQueries))
+                .find(query)
                 .sort({ [payload.pagination.sortBy]: sortOrder });
+            let count = 0;
             if (!isStreamable) {
-                result.limit(payload.pagination.perPage);
+                result.limit(payload.pagination.perPage).skip(payload.pagination.page * payload.pagination.perPage);
+                count = yield this.leadHistoryModel.countDocuments(query);
             }
-            return result.lean().exec();
+            const response = yield result.lean().exec();
+            return { response, total: count };
         });
     }
     getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }) {

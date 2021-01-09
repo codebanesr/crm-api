@@ -1008,7 +1008,7 @@ export class LeadService {
       roleType: string, 
       payload: GetTransactionDto, 
       isStreamable: boolean
-    ) {
+    ): Promise<{ response: Partial<LeadHistory>[], total: number }> {
     // get email ids of users after him
     let conditionalQueries = {};
     let subordinateEmails = await this.getSubordinates(email, roleType, organization);
@@ -1038,15 +1038,21 @@ export class LeadService {
     }
 
     const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
+
+    const query = {organization, newUser: {$in: subordinateEmails}, ...conditionalQueries};
     const result = this.leadHistoryModel
-      .find({organization, newUser: {$in: subordinateEmails}, ...conditionalQueries})
+      .find(query)
       .sort({ [payload.pagination.sortBy]: sortOrder });
 
+
+    let count = 0;
     if(!isStreamable) {
-      result.limit(payload.pagination.perPage);
+      result.limit(payload.pagination.perPage).skip(payload.pagination.page * payload.pagination.perPage);
+      count = await this.leadHistoryModel.countDocuments(query);
     }
 
-    return result.lean().exec();
+    const response = await result.lean().exec();
+    return { response, total: count };
   }
   // date will always be greater than today
   async getFollowUps({

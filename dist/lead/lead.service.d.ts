@@ -100,7 +100,10 @@ export declare class LeadService {
         leadHistory: any[];
     }>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
-    getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto, isStreamable: boolean): Promise<Pick<LeadHistory, "number" | "_id" | "type" | "phoneNumber" | "organization" | "leadStatus" | "attachment" | "campaign" | "followUp" | "geoLocation" | "nextAction" | "documentLinks" | "duration" | "campaignName" | "lead" | "prospectName" | "oldUser" | "newUser" | "direction" | "notes" | "callRecordUrl" | "requestedInformation">[]>;
+    getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto, isStreamable: boolean): Promise<{
+        response: Partial<LeadHistory>[];
+        total: number;
+    }>;
     getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }: {
         interval: any;
         organization: any;
