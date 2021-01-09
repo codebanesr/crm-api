@@ -6,6 +6,7 @@ export interface Lead extends Document {
     campaignId?: string;
     firstName?: string;
     lastName?: string;
+    fullName?: string;
     source?: string;
     amount?: number;
     leadStatus?: string;

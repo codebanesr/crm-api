@@ -22,6 +22,12 @@ __decorate([
 class ReassignmentInfo {
 }
 exports.ReassignmentInfo = ReassignmentInfo;
+class CallRecord {
+}
+__decorate([
+    class_transformer_1.Type(() => Number),
+    __metadata("design:type", Number)
+], CallRecord.prototype, "type", void 0);
 class Lead {
 }
 __decorate([
@@ -86,6 +92,16 @@ __decorate([
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], Lead.prototype, "source", void 0);
+__decorate([
+    swagger_1.ApiProperty({
+        example: "1",
+        description: "Source of lead",
+        type: String,
+        default: 1,
+    }),
+    class_validator_1.IsString(),
+    __metadata("design:type", String)
+], Lead.prototype, "fullName", void 0);
 __decorate([
     class_validator_1.IsNumber(),
     class_validator_1.Min(0),
@@ -258,5 +274,10 @@ __decorate([
     class_validator_1.IsMongoId(),
     __metadata("design:type", String)
 ], UpdateLeadDto.prototype, "campaignId", void 0);
+__decorate([
+    class_validator_1.IsOptional(),
+    class_validator_1.ValidateNested(),
+    __metadata("design:type", CallRecord)
+], UpdateLeadDto.prototype, "callRecord", void 0);
 exports.UpdateLeadDto = UpdateLeadDto;
 //# sourceMappingURL=update-lead.dto.js.map

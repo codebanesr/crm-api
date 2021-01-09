@@ -89,30 +89,15 @@ let LeadController = class LeadController {
         const { _id, organization } = user;
         return this.leadService.addGeolocation(_id, lat, lng, organization);
     }
-    updateLead(user, body, leadId) {
+    updateLead(user, updateLeadObj, leadId) {
         const { organization, email: loggedInUserEmail } = user;
-        const { geoLocation, lead, reassignmentInfo, emailForm, requestedInformation, campaignId } = body;
-        return this.leadService.updateLead({
-            organization,
-            leadId,
-            lead,
-            geoLocation,
-            loggedInUserEmail,
-            reassignmentInfo,
-            emailForm,
-            requestedInformation,
-            campaignId
-        });
+        return this.leadService.updateLead(Object.assign(Object.assign({}, updateLeadObj), { leadId, organization, loggedInUserEmail }));
     }
     addContact(body, leadId) {
         return this.leadService.addContact(body, leadId);
     }
-    reassignLead(body, user, externalId) {
+    reassignLead(body, user) {
         return this.leadService.reassignLead(user.email, body.oldUserEmail, body.newUserEmail, body.lead);
-    }
-    syncPhoneCalls(callLogs, user) {
-        const { organization, _id } = user;
-        return this.leadService.syncPhoneCalls(callLogs, organization, _id);
     }
     getLeadHistoryById(user, externalId) {
         const { organization } = user;
@@ -288,22 +273,10 @@ __decorate([
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, common_1.Body()),
     __param(1, current_user_decorator_1.CurrentUser()),
-    __param(2, common_1.Param("externalId")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [reassign_lead_dto_1.ReassignLeadDto, Object, String]),
+    __metadata("design:paramtypes", [reassign_lead_dto_1.ReassignLeadDto, Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "reassignLead", null);
-__decorate([
-    common_1.Post("syncPhoneCalls"),
-    common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    swagger_1.ApiOperation({ summary: "Sync phone calls from device to database" }),
-    common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Body()),
-    __param(1, current_user_decorator_1.CurrentUser()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Array, Object]),
-    __metadata("design:returntype", void 0)
-], LeadController.prototype, "syncPhoneCalls", null);
 __decorate([
     common_1.Get("getLeadHistoryById/:externalId"),
     swagger_1.ApiOperation({

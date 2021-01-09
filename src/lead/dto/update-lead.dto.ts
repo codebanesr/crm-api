@@ -23,6 +23,15 @@ export class ReassignmentInfo {
   newUser: string;
 }
 
+class CallRecord {
+  number: string;
+
+  duration: number;
+
+  @Type(()=>Number)
+  type: number;
+}
+
 export class Lead {
   @ApiProperty({
     example: "1",
@@ -79,6 +88,16 @@ export class Lead {
   })
   @IsString()
   source: string;
+
+  @ApiProperty({
+    example: "1",
+    description: "Source of lead",
+    type: String,
+    default: 1,
+  })
+  @IsString()
+  fullName: string;
+
 
   @IsNumber()
   @Min(0)
@@ -243,4 +262,8 @@ export class UpdateLeadDto {
   campaignId: string;
 
   requestedInformation?: { [key: string]: string }[];
+
+  @IsOptional()
+  @ValidateNested()
+  callRecord?: CallRecord;
 }

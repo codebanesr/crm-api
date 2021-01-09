@@ -4,6 +4,11 @@ declare class GeoLocation {
 export declare class ReassignmentInfo {
     newUser: string;
 }
+declare class CallRecord {
+    number: string;
+    duration: number;
+    type: number;
+}
 export declare class Lead {
     externalId?: string;
     email: string;
@@ -11,6 +16,7 @@ export declare class Lead {
     firstName: string;
     lastName: string;
     source: string;
+    fullName: string;
     amount: number;
     customerEmail: string;
     phoneNumberPrefix?: string;
@@ -44,5 +50,6 @@ export declare class UpdateLeadDto {
     requestedInformation?: {
         [key: string]: string;
     }[];
+    callRecord?: CallRecord;
 }
 export {};

@@ -100,7 +100,7 @@ export class LeadService {
 
       const result = await this.leadModel
         .updateOne(
-          { externalId: lead.externalId },
+          { _id: lead._id },
           { email: newUserEmail, $push: { history: history } }
         )
         .lean()
@@ -400,7 +400,16 @@ export class LeadService {
     campaignName: string
   ) {
     const { contact, lead } = body;
-    await this.leadModel.create({
+
+    /** lead gets assigned to whoever creates it, he can go back and reassign the lead if he wishes to */
+    lead.email = email;
+    lead.firstName = lead.firstName || 'Undefined';
+
+    if(!lead.fullName) {
+      lead.fullName = `${lead.firstName} ${lead.lastName}`;
+    }
+    
+    return this.leadModel.create({
       ...lead,
       campaign: campaignName,
       organization,
@@ -533,21 +542,7 @@ export class LeadService {
     return { files, result };
   }
 
-  async syncPhoneCalls(callLogs: SyncCallLogsDto[], organization, user) {
-    try {
-      const transformed = callLogs.map((callLog) => {
-        return { ...callLog, organization, user };
-      });
-      return this.callLogModel.insertMany(transformed);
-    } catch (e) {
-      Logger.error(
-        "An error occured while syncing phone calls in leadService.ts",
-        e.message
-      );
-      return e.message;
-    }
-  }
-
+  
   async addGeolocation(
     activeUserId: string,
     lat: number,
@@ -579,7 +574,8 @@ export class LeadService {
     reassignmentInfo,
     emailForm,
     requestedInformation,
-    campaignId
+    campaignId,
+    callRecord
   }: UpdateLeadDto & {
     leadId: string;
     organization: string;
@@ -671,7 +667,7 @@ export class LeadService {
       { $set: filteredObj }
     );
 
-    await this.leadHistoryModel.create(nextEntryInHistory);
+    await this.leadHistoryModel.create({...nextEntryInHistory, ...callRecord});
     if (!values(emailForm).every(isEmpty)) {
       const { subject, attachments, content } = emailForm;
       this.sendEmailToLead({

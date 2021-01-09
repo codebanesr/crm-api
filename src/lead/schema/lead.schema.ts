@@ -18,6 +18,7 @@ export const LeadSchema = new Schema(
     campaignId: {type: Schema.Types.ObjectId, ref: "Campaign"},
     firstName: String,
     lastName: String,
+    fullName: String,
     source: String,
     amount: Number,
     leadStatus: String,

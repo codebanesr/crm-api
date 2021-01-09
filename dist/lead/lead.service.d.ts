@@ -8,7 +8,6 @@ import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
 import { UpdateLeadDto } from "./dto/update-lead.dto";
-import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";
@@ -54,11 +53,11 @@ export declare class LeadService {
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
     findOneById(leadId: string, organization: string): Promise<{
-        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "companyName" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "contact" | "requestedInformation" | "state">;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "contact" | "requestedInformation" | "state">;
         leadHistory: any[];
     }>;
     patch(productId: string, body: any[]): Promise<any>;
-    createLead(body: CreateLeadDto, email: string, organization: string, campaignId: string, campaignName: string): Promise<void>;
+    createLead(body: CreateLeadDto, email: string, organization: string, campaignId: string, campaignName: string): Promise<Lead>;
     deleteOne(leadId: string, activeUserEmail: string): Promise<Pick<any, string | number | symbol>>;
     createAlarm(alarmObj: Partial<Alarm>): Promise<Alarm>;
     sendBulkEmails(emails: string[], subject: string, text: string, attachments: any, organization: string): Promise<{
@@ -73,10 +72,9 @@ export declare class LeadService {
         files: S3UploadedFiles[];
         result: void;
     }>;
-    syncPhoneCalls(callLogs: SyncCallLogsDto[], organization: any, user: any): Promise<any>;
     addGeolocation(activeUserId: string, lat: number, lng: number, organization: string): Promise<GeoLocation>;
     getPerformance(): Promise<void>;
-    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, campaignId }: UpdateLeadDto & {
+    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }: UpdateLeadDto & {
         leadId: string;
         organization: string;
         loggedInUserEmail: string;
@@ -102,7 +100,7 @@ export declare class LeadService {
         leadHistory: any[];
     }>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
-    getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto, isStreamable: boolean): Promise<Pick<LeadHistory, "_id" | "phoneNumber" | "organization" | "leadStatus" | "attachment" | "campaign" | "followUp" | "geoLocation" | "nextAction" | "documentLinks" | "campaignName" | "lead" | "prospectName" | "oldUser" | "newUser" | "direction" | "notes" | "callRecordUrl" | "requestedInformation">[]>;
+    getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto, isStreamable: boolean): Promise<Pick<LeadHistory, "number" | "_id" | "type" | "phoneNumber" | "organization" | "leadStatus" | "attachment" | "campaign" | "followUp" | "geoLocation" | "nextAction" | "documentLinks" | "duration" | "campaignName" | "lead" | "prospectName" | "oldUser" | "newUser" | "direction" | "notes" | "callRecordUrl" | "requestedInformation">[]>;
     getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }: {
         interval: any;
         organization: any;

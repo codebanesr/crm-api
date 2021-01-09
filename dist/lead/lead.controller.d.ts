@@ -3,7 +3,6 @@ import { FindAllDto } from "./dto/find-all.dto";
 import { UpdateLeadDto } from "./dto/update-lead.dto";
 import { GeoLocationDto } from "./dto/geo-location.dto";
 import { ReassignLeadDto } from "./dto/reassign-lead.dto";
-import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { CreateEmailTemplateDto, BulkEmailDto } from "./dto/create-email-template.dto";
 import { UploadMultipleFilesDto } from "./dto/generic.dto";
 import { User } from "../user/interfaces/user.interface";
@@ -20,7 +19,7 @@ export declare class LeadController {
     getAllLeadColumns(campaignId: string, user: any): Promise<{
         paths: import("./interfaces/campaign-config.interface").CampaignConfig[];
     }>;
-    insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<void>;
+    insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<import("./interfaces/lead.interface").Lead>;
     getTransactions(user: User, body: GetTransactionDto, isStreamable: boolean, res: Response): Promise<Response<any>>;
     findAll(body: FindAllDto, user: any): Promise<{
         total: any;
@@ -28,10 +27,9 @@ export declare class LeadController {
         data: any;
     }>;
     addGeoLocation(body: GeoLocationDto, user: any): Promise<import("./interfaces/geo-location.interface").GeoLocation>;
-    updateLead(user: User, body: UpdateLeadDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
+    updateLead(user: User, updateLeadObj: UpdateLeadDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
     addContact(body: UpdateContactDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
-    reassignLead(body: ReassignLeadDto, user: User, externalId: string): Promise<any>;
-    syncPhoneCalls(callLogs: SyncCallLogsDto[], user: User): Promise<any>;
+    reassignLead(body: ReassignLeadDto, user: User): Promise<any>;
     getLeadHistoryById(user: User, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
     getUsersPerformance(req: any): Promise<void>;
     getLeadSuggestions(user: User, externalId: string, page?: number, perPage?: number): Promise<any>;
@@ -54,7 +52,7 @@ export declare class LeadController {
     }>;
     saveEmailAttachments(files: any): any;
     findOneById(leadId: string, user: User): Promise<{
-        lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "organization" | "leadStatus" | "companyName" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "contact" | "requestedInformation" | "state">;
+        lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "contact" | "requestedInformation" | "state">;
         leadHistory: any[];
     }>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;

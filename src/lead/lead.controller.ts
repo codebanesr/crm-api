@@ -176,29 +176,14 @@ export class LeadController {
   @HttpCode(HttpStatus.OK)
   updateLead(
     @CurrentUser() user: User,
-    @Body() body: UpdateLeadDto,
+    @Body() updateLeadObj: UpdateLeadDto,
     @Param("id") leadId: string
   ) {
     const { organization, email: loggedInUserEmail } = user;
-    const {
-      geoLocation,
-      lead,
-      reassignmentInfo,
-      emailForm,
-      requestedInformation,
-      campaignId
-    } = body;
-    return this.leadService.updateLead({
-      organization,
-      leadId,
-      lead,
-      geoLocation,
-      loggedInUserEmail,
-      reassignmentInfo,
-      emailForm,
-      requestedInformation,
-      campaignId
-    });
+
+    return this.leadService.updateLead(
+      {...updateLeadObj, leadId, organization, loggedInUserEmail}
+    );
   }
 
   @Put("contact/:leadId")
@@ -216,7 +201,6 @@ export class LeadController {
   reassignLead(
     @Body() body: ReassignLeadDto,
     @CurrentUser() user: User,
-    @Param("externalId") externalId: string
   ) {
     return this.leadService.reassignLead(
       user.email,
@@ -226,17 +210,18 @@ export class LeadController {
     );
   }
 
-  @Post("syncPhoneCalls")
-  @UseGuards(AuthGuard("jwt"))
-  @ApiOperation({ summary: "Sync phone calls from device to database" })
-  @HttpCode(HttpStatus.OK)
-  syncPhoneCalls(
-    @Body() callLogs: SyncCallLogsDto[],
-    @CurrentUser() user: User
-  ) {
-    const { organization, _id } = user;
-    return this.leadService.syncPhoneCalls(callLogs, organization, _id);
-  }
+  // @Post("syncPhoneCalls/:leadId")
+  // @UseGuards(AuthGuard("jwt"))
+  // @ApiOperation({ summary: "Sync phone calls from device to database" })
+  // @HttpCode(HttpStatus.OK)
+  // syncPhoneCalls(
+  //   @Param('leadId') leadId: string,
+  //   @Body() callLogs: SyncCallLogsDto,
+  //   @CurrentUser() user: User
+  // ) {
+  //   const { organization, _id: agentId } = user;
+  //   return this.leadService.syncPhoneCalls(callLogs, organization, agentId, leadId);
+  // }
 
   @Get("getLeadHistoryById/:externalId")
   @ApiOperation({

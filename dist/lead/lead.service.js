@@ -80,7 +80,7 @@ let LeadService = class LeadService {
                     notes,
                 };
                 const result = yield this.leadModel
-                    .updateOne({ externalId: lead.externalId }, { email: newUserEmail, $push: { history: history } })
+                    .updateOne({ _id: lead._id }, { email: newUserEmail, $push: { history: history } })
                     .lean()
                     .exec();
                 return result;
@@ -307,7 +307,12 @@ let LeadService = class LeadService {
     createLead(body, email, organization, campaignId, campaignName) {
         return __awaiter(this, void 0, void 0, function* () {
             const { contact, lead } = body;
-            yield this.leadModel.create(Object.assign(Object.assign({}, lead), { campaign: campaignName, organization,
+            lead.email = email;
+            lead.firstName = lead.firstName || 'Undefined';
+            if (!lead.fullName) {
+                lead.fullName = `${lead.firstName} ${lead.lastName}`;
+            }
+            return this.leadModel.create(Object.assign(Object.assign({}, lead), { campaign: campaignName, organization,
                 contact }));
         });
     }
@@ -379,20 +384,6 @@ let LeadService = class LeadService {
             return { files, result };
         });
     }
-    syncPhoneCalls(callLogs, organization, user) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const transformed = callLogs.map((callLog) => {
-                    return Object.assign(Object.assign({}, callLog), { organization, user });
-                });
-                return this.callLogModel.insertMany(transformed);
-            }
-            catch (e) {
-                common_1.Logger.error("An error occured while syncing phone calls in leadService.ts", e.message);
-                return e.message;
-            }
-        });
-    }
     addGeolocation(activeUserId, lat, lng, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             var geoObj = new this.geoLocationModel({
@@ -409,7 +400,7 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, campaignId }) {
+    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
@@ -465,7 +456,7 @@ let LeadService = class LeadService {
                 obj.email = reassignmentInfo.newUser;
             }
             const result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj });
-            yield this.leadHistoryModel.create(nextEntryInHistory);
+            yield this.leadHistoryModel.create(Object.assign(Object.assign({}, nextEntryInHistory), callRecord));
             if (!lodash_1.values(emailForm).every(lodash_1.isEmpty)) {
                 const { subject, attachments, content } = emailForm;
                 this.sendEmailToLead({

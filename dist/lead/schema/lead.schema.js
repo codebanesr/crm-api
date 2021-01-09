@@ -16,6 +16,7 @@ exports.LeadSchema = new mongoose_1.Schema({
     campaignId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Campaign" },
     firstName: String,
     lastName: String,
+    fullName: String,
     source: String,
     amount: Number,
     leadStatus: String,
