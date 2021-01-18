@@ -48,7 +48,7 @@ async function bootstrap() {
       OrganizationModule,
     ],
   });
-  SwaggerModule.setup("swagger", app, document);
+  SwaggerModule.setup("api/swagger", app, document);
 
   // ╔╦╗╔═╗╔═╗╦╔╗╔╔═╗  ╔═╗╔╗╔╔╦╗  ╦  ╦╔═╗╔╦╗╔═╗╔╗╔  ╔╦╗╔═╗  ╔═╗╔═╗╦═╗╔╦╗
   // ║║║╣ ╠╣ ║║║║║╣    ╠═╣║║║ ║║  ║  ║╚═╗ ║ ║╣ ║║║   ║ ║ ║  ╠═╝║ ║╠╦╝ ║
