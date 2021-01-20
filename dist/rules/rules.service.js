@@ -21,6 +21,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RulesService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const class_validator_1 = require("class-validator");
 const mongoose_2 = require("mongoose");
 let RulesService = class RulesService {
     getRuleById(id) {
@@ -28,9 +29,12 @@ let RulesService = class RulesService {
             return this.ruleModel.findById(id).lean().exec();
         });
     }
-    getAllRules(limit, offset) {
+    getAllRules(campaignId, limit, offset) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.ruleModel.find().skip(offset).limit(limit);
+            if (!class_validator_1.isMongoId(campaignId)) {
+                throw new common_1.GoneException("Campaign Id is not a valid mongoId");
+            }
+            return this.ruleModel.find({ campaign: campaignId }).skip(offset).limit(limit);
         });
     }
     addRule(rule) {

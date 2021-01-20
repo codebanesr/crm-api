@@ -22,8 +22,8 @@ let RulesController = class RulesController {
     constructor(rulesService) {
         this.rulesService = rulesService;
     }
-    getAllRules(limit, offset) {
-        return this.rulesService.getAllRules(limit, offset);
+    getAllRules(limit, offset, campaignId) {
+        return this.rulesService.getAllRules(campaignId, limit, offset);
     }
     getRuleById(ruleId) {
         return this.rulesService.getRuleById(ruleId);
@@ -33,11 +33,11 @@ let RulesController = class RulesController {
     }
 };
 __decorate([
-    common_1.Get(""),
+    common_1.Get("/all/:campaignId"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    __param(0, common_1.Query('limit')), __param(1, common_1.Query('offset')),
+    __param(0, common_1.Query('limit')), __param(1, common_1.Query('offset')), __param(2, common_1.Param('campaignId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Number, Number, String]),
     __metadata("design:returntype", void 0)
 ], RulesController.prototype, "getAllRules", null);
 __decorate([

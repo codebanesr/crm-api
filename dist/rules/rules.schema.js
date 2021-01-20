@@ -5,7 +5,7 @@ const mongoose_1 = require("mongoose");
 const rules_constants_1 = require("./rules.constants");
 exports.RulesSchema = new mongoose_1.Schema({
     campaign: { type: mongoose_1.Types.ObjectId, ref: "Campaign" },
-    action: Object.values(rules_constants_1.EActions),
+    action: { type: String, enum: Object.values(rules_constants_1.EActions) },
     changeHandler: String,
     daysOverdue: Number,
     disposition: String,
@@ -14,7 +14,7 @@ exports.RulesSchema = new mongoose_1.Schema({
     newHandler: String,
     numberOfAttempts: Number,
     toDisposition: String,
-    trigger: Object.values(rules_constants_1.Trigger),
+    trigger: { type: String, enum: Object.values(rules_constants_1.Trigger) },
     url: String,
 }, { timestamps: true });
 //# sourceMappingURL=rules.schema.js.map

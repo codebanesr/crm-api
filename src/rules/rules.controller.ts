@@ -10,10 +10,10 @@ import { RulesService } from './rules.service';
 export class RulesController {
     constructor(private readonly rulesService: RulesService) {}
 
-    @Get("")
+    @Get("/all/:campaignId")
     @UseGuards(AuthGuard("jwt"))
-    getAllRules(@Query('limit') limit: number, @Query('offset') offset: number) {
-        return this.rulesService.getAllRules(limit, offset)
+    getAllRules(@Query('limit') limit: number, @Query('offset') offset: number, @Param('campaignId') campaignId: string) {
+        return this.rulesService.getAllRules(campaignId, limit, offset)
     }
 
     @Get(":id")
