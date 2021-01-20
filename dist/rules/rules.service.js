@@ -23,6 +23,8 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const class_validator_1 = require("class-validator");
 const mongoose_2 = require("mongoose");
+const rules_constants_1 = require("./rules.constants");
+const axios_1 = require("axios");
 let RulesService = class RulesService {
     getRuleById(id) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -34,12 +36,50 @@ let RulesService = class RulesService {
             if (!class_validator_1.isMongoId(campaignId)) {
                 throw new common_1.GoneException("Campaign Id is not a valid mongoId");
             }
-            return this.ruleModel.find({ campaign: campaignId }).skip(offset).limit(limit);
+            return this.ruleModel.find({ campaign: campaignId }).skip(offset).limit(limit).lean().exec();
         });
     }
     addRule(rule) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.ruleModel.create(rule);
+        });
+    }
+    changeState(changeStateDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.ruleModel.findOneAndUpdate({ _id: changeStateDto.ruleId }, { isActive: changeStateDto.isActive }, { new: true }).lean().exec();
+        });
+    }
+    applyRules(campaignId, lead, history) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const rules = yield this.ruleModel.find({ campaign: campaignId, isActive: true });
+            rules.forEach(rule => {
+                switch (rule.trigger) {
+                    case rules_constants_1.Trigger.changeHandler: {
+                        break;
+                    }
+                    case rules_constants_1.Trigger.dispositionChange: {
+                        break;
+                    }
+                    case rules_constants_1.Trigger.numberOfAttempts: {
+                        break;
+                    }
+                    case rules_constants_1.Trigger.overdueFollowups: {
+                        break;
+                    }
+                    case rules_constants_1.Trigger.repeatedDisposition: {
+                        break;
+                    }
+                }
+            });
+            return { lead, history };
+        });
+    }
+    callApiAction(lead, url) {
+        return __awaiter(this, void 0, void 0, function* () {
+            url.replace(/\$First name\$/g, lead.firstName);
+            url.replace(/\$Last name\$/g, lead.firstName);
+            url.replace(/\$Full name\$/g, lead.firstName);
+            yield axios_1.default.get(url);
         });
     }
 };

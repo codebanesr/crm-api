@@ -21,7 +21,6 @@ import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
 import { UpdateLeadDto, ReassignmentInfo } from "./dto/update-lead.dto";
-import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";

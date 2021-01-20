@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/co
 import { InjectModel } from '@nestjs/mongoose';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
+import { ChangeStateDto } from './dto/changeState.dto';
 import { RuleDto } from './dto/rule.dto';
 import { RulesService } from './rules.service';
 
@@ -26,6 +27,13 @@ export class RulesController {
     @UseGuards(AuthGuard("jwt"))
     addRule(@Body() ruleDto: RuleDto) {
         return this.rulesService.addRule(ruleDto);
+    }
+
+
+    @Post("changeState")
+    @UseGuards(AuthGuard("jwt"))
+    changeRuleState(@Body() changeStateDto: ChangeStateDto) {
+        return this.rulesService.changeState(changeStateDto);
     }
 }
 

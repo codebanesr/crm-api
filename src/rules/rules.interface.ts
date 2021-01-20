@@ -13,5 +13,7 @@ export interface Rules extends Document {
   toDisposition: string;
   trigger: Trigger;
   url: string;
-  campaign: string
+  campaign: string;
+  isActive?: boolean;
 }
+

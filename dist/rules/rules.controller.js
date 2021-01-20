@@ -16,6 +16,7 @@ exports.RulesController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const swagger_1 = require("@nestjs/swagger");
+const changeState_dto_1 = require("./dto/changeState.dto");
 const rule_dto_1 = require("./dto/rule.dto");
 const rules_service_1 = require("./rules.service");
 let RulesController = class RulesController {
@@ -30,6 +31,9 @@ let RulesController = class RulesController {
     }
     addRule(ruleDto) {
         return this.rulesService.addRule(ruleDto);
+    }
+    changeRuleState(changeStateDto) {
+        return this.rulesService.changeState(changeStateDto);
     }
 };
 __decorate([
@@ -56,6 +60,14 @@ __decorate([
     __metadata("design:paramtypes", [rule_dto_1.RuleDto]),
     __metadata("design:returntype", void 0)
 ], RulesController.prototype, "addRule", null);
+__decorate([
+    common_1.Post("changeState"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    __param(0, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [changeState_dto_1.ChangeStateDto]),
+    __metadata("design:returntype", void 0)
+], RulesController.prototype, "changeRuleState", null);
 RulesController = __decorate([
     swagger_1.ApiTags('Rules'),
     common_1.Controller('rules'),

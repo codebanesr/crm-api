@@ -13,4 +13,5 @@ export interface Rules extends Document {
     trigger: Trigger;
     url: string;
     campaign: string;
+    isActive?: boolean;
 }

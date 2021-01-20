@@ -16,5 +16,6 @@ exports.RulesSchema = new mongoose_1.Schema({
     toDisposition: String,
     trigger: { type: String, enum: Object.values(rules_constants_1.Trigger) },
     url: String,
+    isActive: Boolean
 }, { timestamps: true });
 //# sourceMappingURL=rules.schema.js.map

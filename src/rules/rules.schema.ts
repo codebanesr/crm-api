@@ -15,6 +15,7 @@ export const RulesSchema = new Schema(
     toDisposition: String,
     trigger: {type: String, enum: Object.values(Trigger)},
     url: String,
+    isActive: Boolean
   },
   { timestamps: true }
 );
