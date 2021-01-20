@@ -24,6 +24,7 @@ const dashboard_module_1 = require("./dashboard/dashboard.module");
 const upload_service_1 = require("./upload/upload.service");
 const push_notification_service_1 = require("./push-notification/push-notification.service");
 const config_1 = require("./config");
+const rules_module_1 = require("./rules/rules.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -40,6 +41,7 @@ AppModule = __decorate([
             organization_module_1.OrganizationModule,
             shared_module_1.SharedModule,
             dashboard_module_1.DashboardModule,
+            rules_module_1.RulesModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

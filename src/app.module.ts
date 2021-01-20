@@ -16,6 +16,7 @@ import { UploadService } from "./upload/upload.service";
 import { PushNotificationService } from "./push-notification/push-notification.service";
 import Config from "./config";
 // import { LoggerModule } from "nestjs-pino";
+import { RulesModule } from './rules/rules.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import Config from "./config";
     OrganizationModule,
     SharedModule,
     DashboardModule,
+    RulesModule,
   ],
   controllers: [AppController],
   providers: [

@@ -45,7 +45,7 @@ function bootstrap() {
                 organization_module_1.OrganizationModule,
             ],
         });
-        swagger_1.SwaggerModule.setup("swagger", app, document);
+        swagger_1.SwaggerModule.setup("api/swagger", app, document);
         const PORT = process.env.PORT || 3000;
         yield app.listen(PORT);
         console_1.warn(`APP IS LISTENING TO PORT ${PORT}`);
