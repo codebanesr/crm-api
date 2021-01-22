@@ -3,6 +3,7 @@ import { RulesService } from "./rules.service";
 import { RulesController } from "./rules.controller";
 import { MongooseModule } from "@nestjs/mongoose";
 import { RulesSchema } from "./rules.schema";
+import { LeadHistory } from "../lead/schema/lead-history.schema";
 
 @Module({
   imports: [
@@ -16,10 +17,11 @@ import { RulesSchema } from "./rules.schema";
       // { name: "User", schema: UserSchema },
       // { name: "Lead", schema: LeadSchema },
       // { name: "AdminAction", schema: AdminActionSchema },
-      // { name: "LeadHistory", schema: LeadHistory },
+      { name: "LeadHistory", schema: LeadHistory },
     ]),
   ],
   providers: [RulesService],
   controllers: [RulesController],
+  exports: [RulesService]
 })
 export class RulesModule {}

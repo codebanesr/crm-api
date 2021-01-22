@@ -15,9 +15,11 @@ import { AdminActionSchema } from "../user/schemas/admin-action.schema";
 import { UploadService } from "../upload/upload.service";
 import { PushNotificationService } from "../push-notification/push-notification.service";
 import { LeadHistory } from "./schema/lead-history.schema";
+import { RulesModule } from "../rules/rules.module";
 
 @Module({
   imports: [
+    RulesModule,
     MulterModule.register({
       dest: "~/.upload",
     }),

@@ -34,7 +34,7 @@ import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
-import { fstat } from "fs/promises";
+import { RulesService } from "../rules/rules.service";
 @Injectable()
 export class LeadService {
   constructor(
@@ -67,6 +67,8 @@ export class LeadService {
 
     @InjectModel("Alarm")
     private readonly alarmModel: Model<Alarm>,
+
+    private readonly ruleService: RulesService,
 
     private readonly s3UploadService: UploadService,
 
@@ -587,7 +589,7 @@ export class LeadService {
     if (keysToUpdate.length > 40) {
       throw new PreconditionFailedException(
         null,
-        "Cannot have more than 25 fields in the lead schema"
+        "Cannot have more than 40 fields in the lead schema"
       );
     }
     keysToUpdate.forEach((key) => {
@@ -661,6 +663,8 @@ export class LeadService {
       obj.email = reassignmentInfo.newUser;
     }
 
+
+    await this.ruleService.applyRules(campaignId, oldLead, lead, nextEntryInHistory);
     const result = await this.leadModel.findOneAndUpdate(
       { _id: leadId, organization },
       { $set: filteredObj }
