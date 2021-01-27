@@ -16,6 +16,8 @@ import { UploadService } from "../upload/upload.service";
 import { PushNotificationService } from "../push-notification/push-notification.service";
 import { LeadHistory } from "./schema/lead-history.schema";
 import { RulesModule } from "../rules/rules.module";
+import { LeadAnalyticService } from "./lead-analytic.service";
+import { LeadAnalyticController } from "./lead-analytic.controller";
 
 @Module({
   imports: [
@@ -36,7 +38,7 @@ import { RulesModule } from "../rules/rules.module";
       { name: "LeadHistory", schema: LeadHistory },
     ]),
   ],
-  providers: [LeadService, UploadService, PushNotificationService],
-  controllers: [LeadController],
+  providers: [LeadService, UploadService, PushNotificationService, LeadAnalyticService],
+  controllers: [LeadController, LeadAnalyticController],
 })
 export class LeadModule {}

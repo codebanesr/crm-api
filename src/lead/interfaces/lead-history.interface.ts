@@ -21,7 +21,8 @@ export interface LeadHistory extends Document {
   documentLinks: string[],
   number: string,
   duration: number,
-  type: number
+  type: number,
+  callStatus: string
 }
 
 export class leadHistoryGeoLocation {

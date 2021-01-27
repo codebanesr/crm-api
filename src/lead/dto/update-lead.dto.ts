@@ -8,11 +8,13 @@ import {
   ValidateNested,
   IsMongoId,
   IsNotEmpty,
+  IsEnum,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { EmailTemplate } from "../interfaces/email-template.interface";
 import { AttachmentDto } from "./create-email-template.dto";
+import { ECallStatus } from "../enum/call-status.enum";
 
 class GeoLocation {
   @IsNumber({}, { each: true })
@@ -30,6 +32,9 @@ class CallRecord {
 
   @Type(()=>Number)
   type: number;
+
+  @IsEnum(ECallStatus)
+  callStatus: string;
 }
 
 export class Lead {

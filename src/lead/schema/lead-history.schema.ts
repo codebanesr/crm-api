@@ -27,5 +27,6 @@ export const LeadHistory = new Schema({
   documentLinks: [String],
   number: String,
   duration: Number,
-  type: Number
+  type: Number,
+  callStatus: String
 });
