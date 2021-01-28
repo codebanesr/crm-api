@@ -38,7 +38,7 @@ export declare class LeadService {
     saveEmailAttachments(files: any): any;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string, templateName: string): Promise<EmailTemplate>;
-    getAllEmailTemplates(limit: any, skip: any, campaign: string, organization: string): Promise<Pick<EmailTemplate, "_id" | "content" | "email" | "organization" | "subject" | "attachments" | "campaign">[]>;
+    getAllEmailTemplates(limit: any, skip: any, campaign: string, organization: string): Promise<Pick<EmailTemplate, "_id" | "content" | "email" | "organization" | "campaign" | "subject" | "attachments">[]>;
     getLeadHistoryById(externalId: string, organization: any): Promise<Lead>;
     getLeadReassignmentHistory(email: string): Promise<any>;
     getBasicOverview(): Promise<{
@@ -55,7 +55,7 @@ export declare class LeadService {
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
     findOneById(leadId: string, organization: string): Promise<{
-        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "campaignId" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "contact" | "state" | "requestedInformation">;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation">;
         leadHistory: any[];
     }>;
     patch(productId: string, body: any[]): Promise<any>;

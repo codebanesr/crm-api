@@ -9,9 +9,8 @@ import { EActions, Trigger } from './rules.constants';
 import { Rules } from './rules.interface';
 import axios from "axios";
 import { Lead } from '../lead/interfaces/lead.interface';
-import { Lead as UpdateLeadDto } from '../lead/dto/update-lead.dto';
+import { Lead as UpdateLeadDto } from '../lead/dto/lead-model.dto';
 import * as moment from "moment";
-import { LeadDto } from 'src/lead/dto/reassign-lead.dto';
 
 @Injectable()
 export class RulesService {

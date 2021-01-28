@@ -1,4 +1,4 @@
-import { IsNumber, IsJSON, IsString, Allow } from "class-validator";
+import { IsNumber, IsJSON, IsString, Allow, IsOptional } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class FindCampaignsDto {
@@ -33,4 +33,8 @@ export class FindCampaignsDto {
     })
     @IsString()
     sortBy: string = "handler";
+
+    @IsOptional()
+    @IsString({each: true})
+    select?: string[];
 }

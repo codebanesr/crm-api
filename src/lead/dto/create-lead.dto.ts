@@ -1,6 +1,6 @@
 import { ValidateNested } from "class-validator";
 import { UpdateContactDto } from "./update-contact.dto";
-import { Lead } from "./update-lead.dto";
+import { Lead } from "./lead-model.dto";
 
 export class CreateLeadDto {
   @ValidateNested()

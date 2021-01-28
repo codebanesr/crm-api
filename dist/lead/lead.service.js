@@ -314,7 +314,7 @@ let LeadService = class LeadService {
             if (!lead.fullName) {
                 lead.fullName = `${lead.firstName} ${lead.lastName}`;
             }
-            return this.leadModel.create(Object.assign(Object.assign({}, lead), { campaign: campaignName, organization,
+            return this.leadModel.create(Object.assign(Object.assign({}, lead), { campaignId, campaign: campaignName, organization,
                 contact }));
         });
     }
@@ -651,7 +651,9 @@ let LeadService = class LeadService {
             });
             singleLeadAgg.sort({ _id: 1 });
             singleLeadAgg.limit(1);
-            let projection = {};
+            let projection = {
+                documentLinks: 1
+            };
             campaign.browsableCols.forEach((c) => {
                 projection[c] = 1;
             });

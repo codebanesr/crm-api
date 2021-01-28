@@ -4,7 +4,7 @@ import { ChangeStateDto } from './dto/changeState.dto';
 import { RuleDto } from './dto/rule.dto';
 import { Rules } from './rules.interface';
 import { Lead } from '../lead/interfaces/lead.interface';
-import { Lead as UpdateLeadDto } from '../lead/dto/update-lead.dto';
+import { Lead as UpdateLeadDto } from '../lead/dto/lead-model.dto';
 export declare class RulesService {
     private readonly ruleModel;
     private readonly leadHistoryModel;

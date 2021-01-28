@@ -412,6 +412,7 @@ export class LeadService {
     
     return this.leadModel.create({
       ...lead,
+      campaignId,
       campaign: campaignName,
       organization,
       contact,
@@ -966,7 +967,10 @@ export class LeadService {
     singleLeadAgg.sort({ _id: 1 });
     singleLeadAgg.limit(1);
 
-    let projection = {};
+    // this should always be fetched ...
+    let projection = {
+      documentLinks: 1
+    };
 
     campaign.browsableCols.forEach((c) => {
       projection[c] = 1;

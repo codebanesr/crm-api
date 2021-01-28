@@ -44,12 +44,19 @@ let CampaignService = class CampaignService {
             const limit = Number(perPage);
             const skip = Number((page - 1) * limit);
             const campaignAgg = this.campaignModel.aggregate();
-            const { campaigns = [] } = filters;
+            const { campaigns = [], select = [] } = filters;
             campaignAgg.match({
                 $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }],
             });
             if (campaigns && campaigns.length > 0) {
                 campaignAgg.match({ type: { $in: campaigns } });
+            }
+            if (select.length > 0) {
+                const project = {};
+                select.forEach(s => {
+                    project[s] = 1;
+                });
+                campaignAgg.project(project);
             }
             campaignAgg.facet({
                 metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],

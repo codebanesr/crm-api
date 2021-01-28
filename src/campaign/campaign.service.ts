@@ -49,7 +49,7 @@ export class CampaignService {
 
     const campaignAgg = this.campaignModel.aggregate();
 
-    const { campaigns = [] } = filters;
+    const { campaigns = [], select = [] } = filters;
 
     // mongodb understands that assigness is an array so it will go and check every single value
     // in the array and if any one of that is a match, it will keep that record
@@ -60,6 +60,15 @@ export class CampaignService {
     // if campaign filter is applied, @Todo verify if this is still required, i believe that this schema was changed
     if (campaigns && campaigns.length > 0) {
       campaignAgg.match({ type: { $in: campaigns } });
+    }
+
+    if(select.length > 0) {
+      const project = {};
+      select.forEach(s=>{
+        project[s] = 1
+      });
+
+      campaignAgg.project(project);
     }
 
     campaignAgg.facet({

@@ -1,3 +1,4 @@
+import { Lead } from "./lead-model.dto";
 declare class GeoLocation {
     coordinates: number[];
 }
@@ -9,31 +10,6 @@ declare class CallRecord {
     duration: number;
     type: number;
     callStatus: string;
-}
-export declare class Lead {
-    externalId?: string;
-    email: string;
-    campaign: string;
-    firstName: string;
-    lastName: string;
-    source: string;
-    fullName: string;
-    amount: number;
-    customerEmail: string;
-    phoneNumberPrefix?: string;
-    phoneNumber: string;
-    leadStatus: string;
-    address: string;
-    followUp: Date;
-    companyName: string;
-    remarks: string;
-    product: string;
-    geoLocation: GeoLocation;
-    bucket: string;
-    operationalArea: string;
-    pincode: number;
-    nextAction?: string;
-    documentLinks?: string[];
 }
 export declare class UpdateLeadDto {
     lead: Lead;

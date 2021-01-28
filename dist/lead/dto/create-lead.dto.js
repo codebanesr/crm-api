@@ -11,12 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateLeadDto = void 0;
 const class_validator_1 = require("class-validator");
-const update_lead_dto_1 = require("./update-lead.dto");
+const lead_model_dto_1 = require("./lead-model.dto");
 class CreateLeadDto {
 }
 __decorate([
     class_validator_1.ValidateNested(),
-    __metadata("design:type", update_lead_dto_1.Lead)
+    __metadata("design:type", lead_model_dto_1.Lead)
 ], CreateLeadDto.prototype, "lead", void 0);
 __decorate([
     class_validator_1.ValidateNested(),
