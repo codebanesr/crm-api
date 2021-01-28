@@ -257,9 +257,10 @@ let LeadService = class LeadService {
             };
         });
     }
-    getLeadColumns(campaignId) {
+    getLeadColumns(campaignId, removeFields) {
         return __awaiter(this, void 0, void 0, function* () {
-            const paths = yield this.campaignConfigModel.find({ campaignId });
+            const project = {};
+            const paths = yield this.campaignConfigModel.find({ campaignId, internalField: { $nin: removeFields } });
             return { paths: paths };
         });
     }
@@ -402,7 +403,7 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }) {
+    updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
@@ -429,19 +430,19 @@ let LeadService = class LeadService {
                 .sort({ $natural: -1 })
                 .limit(1);
             if (!reassignmentInfo) {
-                nextEntryInHistory.notes = `Lead has been assigned to ${loggedInUserEmail} by default`;
-                nextEntryInHistory.newUser = loggedInUserEmail;
+                nextEntryInHistory.notes = `Lead has been assigned to ${handlerName}`;
+                nextEntryInHistory.newUser = handlerEmail;
             }
             if (((_a = lead.documentLinks) === null || _a === void 0 ? void 0 : _a.length) > 0) {
                 nextEntryInHistory.documentLinks = lead.documentLinks;
             }
             if (reassignmentInfo && (prevHistory === null || prevHistory === void 0 ? void 0 : prevHistory.newUser) !== reassignmentInfo.newUser) {
-                nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
+                nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${handlerName}`;
                 nextEntryInHistory.oldUser = prevHistory.newUser;
                 nextEntryInHistory.newUser = reassignmentInfo.newUser;
             }
             if (lead.leadStatus !== oldLead.leadStatus) {
-                nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+                nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${handlerName}`;
             }
             nextEntryInHistory.geoLocation = geoLocation;
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {

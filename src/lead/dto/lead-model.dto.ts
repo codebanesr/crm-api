@@ -91,6 +91,7 @@ export class Lead {
       type: String,
       default: "s@g.com",
     })
+    @IsOptional()
     @IsEmail()
     customerEmail: string;
   
@@ -130,6 +131,7 @@ export class Lead {
       type: String,
       default: "",
     })
+    @IsOptional()
     @IsString()
     address: string;
   
@@ -149,6 +151,7 @@ export class Lead {
       type: String,
       default: "unspecified",
     })
+    @IsOptional()
     @IsString()
     companyName: string;
   

@@ -14,6 +14,7 @@ import {
   UploadedFiles,
   PreconditionFailedException,
   Res,
+  Logger,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
@@ -55,10 +56,11 @@ export class LeadController {
   @UseGuards(AuthGuard("jwt"))
   getAllLeadColumns(
     @Param("campaignId") campaignId: string,
+    @Query('remove') remove: string[] = [],
     @CurrentUser() user
   ) {
-    const { organization } = user;
-    return this.leadService.getLeadColumns(campaignId);
+    Logger.debug(remove);
+    return this.leadService.getLeadColumns(campaignId, remove);
   }
 
   /** @Todo to replace campaignName with campaignId */
@@ -179,10 +181,10 @@ export class LeadController {
     @Body() updateLeadObj: UpdateLeadDto,
     @Param("id") leadId: string
   ) {
-    const { organization, email: loggedInUserEmail } = user;
+    const { organization, email: handlerEmail, fullName: handlerName } = user;
 
     return this.leadService.updateLead(
-      {...updateLeadObj, leadId, organization, loggedInUserEmail}
+      {...updateLeadObj, leadId, organization, handlerEmail, handlerName}
     );
   }
 

@@ -47,9 +47,9 @@ let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
     }
-    getAllLeadColumns(campaignId, user) {
-        const { organization } = user;
-        return this.leadService.getLeadColumns(campaignId);
+    getAllLeadColumns(campaignId, remove = [], user) {
+        common_1.Logger.debug(remove);
+        return this.leadService.getLeadColumns(campaignId, remove);
     }
     insertOne(body, user, campaignId, campaignName) {
         const { organization, email } = user;
@@ -90,8 +90,8 @@ let LeadController = class LeadController {
         return this.leadService.addGeolocation(_id, lat, lng, organization);
     }
     updateLead(user, updateLeadObj, leadId) {
-        const { organization, email: loggedInUserEmail } = user;
-        return this.leadService.updateLead(Object.assign(Object.assign({}, updateLeadObj), { leadId, organization, loggedInUserEmail }));
+        const { organization, email: handlerEmail, fullName: handlerName } = user;
+        return this.leadService.updateLead(Object.assign(Object.assign({}, updateLeadObj), { leadId, organization, handlerEmail, handlerName }));
     }
     addContact(body, leadId) {
         return this.leadService.addContact(body, leadId);
@@ -194,9 +194,10 @@ __decorate([
     }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     __param(0, common_1.Param("campaignId")),
-    __param(1, current_user_decorator_1.CurrentUser()),
+    __param(1, common_1.Query('remove')),
+    __param(2, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Array, Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "getAllLeadColumns", null);
 __decorate([

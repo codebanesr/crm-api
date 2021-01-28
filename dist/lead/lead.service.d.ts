@@ -50,7 +50,7 @@ export declare class LeadService {
         page: any;
         data: any;
     }>;
-    getLeadColumns(campaignId: any): Promise<{
+    getLeadColumns(campaignId: any, removeFields: any): Promise<{
         paths: CampaignConfig[];
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
@@ -76,10 +76,11 @@ export declare class LeadService {
     }>;
     addGeolocation(activeUserId: string, lat: number, lng: number, organization: string): Promise<GeoLocation>;
     getPerformance(): Promise<void>;
-    updateLead({ organization, leadId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }: UpdateLeadDto & {
+    updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }: UpdateLeadDto & {
         leadId: string;
         organization: string;
-        loggedInUserEmail: string;
+        handlerEmail: string;
+        handlerName: string;
     }): Promise<Lead>;
     getSubordinates(email: string, roleType: string, organization: string): Promise<any[]>;
     parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string, uploaderId: string, pushtoken: string, campaignId: string, uniqueAttr: Partial<Campaign>): Promise<void>;

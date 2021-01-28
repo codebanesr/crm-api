@@ -342,8 +342,9 @@ export class LeadService {
     };
   }
 
-  async getLeadColumns(campaignId) {
-    const paths = await this.campaignConfigModel.find({campaignId});
+  async getLeadColumns(campaignId, removeFields) {
+    const project = {};
+    const paths = await this.campaignConfigModel.find({campaignId, internalField: {$nin: removeFields}});
     return { paths: paths };
   }
 
@@ -572,7 +573,8 @@ export class LeadService {
     leadId,
     lead,
     geoLocation,
-    loggedInUserEmail,
+    handlerEmail,
+    handlerName,
     reassignmentInfo,
     emailForm,
     requestedInformation,
@@ -581,7 +583,8 @@ export class LeadService {
   }: UpdateLeadDto & {
     leadId: string;
     organization: string;
-    loggedInUserEmail: string;
+    handlerEmail: string;
+    handlerName: string;
   }) {
     let obj = {} as Partial<Lead>;
     Logger.debug({ geoLocation, reassignmentInfo });
@@ -622,8 +625,8 @@ export class LeadService {
 
     if (!reassignmentInfo) {
       // assign to logged in user and notes will be lead was created by
-      nextEntryInHistory.notes = `Lead has been assigned to ${loggedInUserEmail} by default`;
-      nextEntryInHistory.newUser = loggedInUserEmail;
+      nextEntryInHistory.notes = `Lead has been assigned to ${handlerName}`;
+      nextEntryInHistory.newUser = handlerEmail;
     }
 
 
@@ -632,13 +635,13 @@ export class LeadService {
     }
 
     if (reassignmentInfo && prevHistory?.newUser !== reassignmentInfo.newUser) {
-      nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
+      nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${handlerName}`;
       nextEntryInHistory.oldUser = prevHistory.newUser;
       nextEntryInHistory.newUser = reassignmentInfo.newUser;
     }
 
     if (lead.leadStatus !== oldLead.leadStatus) {
-      nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+      nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${handlerName}`;
     }
 
     nextEntryInHistory.geoLocation = geoLocation;

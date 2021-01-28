@@ -110,6 +110,7 @@ __decorate([
         type: String,
         default: "s@g.com",
     }),
+    class_validator_1.IsOptional(),
     class_validator_1.IsEmail(),
     __metadata("design:type", String)
 ], Lead.prototype, "customerEmail", void 0);
@@ -153,6 +154,7 @@ __decorate([
         type: String,
         default: "",
     }),
+    class_validator_1.IsOptional(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], Lead.prototype, "address", void 0);
@@ -174,6 +176,7 @@ __decorate([
         type: String,
         default: "unspecified",
     }),
+    class_validator_1.IsOptional(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], Lead.prototype, "companyName", void 0);

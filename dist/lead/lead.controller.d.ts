@@ -16,7 +16,7 @@ import { Response } from "express";
 export declare class LeadController {
     private readonly leadService;
     constructor(leadService: LeadService);
-    getAllLeadColumns(campaignId: string, user: any): Promise<{
+    getAllLeadColumns(campaignId: string, remove: string[], user: any): Promise<{
         paths: import("./interfaces/campaign-config.interface").CampaignConfig[];
     }>;
     insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<import("./interfaces/lead.interface").Lead>;
