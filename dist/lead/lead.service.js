@@ -650,7 +650,7 @@ let LeadService = class LeadService {
                         break;
                 }
             });
-            singleLeadAgg.sort({ _id: 1 });
+            singleLeadAgg.sort({ updatedAt: 1 });
             singleLeadAgg.limit(1);
             let projection = {
                 documentLinks: 1

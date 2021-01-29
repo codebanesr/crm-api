@@ -967,7 +967,7 @@ export class LeadService {
     });
 
     // oldest lead first from match queries
-    singleLeadAgg.sort({ _id: 1 });
+    singleLeadAgg.sort({ updatedAt: 1 });
     singleLeadAgg.limit(1);
 
     // this should always be fetched ...
