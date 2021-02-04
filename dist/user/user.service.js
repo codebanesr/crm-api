@@ -140,7 +140,7 @@ let UserService = class UserService {
     getAll(user, assigned, findAllDto, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             const { filters, page, perPage, searchTerm, showCols, sortBy } = findAllDto;
-            const skip = (page - 1) * perPage;
+            const skip = page * perPage;
             const subordinates = yield this.getSubordinates(user, organization);
             const result = yield this.userModel.aggregate([
                 { $match: { email: { $in: subordinates }, organization } },
@@ -498,7 +498,7 @@ let UserService = class UserService {
     }
     getAllUsersHack(organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            const page = 1, perPage = 20, skip = 0;
+            const page = 1, perPage = 25, skip = 0;
             return this.userModel
                 .aggregate([
                 {

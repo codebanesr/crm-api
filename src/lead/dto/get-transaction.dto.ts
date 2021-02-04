@@ -44,6 +44,10 @@ class TransactionFilter {
 
   @IsMongoId()
   campaign: string;
+
+  @IsOptional()
+  @IsMongoId()
+  leadId: string;
 }
 
 export class GetTransactionDto {

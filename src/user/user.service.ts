@@ -193,14 +193,8 @@ export class UserService {
     findAllDto: FindAllDto,
     organization
   ): Promise<any> {
-    // if(!assigned) {
-    //     const users = await User.aggregate([
-    //         { $match: { email: { $exists: false } } }
-    //     ]);
-    //     return res.status(200).send(users);
-    // }
     const { filters, page, perPage, searchTerm, showCols, sortBy } = findAllDto;
-    const skip = (page - 1) * perPage;
+    const skip = page * perPage;
 
     const subordinates = await this.getSubordinates(user, organization);
     const result = await this.userModel.aggregate([
@@ -593,7 +587,7 @@ export class UserService {
 
   async getAllUsersHack(organization: string) {
     const page = 1,
-      perPage = 20,
+      perPage = 25,
       skip = 0;
     return this.userModel
       .aggregate([

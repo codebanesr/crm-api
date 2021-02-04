@@ -171,6 +171,9 @@ let LeadService = class LeadService {
             if (campaignId !== 'all') {
                 matchQuery['campaignId'] = mongoose_3.Types.ObjectId(campaignId);
             }
+            else {
+                matchQuery['campaignId'] = { $exists: true };
+            }
             if ((leadStatusKeys === null || leadStatusKeys === void 0 ? void 0 : leadStatusKeys.length) > 0) {
                 matchQuery["leadStatusKeys"] = { $in: leadStatusKeys };
             }
@@ -685,7 +688,7 @@ let LeadService = class LeadService {
         return qb.exec();
     }
     getTransactions(organization, email, roleType, payload, isStreamable) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         return __awaiter(this, void 0, void 0, function* () {
             let conditionalQueries = {};
             let subordinateEmails = yield this.getSubordinates(email, roleType, organization);
@@ -693,18 +696,21 @@ let LeadService = class LeadService {
                 subordinateEmails = lodash_1.intersection(payload.filters.handler, subordinateEmails, [email]);
             }
             ;
-            if ((_c = payload.filters) === null || _c === void 0 ? void 0 : _c.prospectName) {
+            if ((_c = payload.filters) === null || _c === void 0 ? void 0 : _c.leadId) {
+                conditionalQueries['lead'] = payload.filters.leadId;
+            }
+            if ((_d = payload.filters) === null || _d === void 0 ? void 0 : _d.prospectName) {
                 const expr = new RegExp(payload.filters.prospectName);
                 conditionalQueries['prospectName'] = { $regex: expr, $options: "i" };
             }
-            if ((_d = payload.filters) === null || _d === void 0 ? void 0 : _d.campaign) {
+            if ((_e = payload.filters) === null || _e === void 0 ? void 0 : _e.campaign) {
                 conditionalQueries["campaign"] = payload.filters.campaign;
             }
-            if ((_e = payload.filters) === null || _e === void 0 ? void 0 : _e.startDate) {
+            if ((_f = payload.filters) === null || _f === void 0 ? void 0 : _f.startDate) {
                 conditionalQueries["createdAt"] = {};
                 conditionalQueries["createdAt"]["$gte"] = new Date(payload.filters.startDate);
             }
-            if ((_f = payload.filters) === null || _f === void 0 ? void 0 : _f.endDate) {
+            if ((_g = payload.filters) === null || _g === void 0 ? void 0 : _g.endDate) {
                 conditionalQueries["createdAt"]["$lte"] = new Date(payload.filters.endDate);
             }
             const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;

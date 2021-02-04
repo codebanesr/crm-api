@@ -14,6 +14,7 @@ declare class TransactionFilter {
     handler: string[];
     prospectName: string;
     campaign: string;
+    leadId: string;
 }
 export declare class GetTransactionDto {
     pagination: Pagination;

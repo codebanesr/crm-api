@@ -112,8 +112,7 @@ export class LeadService {
     }
   }
 
-  // filePath: String,
-  // fileName: String
+
   async createEmailTemplate(
     userEmail: string,
     content: any,
@@ -224,6 +223,11 @@ export class LeadService {
 
     if(campaignId!=='all') {
       matchQuery['campaignId'] = Types.ObjectId(campaignId);
+    }else {
+      /**  a lead cannot be present without a campaignId, if a campaignId was passed use that campaign id to filter leads. nahi to a lead 
+      must atleast have a campaignId, use a worker process to delete leads that dont belong to a campaign and log those leads that were
+      deleted. @Todo remove this check when everything works fine, we should not have this situation in the first place */
+      matchQuery['campaignId'] = { $exists: true }
     }
 
     if(leadStatusKeys?.length > 0) {
@@ -1027,6 +1031,10 @@ export class LeadService {
     if(payload.filters?.handler?.length > 0) {
       subordinateEmails = intersection(payload.filters.handler, subordinateEmails, [email])
     };
+
+    if(payload.filters?.leadId) {
+      conditionalQueries['lead'] = payload.filters.leadId;
+    }
 
     if(payload.filters?.prospectName) {
       /** @Todo to be filled later, we have firstname, lastname, fullName, these should be combined in a text index for search */ 

@@ -241,7 +241,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "resetPassword", null);
 __decorate([
-    common_1.Get("allUsers"),
+    common_1.Post("allUsers"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Gets all users" }),
     swagger_1.ApiHeader({

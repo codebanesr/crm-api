@@ -47,7 +47,6 @@ export class FindAllDto {
     default: 1,
   })
   @IsNumber()
-  @IsPositive()
   readonly page: number = 1;
 
   @ApiProperty({
@@ -57,7 +56,6 @@ export class FindAllDto {
     default: 15,
   })
   @IsPositive()
-  @IsNumber()
   readonly perPage: number = 20;
 
   @ApiProperty({

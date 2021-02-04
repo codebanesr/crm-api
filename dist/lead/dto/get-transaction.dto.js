@@ -61,6 +61,11 @@ __decorate([
     class_validator_1.IsMongoId(),
     __metadata("design:type", String)
 ], TransactionFilter.prototype, "campaign", void 0);
+__decorate([
+    class_validator_1.IsOptional(),
+    class_validator_1.IsMongoId(),
+    __metadata("design:type", String)
+], TransactionFilter.prototype, "leadId", void 0);
 class GetTransactionDto {
 }
 __decorate([

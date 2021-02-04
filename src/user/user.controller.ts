@@ -166,7 +166,7 @@ export class UserController {
     return this.userService.resetPassword(resetPasswordDto);
   }
 
-  @Get("allUsers")
+  @Post("allUsers")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Gets all users" })
   @ApiHeader({

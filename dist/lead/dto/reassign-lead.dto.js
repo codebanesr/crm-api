@@ -24,6 +24,7 @@ __decorate([
         format: 'number',
         default: null
     }),
+    class_validator_1.IsOptional(),
     class_validator_1.IsEmail(),
     __metadata("design:type", String)
 ], ReassignLeadDto.prototype, "oldUserEmail", void 0);

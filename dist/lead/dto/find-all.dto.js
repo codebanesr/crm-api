@@ -56,7 +56,6 @@ __decorate([
         default: 1,
     }),
     class_validator_1.IsNumber(),
-    class_validator_1.IsPositive(),
     __metadata("design:type", Number)
 ], FindAllDto.prototype, "page", void 0);
 __decorate([
@@ -67,7 +66,6 @@ __decorate([
         default: 15,
     }),
     class_validator_1.IsPositive(),
-    class_validator_1.IsNumber(),
     __metadata("design:type", Number)
 ], FindAllDto.prototype, "perPage", void 0);
 __decorate([
