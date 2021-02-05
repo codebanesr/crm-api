@@ -78,7 +78,7 @@ export declare class UserService {
     private withManages;
     private parseManages;
     private assignHierarchyWeight;
-    managersForReassignment(manages: string[], organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    managersForReassignment(manages: string[], organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     saveToExcel(json: any): string;
     sendEmailForgotPassword(email: string, token: string): Promise<boolean>;
     getAllUsersHack(organization: string): Promise<any>;

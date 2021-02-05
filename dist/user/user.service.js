@@ -142,28 +142,16 @@ let UserService = class UserService {
             const { filters, page, perPage, searchTerm, showCols, sortBy } = findAllDto;
             const skip = page * perPage;
             const subordinates = yield this.getSubordinates(user, organization);
-            const result = yield this.userModel.aggregate([
-                { $match: { email: { $in: subordinates }, organization } },
-                {
-                    $lookup: {
-                        from: "users",
-                        localField: "email",
-                        foreignField: "manages",
-                        as: "managedBy",
-                    },
-                },
-                { $unwind: "$managedBy" },
-                {
-                    $facet: {
-                        metadata: [
-                            { $count: "total" },
-                            { $addFields: { page: Number(page) } },
-                        ],
-                        users: [{ $skip: skip }, { $limit: perPage }],
-                    },
-                },
-            ]);
-            return { users: result[0].users, metadata: result[0].metadata[0] };
+            const matchQuery = { email: { $in: subordinates }, verified: true };
+            const users = yield this.userModel.find(matchQuery, {
+                email: 1,
+                fullName: 1,
+                manages: 1,
+                roles: 1,
+                roleType: 1
+            }).skip(skip).limit(perPage).lean().exec();
+            const userCount = yield this.userModel.countDocuments(matchQuery).lean().exec();
+            return { users, total: userCount };
         });
     }
     getSubordinates(user, organization) {
@@ -387,7 +375,6 @@ let UserService = class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             const erroredUsers = [];
             for (const u of users) {
-                u.manages = this.parseManages(u);
                 u.hierarchyWeight = this.assignHierarchyWeight(u);
                 u.email = u.email.toLocaleLowerCase();
                 let user = yield this.userModel.findOne({ email: u.email });

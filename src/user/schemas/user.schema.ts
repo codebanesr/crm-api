@@ -1,6 +1,5 @@
 import { Schema, HookNextFunction, Types } from "mongoose";
 import validator from "validator";
-import * as bcrypt from "bcryptjs";
 import { hashPassword } from "../../utils/crypto.utils";
 
 /** Same validations of min length and max length should be used in models as well other wise there are going to be errors while fetching */
@@ -14,6 +13,7 @@ export const UserSchema = new Schema(
     },
     email: {
       type: String,
+      unique: true,
       lowercase: true,
       validate: validator.isEmail,
       maxlength: 255,
@@ -51,7 +51,7 @@ export const UserSchema = new Schema(
       default: Date.now,
     },
     roleType: { type: String, required: true },
-    manages: [{type: Schema.Types.ObjectId, ref: "User"}],
+    // manages: [{type: Schema.Types.ObjectId, ref: "User"}],
     reportsTo: { type: String, default: null },
 
     /**@todo this default has to be removed */

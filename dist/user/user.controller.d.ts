@@ -47,7 +47,7 @@ export declare class UserController {
         message: string;
     }>;
     findAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any>;
-    managersForReassignment(user: User, assigned: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    managersForReassignment(user: User, assigned: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     add(req: any, assigned: string, file: any, user: User): Promise<import("./interfaces/admin-actions.interface").AdminAction>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
     subscribeToPush(user: User, body: PushNotificationDto): Promise<{

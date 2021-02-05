@@ -197,30 +197,19 @@ export class UserService {
     const skip = page * perPage;
 
     const subordinates = await this.getSubordinates(user, organization);
-    const result = await this.userModel.aggregate([
-      // removing subordinates because even telecaller can assign leads to managers
-      { $match: { email: { $in: subordinates }, organization } },
-      {
-        $lookup: {
-          from: "users",
-          localField: "email",
-          foreignField: "manages",
-          as: "managedBy",
-        },
-      },
-      { $unwind: "$managedBy" },
-      {
-        $facet: {
-          metadata: [
-            { $count: "total" },
-            { $addFields: { page: Number(page) } },
-          ],
-          users: [{ $skip: skip }, { $limit: perPage }], // add projection here wish you re-shape the docs
-        },
-      },
-    ]);
+    
+    const matchQuery = { email: {$in: subordinates}, verified: true };
+    const users = await this.userModel.find(matchQuery, {
+       email: 1,
+       fullName: 1,
+       manages: 1,
+       roles: 1,  
+       roleType: 1    
+    }).skip(skip).limit(perPage).lean().exec();
 
-    return { users: result[0].users, metadata: result[0].metadata[0] };
+    const userCount = await this.userModel.countDocuments(matchQuery).lean().exec();
+    
+    return { users, total: userCount};
   }
 
   async getSubordinates(user: User, organization: string): Promise<any> {
@@ -460,7 +449,6 @@ export class UserService {
     const erroredUsers: any = [];
     for (const u of users) {
       /** check all users in the manages section exist, even if they dont it won't cause any trouble though */
-      u.manages = this.parseManages(u);
       u.hierarchyWeight = this.assignHierarchyWeight(u);
       u.email = u.email.toLocaleLowerCase();
 

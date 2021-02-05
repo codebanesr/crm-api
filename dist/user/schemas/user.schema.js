@@ -22,6 +22,7 @@ exports.UserSchema = new mongoose_1.Schema({
     },
     email: {
         type: String,
+        unique: true,
         lowercase: true,
         validate: validator_1.default.isEmail,
         maxlength: 255,
@@ -59,7 +60,6 @@ exports.UserSchema = new mongoose_1.Schema({
         default: Date.now,
     },
     roleType: { type: String, required: true },
-    manages: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
     reportsTo: { type: String, default: null },
     phoneNumber: { type: String, required: true, default: "00000" },
     history: { type: Array, default: null },
