@@ -101,9 +101,13 @@ let UserController = class UserController {
         const { organization } = user;
         return this.userService.getAll(user, assigned, findAllDto, organization);
     }
-    managersForReassignment(user, assigned) {
+    getAllManagers(user, userEmail) {
         const { organization } = user;
-        return this.userService.managersForReassignment(user.manages, organization);
+        return this.userService.getAllManagers(organization, userEmail);
+    }
+    managersForReassignment(user, assigned) {
+        const { organization, email, roleType } = user;
+        return this.userService.managersForReassignment(email, roleType, organization);
     }
     add(req, assigned, file, user) {
         const { organization } = user;
@@ -257,6 +261,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, find_all_dto_1.FindAllDto]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "findAll", null);
+__decorate([
+    common_1.Get("managers"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Query('userEmail')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], UserController.prototype, "getAllManagers", null);
 __decorate([
     common_1.Get("managersForReassignment"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),

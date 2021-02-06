@@ -34,6 +34,10 @@ export const UserSchema = new Schema(
       type: String,
       validate: validator.isUUID,
     },
+    singleLoginKey: {
+      type: String,
+      validate: validator.isUUID
+    },
     verified: {
       type: Boolean,
       default: false,
@@ -52,12 +56,16 @@ export const UserSchema = new Schema(
     },
     roleType: { type: String, required: true },
     // manages: [{type: Schema.Types.ObjectId, ref: "User"}],
-    reportsTo: { type: String, default: null },
+    reportsTo: { 
+      type: String, 
+      validate: validator.isEmail,
+      required: true
+    },
 
     /**@todo this default has to be removed */
     phoneNumber: { type: String, required: true, default: "00000" },
     history: { type: Array, default: null },
-    hierarchyWeight: Number,
+    hierarchyWeight: {type: Number},
     organization: {
       type: Schema.Types.ObjectId,
       ref: "Organization",

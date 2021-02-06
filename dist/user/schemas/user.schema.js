@@ -43,6 +43,10 @@ exports.UserSchema = new mongoose_1.Schema({
         type: String,
         validate: validator_1.default.isUUID,
     },
+    singleLoginKey: {
+        type: String,
+        validate: validator_1.default.isUUID
+    },
     verified: {
         type: Boolean,
         default: false,
@@ -60,10 +64,14 @@ exports.UserSchema = new mongoose_1.Schema({
         default: Date.now,
     },
     roleType: { type: String, required: true },
-    reportsTo: { type: String, default: null },
+    reportsTo: {
+        type: String,
+        validate: validator_1.default.isEmail,
+        required: true
+    },
     phoneNumber: { type: String, required: true, default: "00000" },
     history: { type: Array, default: null },
-    hierarchyWeight: Number,
+    hierarchyWeight: { type: Number },
     organization: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Organization",

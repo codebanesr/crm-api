@@ -184,6 +184,13 @@ export class UserController {
     return this.userService.getAll(user, assigned, findAllDto, organization);
   }
 
+  @Get("managers")
+  @UseGuards(AuthGuard("jwt"))
+  getAllManagers(@CurrentUser() user: User, @Query('userEmail') userEmail: string) {
+    const { organization } = user;
+    return this.userService.getAllManagers(organization, userEmail);
+  }
+
   @Get("managersForReassignment")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Gets all users" })
@@ -197,8 +204,8 @@ export class UserController {
     @CurrentUser() user: User,
     @Query("assigned") assigned: string
   ) {
-    const { organization } = user;
-    return this.userService.managersForReassignment(user.manages, organization);
+    const { organization, email, roleType } = user;
+    return this.userService.managersForReassignment(email, roleType, organization);
   }
 
   @Post("many")

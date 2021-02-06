@@ -27,12 +27,14 @@ const lead_history_schema_1 = require("./schema/lead-history.schema");
 const rules_module_1 = require("../rules/rules.module");
 const lead_analytic_service_1 = require("./lead-analytic.service");
 const lead_analytic_controller_1 = require("./lead-analytic.controller");
+const user_module_1 = require("../user/user.module");
 let LeadModule = class LeadModule {
 };
 LeadModule = __decorate([
     common_1.Module({
         imports: [
             rules_module_1.RulesModule,
+            user_module_1.UserModule,
             platform_express_1.MulterModule.register({
                 dest: "~/.upload",
             }),

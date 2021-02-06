@@ -168,16 +168,14 @@ let LeadController = class LeadController {
     fetchFollowUps(followUpDto, user) {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization } = user;
-            const { interval, userEmail: email, campaignName, page, perPage, } = followUpDto;
-            if (email && !user.manages.indexOf(email) && user.roleType !== "admin") {
-                throw new common_1.PreconditionFailedException(null, "You do not manage the user whose followups you want to see");
-            }
+            const { interval, userEmail, campaignName, page, perPage, } = followUpDto;
+            yield this.leadService.checkPrecondition(user, userEmail);
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
             return this.leadService.getFollowUps({
                 interval,
                 organization,
-                email: email || user.email,
+                email: userEmail || user.email,
                 campaignName,
                 limit,
                 page,

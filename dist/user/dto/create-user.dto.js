@@ -77,21 +77,6 @@ __decorate([
 ], CreateUserDto.prototype, "roleType", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: ["user1@gmail.com"],
-        description: "Every one that this user will manage",
-        type: Array,
-    }),
-    class_validator_1.ValidateIf((o) => o.roleType !== "admin"),
-    swagger_1.ApiProperty({
-        example: ["shanur@someemail.com", "manish@somecompany.com", "etc@etc.com"],
-        description: "Email of people he manages",
-        type: String,
-    }),
-    class_validator_1.IsArray(),
-    __metadata("design:type", Array)
-], CreateUserDto.prototype, "manages", void 0);
-__decorate([
-    swagger_1.ApiProperty({
         example: "seniorManager@gmail.com",
         description: "Who will he report to",
         type: String,

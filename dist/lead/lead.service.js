@@ -46,21 +46,21 @@ const config_1 = require("../config");
 const upload_service_1 = require("../upload/upload.service");
 const push_notification_service_1 = require("../push-notification/push-notification.service");
 const rules_service_1 = require("../rules/rules.service");
+const user_service_1 = require("../user/user.service");
 let LeadService = class LeadService {
-    constructor(leadModel, adminActionModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, leadHistoryModel, geoLocationModel, alarmModel, ruleService, s3UploadService, pushNotificationService) {
+    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, ruleService, s3UploadService, pushNotificationService, userService) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
-        this.userModel = userModel;
         this.campaignConfigModel = campaignConfigModel;
         this.campaignModel = campaignModel;
         this.emailTemplateModel = emailTemplateModel;
-        this.callLogModel = callLogModel;
         this.leadHistoryModel = leadHistoryModel;
         this.geoLocationModel = geoLocationModel;
         this.alarmModel = alarmModel;
         this.ruleService = ruleService;
         this.s3UploadService = s3UploadService;
         this.pushNotificationService = pushNotificationService;
+        this.userService = userService;
     }
     saveEmailAttachments(files) {
         return files;
@@ -205,7 +205,7 @@ let LeadService = class LeadService {
             });
             leadAgg.match(matchQuery);
             if (assigned) {
-                const subordinateEmails = yield this.getSubordinates(activeUserEmail, roleType, organization);
+                const subordinateEmails = yield this.userService.getSubordinates(activeUserEmail, roleType, organization);
                 leadAgg.match({
                     $or: [
                         { email: { $in: [...subordinateEmails, activeUserEmail] } },
@@ -476,34 +476,6 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    getSubordinates(email, roleType, organization) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (roleType === "frontline") {
-                return [email];
-            }
-            const fq = [
-                { $match: { organization, email: email, verified: true } },
-                {
-                    $graphLookup: {
-                        from: "users",
-                        startWith: "$manages",
-                        connectFromField: "manages",
-                        connectToField: "email",
-                        as: "subordinates",
-                    },
-                },
-                {
-                    $project: {
-                        subordinates: "$subordinates.email",
-                        roleType: "$roleType",
-                        hierarchyWeight: 1,
-                    },
-                },
-            ];
-            const result = yield this.userModel.aggregate(fq);
-            return [email, ...result[0].subordinates];
-        });
-    }
     parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId, pushtoken, campaignId, uniqueAttr) {
         return __awaiter(this, void 0, void 0, function* () {
             files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
@@ -616,7 +588,7 @@ let LeadService = class LeadService {
             }
             const singleLeadAgg = this.leadModel.aggregate();
             singleLeadAgg.match({ campaignId: campaign._id });
-            const subordinateEmails = yield this.getSubordinates(email, roleType, organization);
+            const subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
             singleLeadAgg.match({
                 $or: [
                     { email: { $in: [...subordinateEmails, email] } },
@@ -691,7 +663,7 @@ let LeadService = class LeadService {
         var _a, _b, _c, _d, _e, _f, _g;
         return __awaiter(this, void 0, void 0, function* () {
             let conditionalQueries = {};
-            let subordinateEmails = yield this.getSubordinates(email, roleType, organization);
+            let subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
             if (((_b = (_a = payload.filters) === null || _a === void 0 ? void 0 : _a.handler) === null || _b === void 0 ? void 0 : _b.length) > 0) {
                 subordinateEmails = lodash_1.intersection(payload.filters.handler, subordinateEmails, [email]);
             }
@@ -763,6 +735,14 @@ let LeadService = class LeadService {
                 data: [{ $skip: skip }, { $limit: limit }],
             });
             return leadAgg.exec();
+        });
+    }
+    checkPrecondition(user, subordinateEmail) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const subordinates = yield this.userService.getSubordinates(user.email, user.roleType, user.organization);
+            if (!subordinates.indexOf(subordinateEmail) && user.roleType !== "admin") {
+                throw new common_1.PreconditionFailedException(null, "You do not manage the user whose followups you want to see");
+            }
         });
     }
     getAllAlarms(body, organization) {
@@ -845,17 +825,13 @@ LeadService = __decorate([
     common_1.Injectable(),
     __param(0, mongoose_1.InjectModel("Lead")),
     __param(1, mongoose_1.InjectModel("AdminAction")),
-    __param(2, mongoose_1.InjectModel("User")),
-    __param(3, mongoose_1.InjectModel("CampaignConfig")),
-    __param(4, mongoose_1.InjectModel("Campaign")),
-    __param(5, mongoose_1.InjectModel("EmailTemplate")),
-    __param(6, mongoose_1.InjectModel("CallLog")),
-    __param(7, mongoose_1.InjectModel("LeadHistory")),
-    __param(8, mongoose_1.InjectModel("GeoLocation")),
-    __param(9, mongoose_1.InjectModel("Alarm")),
+    __param(2, mongoose_1.InjectModel("CampaignConfig")),
+    __param(3, mongoose_1.InjectModel("Campaign")),
+    __param(4, mongoose_1.InjectModel("EmailTemplate")),
+    __param(5, mongoose_1.InjectModel("LeadHistory")),
+    __param(6, mongoose_1.InjectModel("GeoLocation")),
+    __param(7, mongoose_1.InjectModel("Alarm")),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        mongoose_2.Model,
-        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
@@ -865,7 +841,8 @@ LeadService = __decorate([
         mongoose_2.Model,
         rules_service_1.RulesService,
         upload_service_1.UploadService,
-        push_notification_service_1.PushNotificationService])
+        push_notification_service_1.PushNotificationService,
+        user_service_1.UserService])
 ], LeadService);
 exports.LeadService = LeadService;
 //# sourceMappingURL=lead.service.js.map

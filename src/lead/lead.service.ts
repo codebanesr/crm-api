@@ -35,6 +35,7 @@ import { CreateLeadDto } from "./dto/create-lead.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
 import { RulesService } from "../rules/rules.service";
+import { UserService } from "../user/user.service";
 @Injectable()
 export class LeadService {
   constructor(
@@ -44,9 +45,6 @@ export class LeadService {
     @InjectModel("AdminAction")
     private readonly adminActionModel: Model<AdminAction>,
 
-    @InjectModel("User")
-    private readonly userModel: Model<User>,
-
     @InjectModel("CampaignConfig")
     private readonly campaignConfigModel: Model<CampaignConfig>,
 
@@ -55,9 +53,6 @@ export class LeadService {
 
     @InjectModel("EmailTemplate")
     private readonly emailTemplateModel: Model<EmailTemplate>,
-
-    @InjectModel("CallLog")
-    private readonly callLogModel: Model<CallLog>,
 
     @InjectModel("LeadHistory")
     private readonly leadHistoryModel: Model<LeadHistory>,
@@ -72,7 +67,9 @@ export class LeadService {
 
     private readonly s3UploadService: UploadService,
 
-    private readonly pushNotificationService: PushNotificationService
+    private readonly pushNotificationService: PushNotificationService,
+
+    private userService: UserService
   ) {}
 
   saveEmailAttachments(files) {
@@ -266,7 +263,7 @@ export class LeadService {
     leadAgg.match(matchQuery);
 
     if (assigned) {
-      const subordinateEmails = await this.getSubordinates(
+      const subordinateEmails = await this.userService.getSubordinates(
         activeUserEmail,
         roleType,
         organization
@@ -691,38 +688,6 @@ export class LeadService {
     return result;
   }
 
-
-  /** @Todo replace getSubordinates in user.service with this one, checked: true is missing over there, and this should be
-   * moved into a shared service
-   */
-  async getSubordinates(email: string, roleType: string, organization: string) {
-    if (roleType === "frontline") {
-      return [email];
-    }
-    const fq: any = [
-      { $match: { organization, email: email, verified: true } },
-      {
-        $graphLookup: {
-          from: "users",
-          startWith: "$manages",
-          connectFromField: "manages",
-          connectToField: "email",
-          as: "subordinates",
-        },
-      },
-      {
-        $project: {
-          subordinates: "$subordinates.email",
-          roleType: "$roleType",
-          hierarchyWeight: 1,
-        },
-      },
-    ];
-
-    const result = await this.userModel.aggregate(fq);
-    return [email, ...result[0].subordinates];
-  }
-
   async parseLeadFiles(
     files: S3UploadedFiles[],
     ccnfg: IConfig[],
@@ -924,7 +889,7 @@ export class LeadService {
 
 
     /** @Todo Try to cache this call */
-    const subordinateEmails = await this.getSubordinates(
+    const subordinateEmails = await this.userService.getSubordinates(
       email,
       roleType,
       organization
@@ -1025,7 +990,7 @@ export class LeadService {
     ): Promise<{ response: Partial<LeadHistory>[], total: number }> {
     // get email ids of users after him
     let conditionalQueries = {};
-    let subordinateEmails = await this.getSubordinates(email, roleType, organization);
+    let subordinateEmails = await this.userService.getSubordinates(email, roleType, organization);
 
     // if the user only wants to see results for some subordinates this will filter it out
     if(payload.filters?.handler?.length > 0) {
@@ -1122,6 +1087,20 @@ export class LeadService {
 
     return leadAgg.exec();
   }
+
+
+  async checkPrecondition(user: User, subordinateEmail: string) {
+
+    const subordinates = await this.userService.getSubordinates(user.email, user.roleType, user.organization);
+
+    if (!subordinates.indexOf(subordinateEmail) && user.roleType !== "admin") {
+      throw new PreconditionFailedException(
+        null,
+        "You do not manage the user whose followups you want to see"
+      );
+    }
+  }
+
 
   async getAllAlarms(body, organization) {
     const { page = 1, perPage = 20, filters = {}, sortBy = "createdAt" } = body;

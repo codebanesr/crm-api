@@ -60,7 +60,6 @@ let OrganizationService = class OrganizationService {
                 password,
                 roleType: "admin",
                 roles: ["admin"],
-                manages: [],
                 reportsTo: "",
                 phoneNumber
             }, result._id);

@@ -74,19 +74,19 @@ export class CreateUserDto {
   @MaxLength(1024)
   readonly roleType: string;
 
-  @ApiProperty({
-    example: ["user1@gmail.com"],
-    description: "Every one that this user will manage",
-    type: Array,
-  })
-  @ValidateIf((o) => o.roleType !== "admin")
-  @ApiProperty({
-    example: ["shanur@someemail.com", "manish@somecompany.com", "etc@etc.com"],
-    description: "Email of people he manages",
-    type: String,
-  })
-  @IsArray()
-  readonly manages: string[];
+  // @ApiProperty({
+  //   example: ["user1@gmail.com"],
+  //   description: "Every one that this user will manage",
+  //   type: Array,
+  // })
+  // @ValidateIf((o) => o.roleType !== "admin")
+  // @ApiProperty({
+  //   example: ["shanur@someemail.com", "manish@somecompany.com", "etc@etc.com"],
+  //   description: "Email of people he manages",
+  //   type: String,
+  // })
+  // @IsArray()
+  // readonly manages: string[];
 
   @ApiProperty({
     example: "seniorManager@gmail.com",

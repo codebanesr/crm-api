@@ -458,25 +458,20 @@ export class LeadController {
     const { organization } = user;
     const {
       interval,
-      userEmail: email,
+      userEmail,
       campaignName,
       page,
       perPage,
     } = followUpDto;
 
-    if (email && !user.manages.indexOf(email) && user.roleType !== "admin") {
-      throw new PreconditionFailedException(
-        null,
-        "You do not manage the user whose followups you want to see"
-      );
-    }
+    await this.leadService.checkPrecondition(user, userEmail);
 
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
     return this.leadService.getFollowUps({
       interval,
       organization,
-      email: email || user.email,
+      email: userEmail || user.email,
       campaignName,
       limit,
       page,

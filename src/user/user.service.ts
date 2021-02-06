@@ -11,6 +11,7 @@ import {
   HttpStatus,
   MethodNotAllowedException,
   ForbiddenException,
+  PreconditionFailedException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
@@ -35,6 +36,7 @@ import { getForgotPasswordTemplate } from "../utils/forgot-password-template";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { hashPassword } from "../utils/crypto.utils";
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UserService {
@@ -58,6 +60,7 @@ export class UserService {
   // to call from api use this
   // if we have the organiztion then we call this function directly, to call from some other service
   async create(createUserDto: CreateUserDto, organization: string) {
+    await this.checkHierarchyPreconditions(createUserDto);
     const user = new this.userModel({
       ...createUserDto,
       organization,
@@ -69,6 +72,36 @@ export class UserService {
     return this.buildRegistrationInfo(user);
   }
 
+  async checkHierarchyPreconditions(createUserDto: CreateUserDto) {
+    const {reportsTo, roleType: userRoleType} = createUserDto;
+    const manager = await this.userModel.findOne({email: reportsTo}, {roleType: 1}).lean().exec();
+    if(manager.roleType === 'frontline') {
+      throw new PreconditionFailedException('Cannot report to a frontline');
+    }
+    else if(userRoleType === 'frontline') {
+      return true;
+    } else if(userRoleType === 'manager' && manager.roleType === 'manager') {
+      throw new PreconditionFailedException('manager cannot report to a manager');
+    } else if(userRoleType === 'seniorManager' && ['manager', 'seniorManager'].includes(manager.roleType)) {
+      throw new PreconditionFailedException('Senior manager can only report to admin');
+    } else if(userRoleType === 'admin' && !!manager.roleType) {
+      throw new PreconditionFailedException('Admin cannot report to anyone');
+    }
+  }
+
+
+  async getSuperiorRoleTypes(email: string) {
+    const {roleType} = await this.userModel.findOne({email}, {roleType: 1}).lean().exec();
+    if(roleType === 'admin') {
+      return []
+    }else if(roleType === 'seniorManager') {
+      return ['admin']
+    }else if(roleType === 'manager') {
+      return ['seniorManager', 'admin']
+    }else if(roleType === 'frontline') {
+      return ['seniorManager', 'admin', 'manager']
+    }
+  }
 
   async createReseller(createResellerDto: CreateResellerDto) {
     const user = new this.userModel({
@@ -88,11 +121,12 @@ export class UserService {
   //  └┘ └─┘┴└─┴└   ┴   └─┘┴ ┴┴ ┴┴┴─┘
   async verifyEmail(req: Request, verifyUuidDto: VerifyUuidDto) {
     const user = await this.findByVerification(verifyUuidDto.verification);
+    const singleLoginKey = this.setSingleLoginKey(user);
     await this.setUserAsVerified(user);
     return {
       fullName: user.fullName,
       email: user.email,
-      accessToken: await this.authService.createAccessToken(user._id),
+      accessToken: await this.authService.createAccessToken(user._id, singleLoginKey),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
     };
   }
@@ -104,13 +138,15 @@ export class UserService {
     const user = await this.findUserByEmail(loginUserDto.email);
     this.isUserBlocked(user);
     await this.checkPassword(loginUserDto.password, user);
-    await this.passwordsAreMatch(user);
 
+    const singleLoginKey = this.setSingleLoginKey(user);
+    // save the user if passwords match
+    await this.passwordsAreMatch(user);
     return {
       fullName: user.fullName,
       email: user.email,
       roleType: user.roleType,
-      accessToken: await this.authService.createAccessToken(user._id),
+      accessToken: await this.authService.createAccessToken(user._id, singleLoginKey),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
     };
   }
@@ -123,11 +159,12 @@ export class UserService {
       refreshAccessTokenDto.refreshToken
     );
     const user = await this.userModel.findById(userId);
+    const singleLoginKey = this.setSingleLoginKey(user);
     if (!user) {
       throw new BadRequestException("Bad request");
     }
     return {
-      accessToken: await this.authService.createAccessToken(user._id),
+      accessToken: await this.authService.createAccessToken(user._id, singleLoginKey),
     };
   }
 
@@ -196,15 +233,17 @@ export class UserService {
     const { filters, page, perPage, searchTerm, showCols, sortBy } = findAllDto;
     const skip = page * perPage;
 
-    const subordinates = await this.getSubordinates(user, organization);
+    const { email, roleType} = user;
+    const subordinates = await this.getSubordinates(email, roleType, organization);
     
-    const matchQuery = { email: {$in: subordinates}, verified: true };
+    const matchQuery = { email: {$in: subordinates} };
     const users = await this.userModel.find(matchQuery, {
        email: 1,
        fullName: 1,
        manages: 1,
        roles: 1,  
-       roleType: 1    
+       roleType: 1,
+       reportsTo: 1  
     }).skip(skip).limit(perPage).lean().exec();
 
     const userCount = await this.userModel.countDocuments(matchQuery).lean().exec();
@@ -212,40 +251,53 @@ export class UserService {
     return { users, total: userCount};
   }
 
-  async getSubordinates(user: User, organization: string): Promise<any> {
-    if (user.roleType === "admin") {
-      const users = await this.userModel.find(
-        { organization },
-        { email: 1, _id: 0 }
-      );
-      return users.map((u) => u.email);
+  async getAllManagers(organization: string, userEmail?: string) {
+    if(userEmail) {
+      const superiorRoleTypes = await this.getSuperiorRoleTypes(userEmail);
+      return this.userModel.find({organization, roleType: {$in: superiorRoleTypes}}, {email: 1, fullName: 1}).lean().exec();
+    }else {
+      return this.userModel.find({roleType: {$ne: "frontline"}}, {email: 1, fullName: 1}).lean().exec();
+    }
+  }
+
+  /** @Todo replace getSubordinates in user.service with this one, checked: true is missing over there, and this should be
+   * moved into a shared service
+   */
+  async getSubordinates(email: string, roleType: string, organization: string): Promise<string[]> {
+    if (roleType === "frontline") {
+      return [email];
     }
 
-    if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
-      return [user.email];
+    // admin should have access to all users regardless, there can be a frontline who reports to noone
+    if(roleType === 'admin') {
+      const usrs = await this.userModel.find({organization}, {email: 1}).lean().exec();
+      const emails = usrs.map(u => u.email);
+      return emails;
     }
+
     const fq: any = [
-      { $match: { email: user.email } },
+      { $match: { organization, email, verified: true } },
       {
         $graphLookup: {
           from: "users",
-          startWith: "$manages",
-          connectFromField: "manages",
-          connectToField: "email",
+          startWith: "$email", // starting value, this is an expression
+          connectFromField: "email", // key name
+          connectToField: "reportsTo", // key name
           as: "subordinates",
-        },
+          maxDepth: 5
+        }
       },
       {
         $project: {
           subordinates: "$subordinates.email",
-          roleType: "$roleType",
+          roleType: "$subordinates.roleType",
           hierarchyWeight: 1,
         },
       },
     ];
 
     const result = await this.userModel.aggregate(fq);
-    return result[0].subordinates;
+    return [email, ...result[0].subordinates];
   }
 
   // ********************************************
@@ -338,10 +390,18 @@ export class UserService {
   }
 
   private async passwordsAreMatch(user) {
+    // set login attempt to zero for next login
     user.loginAttempts = 0;
     await user.save();
   }
 
+  private setSingleLoginKey(user: User) {
+    // setting the single signin key
+    const singleLoginKey = uuidv4();
+    user.singleLoginKey = singleLoginKey;
+
+    return singleLoginKey;
+  }
   private async saveForgotPassword(
     req: Request,
     createForgotPasswordDto: CreateForgotPasswordDto
@@ -495,20 +555,10 @@ export class UserService {
     }
   }
 
-  async managersForReassignment(manages: string[], organization: string) {
-    return this.userModel
-      .find(
-        {
-          $and: [
-            { organization },
-            { email: { $in: manages } },
-            { roleType: { $ne: "frontline" } },
-          ],
-        },
-        { email: 1 }
-      )
-      .lean()
-      .exec();
+  async managersForReassignment(email: string, roleType: string, organization: string) {
+    const emails = await this.getSubordinates(email, roleType, organization);
+
+    return emails;
   }
 
   saveToExcel(json) {

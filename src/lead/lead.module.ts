@@ -18,10 +18,12 @@ import { LeadHistory } from "./schema/lead-history.schema";
 import { RulesModule } from "../rules/rules.module";
 import { LeadAnalyticService } from "./lead-analytic.service";
 import { LeadAnalyticController } from "./lead-analytic.controller";
+import { UserModule } from "../user/user.module";
 
 @Module({
   imports: [
     RulesModule,
+    UserModule,
     MulterModule.register({
       dest: "~/.upload",
     }),
