@@ -19,9 +19,20 @@ import { RulesModule } from "../rules/rules.module";
 import { LeadAnalyticService } from "./lead-analytic.service";
 import { LeadAnalyticController } from "./lead-analytic.controller";
 import { UserModule } from "../user/user.module";
+import { BullModule } from "@nestjs/bull";
+import config from "../config";
 
 @Module({
   imports: [
+    BullModule.registerQueue({
+      name: 'leadQ',
+      redis: {
+        name: 'BullQueueWorker',
+        host: config.BULL.REDIS_URL,
+        port: +config.BULL.REDIS_PORT,
+        password: config.BULL.REDIS_PASSWORD
+      }
+    }),
     RulesModule,
     UserModule,
     MulterModule.register({

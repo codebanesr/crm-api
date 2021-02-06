@@ -1,5 +1,4 @@
 import { Schema, Document } from "mongoose";
-import { LeadHistory } from "./lead-history.interface";
 
 export interface Lead extends Document {
   email?: string;

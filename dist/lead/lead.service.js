@@ -39,16 +39,13 @@ const mongoose_2 = require("mongoose");
 const lodash_1 = require("lodash");
 const mongoose_3 = require("mongoose");
 const sendMail_1 = require("../utils/sendMail");
-const parseExcel_1 = require("../utils/parseExcel");
-const xlsx_1 = require("xlsx");
-const nodemailer_1 = require("nodemailer");
-const config_1 = require("../config");
-const upload_service_1 = require("../upload/upload.service");
-const push_notification_service_1 = require("../push-notification/push-notification.service");
 const rules_service_1 = require("../rules/rules.service");
 const user_service_1 = require("../user/user.service");
+const bull_1 = require("@nestjs/bull");
+const nodemailer_1 = require("nodemailer");
+const config_1 = require("../config");
 let LeadService = class LeadService {
-    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, ruleService, s3UploadService, pushNotificationService, userService) {
+    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
         this.campaignConfigModel = campaignConfigModel;
@@ -57,9 +54,8 @@ let LeadService = class LeadService {
         this.leadHistoryModel = leadHistoryModel;
         this.geoLocationModel = geoLocationModel;
         this.alarmModel = alarmModel;
+        this.leadUploadQueue = leadUploadQueue;
         this.ruleService = ruleService;
-        this.s3UploadService = s3UploadService;
-        this.pushNotificationService = pushNotificationService;
         this.userService = userService;
     }
     saveEmailAttachments(files) {
@@ -372,22 +368,7 @@ let LeadService = class LeadService {
     }
     uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const uniqueAttr = yield this.campaignModel.findOne({ _id: campaignId }, { uniqueCols: 1 }).lean().exec();
-            const ccnfg = yield this.campaignConfigModel.find({ campaignId }, { readableField: 1, internalField: 1, _id: 0 }).lean().exec();
-            if (!ccnfg) {
-                throw new Error(`Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`);
-            }
-            yield this.adminActionModel.create({
-                userid: userId,
-                organization,
-                actionType: "lead",
-                filePath: files[0].Location,
-                savedOn: "s3",
-                campaign: campaignId,
-                fileType: "campaignConfig",
-            });
-            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader, userId, pushtoken, campaignId, uniqueAttr);
-            return { files, result };
+            return this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
         });
     }
     addGeolocation(activeUserId, lat, lng, organization) {
@@ -476,76 +457,44 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId, pushtoken, campaignId, uniqueAttr) {
+    sendEmailToLead({ content, subject, attachments, email }) {
         return __awaiter(this, void 0, void 0, function* () {
-            files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
-                const jsonRes = yield parseExcel_1.default(file.Location, ccnfg);
-                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader, uploaderId, pushtoken, campaignId, uniqueAttr);
-            }));
-        });
-    }
-    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader, uploaderId, pushtoken, campaignId, uniqueAttr) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const created = [];
-            const updated = [];
-            const error = [];
-            const leadColumns = yield this.campaignConfigModel
-                .find({
-                name: campaignName,
-                organization,
-            })
-                .lean()
-                .exec();
-            for (const lead of leads) {
-                let findUniqueLeadQuery = {};
-                uniqueAttr.uniqueCols.forEach(col => {
-                    findUniqueLeadQuery[col] = lead[col];
-                });
-                findUniqueLeadQuery["campaignId"] = campaignId;
-                const { lastErrorObject, value } = yield this.leadModel
-                    .findOneAndUpdate(findUniqueLeadQuery, Object.assign(Object.assign({}, lead), { campaign: campaignName, organization, uploader, campaignId }), { new: true, upsert: true, rawResult: true })
-                    .lean()
-                    .exec();
-                if (lastErrorObject.updatedExisting === true) {
-                    updated.push(value);
-                }
-                else if (lastErrorObject.upserted) {
-                    created.push(value);
-                }
-                else {
-                    error.push(value);
-                }
-            }
-            const created_ws = xlsx_1.utils.json_to_sheet(created);
-            const updated_ws = xlsx_1.utils.json_to_sheet(updated);
-            const wb = xlsx_1.utils.book_new();
-            xlsx_1.utils.book_append_sheet(wb, updated_ws, "tickets updated");
-            xlsx_1.utils.book_append_sheet(wb, created_ws, "tickets created");
-            const wbOut = xlsx_1.write(wb, {
-                bookType: "xlsx",
-                type: "buffer",
-            });
-            const fileName = `result-${originalFileName}`;
-            const result = yield this.s3UploadService.uploadFileBuffer(fileName, wbOut);
-            yield this.adminActionModel.create({
-                userid: uploaderId,
-                organization,
-                actionType: "lead",
-                filePath: result.Location,
-                savedOn: "s3",
-                fileType: "lead",
-                campaign: campaignId
-            });
-            yield this.pushNotificationService.sendPushNotification(pushtoken, {
-                notification: {
-                    title: "File Upload Complete",
-                    icon: `https://cdn3.vectorstock.com/i/1000x1000/94/72/cute-black-cat-icon-vector-13499472.jpg`,
-                    body: `please visit ${result.Location} for the result`,
-                    tag: "some random tag",
-                    badge: `https://e7.pngegg.com/pngimages/564/873/png-clipart-computer-icons-education-molecule-icon-structure-area.png`,
+            let transporter = nodemailer_1.createTransport({
+                service: "Mailgun",
+                auth: {
+                    user: config_1.default.mail.user,
+                    pass: config_1.default.mail.pass,
                 },
             });
-            return result;
+            let mailOptions = {
+                from: '"Company" <' + config_1.default.mail.user + ">",
+                to: ["shanur.cse.nitap@gmail.com"],
+                subject: subject,
+                text: content,
+                replyTo: {
+                    name: "shanur",
+                    address: "mnsh0203@gmail.com",
+                },
+                attachments: attachments === null || attachments === void 0 ? void 0 : attachments.map((a) => {
+                    return {
+                        filename: a.fileName,
+                        path: a.filePath,
+                    };
+                }),
+            };
+            var sended = yield new Promise(function (resolve, reject) {
+                return __awaiter(this, void 0, void 0, function* () {
+                    return yield transporter.sendMail(mailOptions, (error, info) => __awaiter(this, void 0, void 0, function* () {
+                        if (error) {
+                            console.log("Message sent: %s", error);
+                            return reject(false);
+                        }
+                        console.log("Message sent: %s", info.messageId);
+                        resolve(true);
+                    }));
+                });
+            });
+            return sended;
         });
     }
     leadActivityByUser(startDate, endDate, email) {
@@ -773,46 +722,6 @@ let LeadService = class LeadService {
             return userAgg.exec();
         });
     }
-    sendEmailToLead({ content, subject, attachments, email }) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let transporter = nodemailer_1.createTransport({
-                service: "Mailgun",
-                auth: {
-                    user: config_1.default.mail.user,
-                    pass: config_1.default.mail.pass,
-                },
-            });
-            let mailOptions = {
-                from: '"Company" <' + config_1.default.mail.user + ">",
-                to: ["shanur.cse.nitap@gmail.com"],
-                subject: subject,
-                text: content,
-                replyTo: {
-                    name: "shanur",
-                    address: "mnsh0203@gmail.com",
-                },
-                attachments: attachments === null || attachments === void 0 ? void 0 : attachments.map((a) => {
-                    return {
-                        filename: a.fileName,
-                        path: a.filePath,
-                    };
-                }),
-            };
-            var sended = yield new Promise(function (resolve, reject) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    return yield transporter.sendMail(mailOptions, (error, info) => __awaiter(this, void 0, void 0, function* () {
-                        if (error) {
-                            console.log("Message sent: %s", error);
-                            return reject(false);
-                        }
-                        console.log("Message sent: %s", info.messageId);
-                        resolve(true);
-                    }));
-                });
-            });
-            return sended;
-        });
-    }
     addContact(contact, leadId) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.leadModel.findByIdAndUpdate(leadId, {
@@ -831,6 +740,7 @@ LeadService = __decorate([
     __param(5, mongoose_1.InjectModel("LeadHistory")),
     __param(6, mongoose_1.InjectModel("GeoLocation")),
     __param(7, mongoose_1.InjectModel("Alarm")),
+    __param(8, bull_1.InjectQueue('leadQ')),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
@@ -838,10 +748,7 @@ LeadService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model,
-        rules_service_1.RulesService,
-        upload_service_1.UploadService,
-        push_notification_service_1.PushNotificationService,
+        mongoose_2.Model, Object, rules_service_1.RulesService,
         user_service_1.UserService])
 ], LeadService);
 exports.LeadService = LeadService;

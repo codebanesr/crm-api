@@ -2,7 +2,6 @@ import { Model } from "mongoose";
 import { Lead } from "./interfaces/lead.interface";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
-import { IConfig } from "../utils/renameJson";
 import { EmailTemplate } from "./interfaces/email-template.interface";
 import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
@@ -12,14 +11,13 @@ import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";
 import { S3UploadedFiles } from "./dto/generic.dto";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
-import { UploadService } from "../upload/upload.service";
-import { PushNotificationService } from "../push-notification/push-notification.service";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
 import { RulesService } from "../rules/rules.service";
 import { UserService } from "../user/user.service";
+import { Queue } from "bull";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -29,11 +27,10 @@ export declare class LeadService {
     private readonly leadHistoryModel;
     private readonly geoLocationModel;
     private readonly alarmModel;
+    private leadUploadQueue;
     private readonly ruleService;
-    private readonly s3UploadService;
-    private readonly pushNotificationService;
     private userService;
-    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, ruleService: RulesService, s3UploadService: UploadService, pushNotificationService: PushNotificationService, userService: UserService);
+    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, leadUploadQueue: Queue, ruleService: RulesService, userService: UserService);
     saveEmailAttachments(files: any): any;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string, templateName: string): Promise<EmailTemplate>;
@@ -69,10 +66,7 @@ export declare class LeadService {
         success?: undefined;
     }>;
     suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit?: number): Promise<any>;
-    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string, pushtoken: any, campaignId: string): Promise<{
-        files: S3UploadedFiles[];
-        result: void;
-    }>;
+    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string, pushtoken: any, campaignId: string): Promise<import("bull").Job<any>>;
     addGeolocation(activeUserId: string, lat: number, lng: number, organization: string): Promise<GeoLocation>;
     getPerformance(): Promise<void>;
     updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }: UpdateLeadDto & {
@@ -81,8 +75,12 @@ export declare class LeadService {
         handlerEmail: string;
         handlerName: string;
     }): Promise<Lead>;
-    parseLeadFiles(files: S3UploadedFiles[], ccnfg: IConfig[], campaignName: string, organization: string, uploader: string, uploaderId: string, pushtoken: string, campaignId: string, uniqueAttr: Partial<Campaign>): Promise<void>;
-    saveLeadsFromExcel(leads: any[], campaignName: string, originalFileName: string, organization: string, uploader: string, uploaderId: string, pushtoken: any, campaignId: string, uniqueAttr: Partial<Campaign>): Promise<any>;
+    sendEmailToLead({ content, subject, attachments, email }: {
+        content: any;
+        subject: any;
+        attachments: any;
+        email: any;
+    }): Promise<boolean>;
     leadActivityByUser(startDate: string, endDate: string, email: string): Promise<any>;
     getUpdatedAtQuery(startDate: string, endDate: string): Promise<{
         updatedAt: {
@@ -117,11 +115,5 @@ export declare class LeadService {
     checkPrecondition(user: User, subordinateEmail: string): Promise<void>;
     getAllAlarms(body: any, organization: any): Promise<any>;
     getUsersActivity(dateRange: Date[], userEmail: string, organization: string): Promise<any>;
-    sendEmailToLead({ content, subject, attachments, email }: {
-        content: any;
-        subject: any;
-        attachments: any;
-        email: any;
-    }): Promise<boolean>;
     addContact(contact: UpdateContactDto, leadId: string): Promise<Lead>;
 }

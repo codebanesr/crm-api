@@ -43,5 +43,10 @@ declare const _default: {
         VAPID_PUBLIC: string;
         VAPID_PRIVATE: string;
     };
+    BULL: {
+        REDIS_PASSWORD: string;
+        REDIS_URL: string;
+        REDIS_PORT: string;
+    };
 };
 export default _default;

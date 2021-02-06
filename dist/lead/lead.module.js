@@ -28,11 +28,22 @@ const rules_module_1 = require("../rules/rules.module");
 const lead_analytic_service_1 = require("./lead-analytic.service");
 const lead_analytic_controller_1 = require("./lead-analytic.controller");
 const user_module_1 = require("../user/user.module");
+const bull_1 = require("@nestjs/bull");
+const config_1 = require("../config");
 let LeadModule = class LeadModule {
 };
 LeadModule = __decorate([
     common_1.Module({
         imports: [
+            bull_1.BullModule.registerQueue({
+                name: 'leadQ',
+                redis: {
+                    name: 'BullQueueWorker',
+                    host: config_1.default.BULL.REDIS_URL,
+                    port: +config_1.default.BULL.REDIS_PORT,
+                    password: config_1.default.BULL.REDIS_PASSWORD
+                }
+            }),
             rules_module_1.RulesModule,
             user_module_1.UserModule,
             platform_express_1.MulterModule.register({

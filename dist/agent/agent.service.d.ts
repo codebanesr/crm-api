@@ -11,7 +11,7 @@ export declare class AgentService {
     private readonly visitTrackModel;
     private readonly userModel;
     constructor(adminActionModel: Model<AdminAction>, visitTrackModel: Model<VisitTrack>, userModel: Model<User>);
-    listActions(activeUserId: string, organization: string, skip: any, fileType: any, sortBy: string, me: any, campaign: string): Promise<Pick<AdminAction, "_id" | "organization" | "campaign" | "userid" | "actionType" | "filePath" | "savedOn" | "fileType">[]>;
+    listActions(activeUserId: string, organization: string, skip: any, fileType: any, sortBy: string, me: any, campaign: string): Promise<Pick<AdminAction, "_id" | "organization" | "campaign" | "userid" | "actionType" | "fileType" | "savedOn" | "filePath">[]>;
     downloadFile(location: string, res: Response): Promise<void>;
     updateBatteryStatus(userId: string, batLvlDto: BatteryStatusDto): Promise<VisitTrack>;
     addVisitTrack(userId: string, payload: AddLocationDto): Promise<VisitTrack>;

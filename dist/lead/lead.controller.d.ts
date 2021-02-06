@@ -1,3 +1,4 @@
+/// <reference types="bull" />
 import { LeadService } from "./lead.service";
 import { FindAllDto } from "./dto/find-all.dto";
 import { UpdateLeadDto } from "./dto/update-lead.dto";
@@ -46,10 +47,7 @@ export declare class LeadController {
         error: any;
         success?: undefined;
     }>;
-    uploadMultipleLeadFiles(user: User, body: UploadMultipleFilesDto): Promise<{
-        files: import("./dto/generic.dto").S3UploadedFiles[];
-        result: void;
-    }>;
+    uploadMultipleLeadFiles(user: User, body: UploadMultipleFilesDto): Promise<import("bull").Job<any>>;
     saveEmailAttachments(files: any): any;
     findOneById(leadId: string, user: User): Promise<{
         lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation">;
