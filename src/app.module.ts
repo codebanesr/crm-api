@@ -22,7 +22,7 @@ import { RulesModule } from './rules/rules.module';
   imports: [
     // LoggerModule.forRoot(),
     CacheModule.register(),
-    MongooseModule.forRoot(Config.MONGODB_URI),
+    MongooseModule.forRoot(Config.MONGODB_URI, { useNewUrlParser: true }),
     UserModule,
     AuthModule,
     ArticleModule,

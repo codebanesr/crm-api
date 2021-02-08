@@ -21,6 +21,7 @@ import { LeadAnalyticController } from "./lead-analytic.controller";
 import { UserModule } from "../user/user.module";
 import { BullModule } from "@nestjs/bull";
 import config from "../config";
+import { NotificationService } from "../utils/notification.service";
 
 @Module({
   imports: [
@@ -51,7 +52,13 @@ import config from "../config";
       { name: "LeadHistory", schema: LeadHistory },
     ]),
   ],
-  providers: [LeadService, UploadService, PushNotificationService, LeadAnalyticService],
+  providers: [
+    LeadService, 
+    UploadService, 
+    PushNotificationService, 
+    LeadAnalyticService,
+    NotificationService
+  ],
   controllers: [LeadController, LeadAnalyticController],
 })
 export class LeadModule {}

@@ -30,6 +30,7 @@ const lead_analytic_controller_1 = require("./lead-analytic.controller");
 const user_module_1 = require("../user/user.module");
 const bull_1 = require("@nestjs/bull");
 const config_1 = require("../config");
+const notification_service_1 = require("../utils/notification.service");
 let LeadModule = class LeadModule {
 };
 LeadModule = __decorate([
@@ -62,7 +63,13 @@ LeadModule = __decorate([
                 { name: "LeadHistory", schema: lead_history_schema_1.LeadHistory },
             ]),
         ],
-        providers: [lead_service_1.LeadService, upload_service_1.UploadService, push_notification_service_1.PushNotificationService, lead_analytic_service_1.LeadAnalyticService],
+        providers: [
+            lead_service_1.LeadService,
+            upload_service_1.UploadService,
+            push_notification_service_1.PushNotificationService,
+            lead_analytic_service_1.LeadAnalyticService,
+            notification_service_1.NotificationService
+        ],
         controllers: [lead_controller_1.LeadController, lead_analytic_controller_1.LeadAnalyticController],
     })
 ], LeadModule);

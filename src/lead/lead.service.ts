@@ -11,7 +11,7 @@ import { get, intersection, isArray, isEmpty, values } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
-import { sendEmail } from "../utils/sendMail";
+import { NotificationService } from "../utils/notification.service";
 import { EmailTemplate } from "./interfaces/email-template.interface";
 import { CampaignConfig } from "./interfaces/campaign-config.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
@@ -64,7 +64,9 @@ export class LeadService {
 
     private readonly ruleService: RulesService,
 
-    private userService: UserService
+    private userService: UserService,
+
+    private notificationService: NotificationService,
   ) {}
 
   saveEmailAttachments(files) {
@@ -452,7 +454,7 @@ export class LeadService {
     emails = isArray(emails) ? emails : [emails];
     const sepEmails = emails.join(",");
     try {
-      sendEmail(sepEmails, subject, text, attachments);
+      this.notificationService.sendMail({ subject, text, attachments, to: sepEmails });
       return { success: true };
     } catch (e) {
       Logger.error(
@@ -653,15 +655,7 @@ export class LeadService {
   }
 
   async sendEmailToLead({ content, subject, attachments, email }) {
-    let transporter = createTransport({
-      service: "Mailgun",
-      auth: {
-        user: config.mail.user,
-        pass: config.mail.pass,
-      },
-    });
-
-    let mailOptions: SendMailOptions = {
+    this.notificationService.sendMail({
       from: '"Company" <' + config.mail.user + ">",
       to: ["shanur.cse.nitap@gmail.com"],
       subject: subject,
@@ -676,19 +670,7 @@ export class LeadService {
           path: a.filePath,
         };
       }),
-    };
-
-    var sended = await new Promise<boolean>(async function (resolve, reject) {
-      return await transporter.sendMail(mailOptions, async (error, info) => {
-        if (error) {
-          console.log("Message sent: %s", error);
-          return reject(false);
-        }
-        console.log("Message sent: %s", info.messageId);
-        resolve(true);
-      });
     });
-    return sended;
   }
 
   async leadActivityByUser(startDate: string, endDate: string, email: string) {

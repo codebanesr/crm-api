@@ -31,7 +31,7 @@ AppModule = __decorate([
     common_1.Module({
         imports: [
             common_1.CacheModule.register(),
-            mongoose_1.MongooseModule.forRoot(config_1.default.MONGODB_URI),
+            mongoose_1.MongooseModule.forRoot(config_1.default.MONGODB_URI, { useNewUrlParser: true }),
             user_module_1.UserModule,
             auth_module_1.AuthModule,
             article_module_1.ArticleModule,

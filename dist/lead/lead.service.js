@@ -38,14 +38,13 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const lodash_1 = require("lodash");
 const mongoose_3 = require("mongoose");
-const sendMail_1 = require("../utils/sendMail");
+const notification_service_1 = require("../utils/notification.service");
 const rules_service_1 = require("../rules/rules.service");
 const user_service_1 = require("../user/user.service");
 const bull_1 = require("@nestjs/bull");
-const nodemailer_1 = require("nodemailer");
 const config_1 = require("../config");
 let LeadService = class LeadService {
-    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService) {
+    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
         this.campaignConfigModel = campaignConfigModel;
@@ -57,6 +56,7 @@ let LeadService = class LeadService {
         this.leadUploadQueue = leadUploadQueue;
         this.ruleService = ruleService;
         this.userService = userService;
+        this.notificationService = notificationService;
     }
     saveEmailAttachments(files) {
         return files;
@@ -343,7 +343,7 @@ let LeadService = class LeadService {
             emails = lodash_1.isArray(emails) ? emails : [emails];
             const sepEmails = emails.join(",");
             try {
-                sendMail_1.sendEmail(sepEmails, subject, text, attachments);
+                this.notificationService.sendMail({ subject, text, attachments, to: sepEmails });
                 return { success: true };
             }
             catch (e) {
@@ -459,14 +459,7 @@ let LeadService = class LeadService {
     }
     sendEmailToLead({ content, subject, attachments, email }) {
         return __awaiter(this, void 0, void 0, function* () {
-            let transporter = nodemailer_1.createTransport({
-                service: "Mailgun",
-                auth: {
-                    user: config_1.default.mail.user,
-                    pass: config_1.default.mail.pass,
-                },
-            });
-            let mailOptions = {
+            this.notificationService.sendMail({
                 from: '"Company" <' + config_1.default.mail.user + ">",
                 to: ["shanur.cse.nitap@gmail.com"],
                 subject: subject,
@@ -481,20 +474,7 @@ let LeadService = class LeadService {
                         path: a.filePath,
                     };
                 }),
-            };
-            var sended = yield new Promise(function (resolve, reject) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    return yield transporter.sendMail(mailOptions, (error, info) => __awaiter(this, void 0, void 0, function* () {
-                        if (error) {
-                            console.log("Message sent: %s", error);
-                            return reject(false);
-                        }
-                        console.log("Message sent: %s", info.messageId);
-                        resolve(true);
-                    }));
-                });
             });
-            return sended;
         });
     }
     leadActivityByUser(startDate, endDate, email) {
@@ -749,7 +729,8 @@ LeadService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model, Object, rules_service_1.RulesService,
-        user_service_1.UserService])
+        user_service_1.UserService,
+        notification_service_1.NotificationService])
 ], LeadService);
 exports.LeadService = LeadService;
 //# sourceMappingURL=lead.service.js.map
