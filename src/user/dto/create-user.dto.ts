@@ -7,8 +7,10 @@ import {
   IsIn,
   IsArray,
   ValidateIf,
+  IsPhoneNumber,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 
 export class CreateUserDto {
   // fullName
@@ -55,7 +57,8 @@ export class CreateUserDto {
   @IsString()
   @MinLength(5)
   @MaxLength(1024)
-  readonly password: string;
+  // password is not readonly because it can be modified later on
+  password: string;
 
   @ApiProperty({
     example: "manager",
@@ -71,19 +74,19 @@ export class CreateUserDto {
   @MaxLength(1024)
   readonly roleType: string;
 
-  @ApiProperty({
-    example: ["user1@gmail.com"],
-    description: "Every one that this user will manage",
-    type: Array,
-  })
-  @ValidateIf((o) => o.roleType !== "admin")
-  @ApiProperty({
-    example: ["shanur@someemail.com", "manish@somecompany.com", "etc@etc.com"],
-    description: "Email of people he manages",
-    type: String,
-  })
-  @IsArray()
-  readonly manages: string[];
+  // @ApiProperty({
+  //   example: ["user1@gmail.com"],
+  //   description: "Every one that this user will manage",
+  //   type: Array,
+  // })
+  // @ValidateIf((o) => o.roleType !== "admin")
+  // @ApiProperty({
+  //   example: ["shanur@someemail.com", "manish@somecompany.com", "etc@etc.com"],
+  //   description: "Email of people he manages",
+  //   type: String,
+  // })
+  // @IsArray()
+  // readonly manages: string[];
 
   @ApiProperty({
     example: "seniorManager@gmail.com",
@@ -98,10 +101,11 @@ export class CreateUserDto {
   // is in validator has to be applied to every element in this array
   @ApiProperty({
     example: ["admin"],
-    description: "What roles does this user have admin",
+    description: "What roles does this user have admin, admin can only assign admin and user roles or both / reseller roles can only be assigned by super admin / us",
     type: String,
   })
   @ApiProperty()
+  @IsIn(["admin", "user"], {each: true})
   @IsString({each: true})
   readonly roles: string[];
 
@@ -114,6 +118,7 @@ export class CreateUserDto {
     maxLength: 14,
   })
   /**@Todo this will be isphonenumber */
-  @IsString()
+  @Transform(value => value.toString())
+  @IsPhoneNumber('IN')
   phoneNumber: string
 }

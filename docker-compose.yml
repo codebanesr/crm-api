@@ -1,30 +1,44 @@
+# generating ssl certs
+# sudo openssl dhparam -out dhparam-2048.pem 2048
+# docker-compose up --force-recreate --no-deps certbot, after adding A records to point to the correct ip address
 version: '3.7'
 
 services:
   main:
-    image: "node:14-slim"
+    image: "node:14.15.1-alpine3.12"
     container_name: main
     build:
       context: .
-      dockerfile: Dockerfile.slim
-      target: production
+      dockerfile: Dockerfile.prod
+      # target: production
     user: "node"
     working_dir: /usr/src/app
     environment:
       - NODE_ENV=production
       - VERSION=1.0
-    volumes:
-      - .:/usr/src/app
-      - /usr/app/node_modules
+    # volumes are only required for live reloading and binding local directories
+    # volumes:
+    #   - /usr/src/app
+    #   - /usr/app/node_modules
     ports:
       - "3000:3000"
     tty: true
-    command: "yarn start:dev"
+    command: "yarn start"
     env_file:
       - .env
     networks:
       - webnet
     restart: always
+
+  # minio:
+  #   image: 'bitnami/minio:latest'
+  #   ports:
+  #     - '9000:9000'
+  #   environment:
+  #     - MINIO_ACCESS_KEY=shanur
+  #     - MINIO_SECRET_KEY=shanurrahman123
+  #   networks:
+  #     - webnet
 
   mongodb:
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
@@ -46,9 +60,56 @@ services:
     networks:
       - webnet
 
+  webserver:
+    restart: unless-stopped
+    image: staticfloat/nginx-certbot
+    ports:
+        - 80:80/tcp
+        - 443:443/tcp
+    environment:
+        CERTBOT_EMAIL: shanur.cse.nitap@gmail.com
+        # variable names are space-separated
+        ENVSUBST_VARS: FQDN
+        FQDN: moleculesystem.com
+    volumes:
+      - ./conf.d:/etc/nginx/user.conf.d:ro
+      - letsencrypt:/etc/letsencrypt
+      - /home/ec2-user/leon:/usr/share/nginx/html
+    depends_on:
+      - main
+    networks:
+      - webnet
+  
+  worker:
+    image: "node:14.15.1-alpine3.12"
+    container_name: worker
+    build:
+      context: '../molecule_bull_microservice'
+      dockerfile: Dockerfile.prod
+      # target: production
+    user: "node"
+    working_dir: /usr/src/app
+    environment:
+      - NODE_ENV=production
+      - VERSION=1.0
+
+    tty: true
+    command: "yarn start:prod"
+    env_file:
+      - '../molecule_bull_microservice/.env'
+    networks:
+      - webnet
+    restart: always
+
 networks:
   webnet:
 volumes:
+  letsencrypt:
   pgdata:
   mongodb_data:
     driver: local
+
+
+
+
+# I have worked on both frontend and backend technologies extensively, including both SQL and NoSQL databases. I wrote a complete mobile CRM solution from scratch using angular ionic, MongoDB, Redis and Bull Queue, and Nginx. I would be willing to show you that in case my profile is shortlisted.

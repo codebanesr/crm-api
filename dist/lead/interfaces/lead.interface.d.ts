@@ -1,24 +1,23 @@
 import { Document } from "mongoose";
 export interface Lead extends Document {
-    email: string;
-    externalId: string;
-    history: LeadHistory[];
+    email?: string;
+    externalId?: string;
     campaign: string;
-    firstName: string;
-    lastName: string;
-    source: string;
-    amount: number;
-    leadStatus: string;
-    address: string;
-    followUp: Date;
-    companyName: string;
-    remarks: string;
-    product: string;
-    bucket: string;
-    operationalArea: string;
-    pincode: number;
-    organization: string;
-    contact: {
+    campaignId?: string;
+    firstName?: string;
+    lastName?: string;
+    fullName?: string;
+    source?: string;
+    amount?: number;
+    leadStatus?: string;
+    address?: string;
+    state?: string;
+    followUp?: Date;
+    companyName?: string;
+    pincode?: number;
+    organization?: string;
+    nextAction?: string;
+    contact?: {
         label: String;
         value: String;
         category: String;
@@ -26,20 +25,5 @@ export interface Lead extends Document {
     requestedInformation?: {
         [key: string]: string;
     }[];
-}
-export interface LeadHistory {
-    oldUser: string;
-    newUser: string;
-    note: string;
-    callRecordUrl: string;
-    geoLocation: leadHistoryGeoLocation;
-    leadStatus: string;
-    attachment: string;
-    phoneNumber: string;
-    requestedInformation?: {
-        [key: string]: string;
-    }[];
-}
-export declare class leadHistoryGeoLocation {
-    coordinates: number[];
+    documentLinks?: string[];
 }

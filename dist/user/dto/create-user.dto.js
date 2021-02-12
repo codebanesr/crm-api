@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateUserDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
+const class_transformer_1 = require("class-transformer");
 class CreateUserDto {
 }
 __decorate([
@@ -76,21 +77,6 @@ __decorate([
 ], CreateUserDto.prototype, "roleType", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: ["user1@gmail.com"],
-        description: "Every one that this user will manage",
-        type: Array,
-    }),
-    class_validator_1.ValidateIf((o) => o.roleType !== "admin"),
-    swagger_1.ApiProperty({
-        example: ["shanur@someemail.com", "manish@somecompany.com", "etc@etc.com"],
-        description: "Email of people he manages",
-        type: String,
-    }),
-    class_validator_1.IsArray(),
-    __metadata("design:type", Array)
-], CreateUserDto.prototype, "manages", void 0);
-__decorate([
-    swagger_1.ApiProperty({
         example: "seniorManager@gmail.com",
         description: "Who will he report to",
         type: String,
@@ -103,10 +89,11 @@ __decorate([
 __decorate([
     swagger_1.ApiProperty({
         example: ["admin"],
-        description: "What roles does this user have admin",
+        description: "What roles does this user have admin, admin can only assign admin and user roles or both / reseller roles can only be assigned by super admin / us",
         type: String,
     }),
     swagger_1.ApiProperty(),
+    class_validator_1.IsIn(["admin", "user"], { each: true }),
     class_validator_1.IsString({ each: true }),
     __metadata("design:type", Array)
 ], CreateUserDto.prototype, "roles", void 0);
@@ -118,7 +105,8 @@ __decorate([
         minLength: 5,
         maxLength: 14,
     }),
-    class_validator_1.IsString(),
+    class_transformer_1.Transform(value => value.toString()),
+    class_validator_1.IsPhoneNumber('IN'),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "phoneNumber", void 0);
 exports.CreateUserDto = CreateUserDto;

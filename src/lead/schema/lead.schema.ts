@@ -1,25 +1,9 @@
-import { Mongoose, Schema } from "mongoose";
+import { Schema } from "mongoose";
 
 export const LeadSchema = new Schema(
   {
-    externalId: { type: String, required: true },
+    externalId: { type: String },
     email: String,
-    history: [
-      {
-        oldUser: String,
-        newUser: String,
-        note: String,
-        callRecordUrl: String,
-        geoLocation: {
-          coordinates: [Number],
-        },
-        leadStatus: String,
-        attachment: String,
-        phoneNumber: String,
-        createdAt: { type: Date, default: new Date() },
-        requestedInformation: Object,
-      },
-    ],
     contact: [
       {
         label: String,
@@ -28,20 +12,24 @@ export const LeadSchema = new Schema(
       },
     ],
     campaign: String,
+    /** @Todo set this to required type after upload and addLead are fixed to store campaignIds as well, all campaignName code should
+     * be replaced to use this
+     */
+    campaignId: {type: Schema.Types.ObjectId, ref: "Campaign"},
     firstName: String,
     lastName: String,
+    fullName: String,
     source: String,
     amount: Number,
     leadStatus: String,
     address: String,
     followUp: Date,
     companyName: String,
-    remarks: String,
-    product: String,
-    bucket: String,
-    operationalArea: String,
+    state: String,
     pincode: Number,
+    nextAction: String,
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    documentLinks: [String]
   },
   {
     timestamps: true,
@@ -50,5 +38,5 @@ export const LeadSchema = new Schema(
   }
 );
 
-/** Remove the text indexing from here */
+/** @Todo Remove the text indexing from here */
 LeadSchema.index({ "$**": "text" });

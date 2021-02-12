@@ -17,6 +17,8 @@ const config_1 = require("../config");
 const nestjs_redis_1 = require("nestjs-redis");
 const shared_module_1 = require("../shared/shared.module");
 const user_module_1 = require("../user/user.module");
+const reseller_organization_schema_1 = require("./schema/reseller-organization.schema");
+const transaction_schema_1 = require("./schema/transaction.schema");
 let OrganizationModule = class OrganizationModule {
 };
 OrganizationModule = __decorate([
@@ -30,7 +32,9 @@ OrganizationModule = __decorate([
                 authToken: config_1.default.twilio.authToken,
             }),
             mongoose_1.MongooseModule.forFeature([
-                { name: "Organization", schema: organization_schema_1.OrganizationSchema }
+                { name: "Organization", schema: organization_schema_1.OrganizationSchema },
+                { name: "ResellerOrganization", schema: reseller_organization_schema_1.ResellerOrganizationSchema },
+                { name: "Transaction", schema: transaction_schema_1.TransactionSchema }
             ]),
         ],
         providers: [organization_service_1.OrganizationService],

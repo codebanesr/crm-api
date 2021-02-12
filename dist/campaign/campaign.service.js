@@ -29,6 +29,7 @@ const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
 const path_1 = require("path");
 const lodash_1 = require("lodash");
+const core_config_1 = require("./core-config");
 let CampaignService = class CampaignService {
     constructor(campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel, leadModel) {
         this.campaignModel = campaignModel;
@@ -43,12 +44,19 @@ let CampaignService = class CampaignService {
             const limit = Number(perPage);
             const skip = Number((page - 1) * limit);
             const campaignAgg = this.campaignModel.aggregate();
-            const { campaigns = [] } = filters;
+            const { campaigns = [], select = [] } = filters;
             campaignAgg.match({
                 $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }],
             });
             if (campaigns && campaigns.length > 0) {
                 campaignAgg.match({ type: { $in: campaigns } });
+            }
+            if (select.length > 0) {
+                const project = {};
+                select.forEach(s => {
+                    project[s] = 1;
+                });
+                campaignAgg.project(project);
             }
             campaignAgg.facet({
                 metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],
@@ -64,21 +72,9 @@ let CampaignService = class CampaignService {
             };
         });
     }
-    findOneByIdOrName(campaignId, identifier) {
+    findOneByIdOrName(campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            let result;
-            switch (identifier) {
-                case "campaignName":
-                    result = yield this.campaignModel
-                        .findOne({ campaignName: campaignId })
-                        .sort({ updatedAt: -1 })
-                        .lean()
-                        .exec();
-                    break;
-                default:
-                    result = yield this.campaignModel.findById(campaignId).lean().exec();
-            }
-            return result;
+            return this.campaignModel.findById(campaignId).lean().exec();
         });
     }
     patch(campaignId, requestBody) {
@@ -162,17 +158,8 @@ let CampaignService = class CampaignService {
             const excelObject = parseExcel_1.default(path);
         });
     }
-    createCampaignAndDisposition({ activeUserId, file, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, }) {
+    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew, autodialSettings }) {
         return __awaiter(this, void 0, void 0, function* () {
-            dispositionData = JSON.parse(dispositionData);
-            campaignInfo = JSON.parse(campaignInfo);
-            editableCols = JSON.parse(editableCols);
-            browsableCols = JSON.parse(browsableCols);
-            uniqueCols = JSON.parse(uniqueCols);
-            formModel = JSON.parse(formModel);
-            assignTo = JSON.parse(assignTo);
-            advancedSettings = JSON.parse(advancedSettings);
-            groups = JSON.parse(groups);
             const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
                 browsableCols,
                 editableCols,
@@ -180,31 +167,22 @@ let CampaignService = class CampaignService {
                 formModel,
                 advancedSettings,
                 assignTo,
-                groups }), { new: true, upsert: true, rawResult: true });
+                groups,
+                autodialSettings }), { new: true, upsert: true, rawResult: true });
+            if (isNew) {
+                core_config_1.coreConfig.forEach(config => {
+                    config.organization = organization;
+                    config.campaignId = campaign.value._id;
+                });
+                yield this.campaignConfigModel.insertMany(core_config_1.coreConfig);
+            }
             const disposition = yield this.dispositionModel.findOneAndUpdate({ campaign: campaign.value.id, organization }, {
                 options: dispositionData,
                 campaign: campaign.value.id,
             }, { new: true, upsert: true, rawResult: true });
-            let filePath = "";
-            if (file) {
-                const ccJSON = yield parseExcel_1.default(file.path);
-                filePath = yield this.saveCampaignSchema(ccJSON, {
-                    schemaName: campaignInfo.campaignName,
-                    organization,
-                });
-                const adminActions = new this.adminActionModel({
-                    userid: activeUserId,
-                    actionType: "error",
-                    filePath,
-                    savedOn: "disk",
-                    fileType: "campaignConfig",
-                });
-                adminActions.save();
-            }
             return {
                 campaign: campaign.value,
                 disposition,
-                filePath,
             };
         });
     }
@@ -311,6 +289,14 @@ let CampaignService = class CampaignService {
             const quickStatsArr = yield quickStatsAgg.exec();
             return lodash_1.keyBy(quickStatsArr, "campaign");
         });
+    }
+    updateConfigs(config, organization, campaignId, campaignName) {
+        if (config._id)
+            return this.campaignConfigModel.findOneAndUpdate({ _id: config._id }, Object.assign(Object.assign({}, config), { name: campaignName, organization, campaignId }), { upsert: true }).lean().exec();
+        else
+            return this.campaignConfigModel.create(Object.assign(Object.assign({}, config), { name: campaignName, organization, campaignId, checked: true }));
+    }
+    createCampaignConfigs() {
     }
 };
 CampaignService = __decorate([

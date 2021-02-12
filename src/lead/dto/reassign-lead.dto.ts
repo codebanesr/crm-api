@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsEmail, IsEnum, Allow } from "class-validator";
+import { IsEmail, IsEnum, Allow, IsOptional } from "class-validator";
 
 
 
@@ -15,6 +15,8 @@ export class ReassignLeadDto {
         format: 'number',
         default: null
     })
+    
+    @IsOptional()
     @IsEmail()
     oldUserEmail: string;
 

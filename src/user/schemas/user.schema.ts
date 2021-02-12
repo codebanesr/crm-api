@@ -1,17 +1,19 @@
-import { Schema, HookNextFunction } from "mongoose";
+import { Schema, HookNextFunction, Types } from "mongoose";
 import validator from "validator";
-import * as bcrypt from "bcryptjs";
+import { hashPassword } from "../../utils/crypto.utils";
 
+/** Same validations of min length and max length should be used in models as well other wise there are going to be errors while fetching */
 export const UserSchema = new Schema(
   {
     fullName: {
       type: String,
-      minlength: 6,
+      minlength: 5,
       maxlength: 255,
       required: [true, "NAME_IS_BLANK"],
     },
     email: {
       type: String,
+      unique: true,
       lowercase: true,
       validate: validator.isEmail,
       maxlength: 255,
@@ -32,6 +34,10 @@ export const UserSchema = new Schema(
       type: String,
       validate: validator.isUUID,
     },
+    singleLoginKey: {
+      type: String,
+      validate: validator.isUUID
+    },
     verified: {
       type: Boolean,
       default: false,
@@ -49,19 +55,22 @@ export const UserSchema = new Schema(
       default: Date.now,
     },
     roleType: { type: String, required: true },
-    manages: [String],
-    reportsTo: { type: String, default: null },
+    // manages: [{type: Schema.Types.ObjectId, ref: "User"}],
+    reportsTo: { 
+      type: String, 
+      validate: validator.isEmail,
+      required: true
+    },
 
     /**@todo this default has to be removed */
     phoneNumber: { type: String, required: true, default: "00000" },
     history: { type: Array, default: null },
-    hierarchyWeight: Number,
+    hierarchyWeight: {type: Number},
     organization: {
       type: Schema.Types.ObjectId,
       ref: "Organization",
       default: null,
     },
-
     pushtoken: {
       endpoint: String,
       expirationTime: String,
@@ -70,6 +79,7 @@ export const UserSchema = new Schema(
         auth: String,
       },
     },
+    batLvl: Number
   },
   {
     versionKey: false,
@@ -83,7 +93,7 @@ UserSchema.pre("save", async function (next: HookNextFunction) {
       return next();
     }
     // tslint:disable-next-line:no-string-literal
-    const hashed = await bcrypt.hash(this["password"], 10);
+    const hashed = await hashPassword(this["password"]);
     // tslint:disable-next-line:no-string-literal
     this["password"] = hashed;
     return next();

@@ -35,6 +35,8 @@ const path_1 = require("path");
 const config_1 = require("../config");
 const nodemailer_1 = require("nodemailer");
 const forgot_password_template_1 = require("../utils/forgot-password-template");
+const crypto_utils_1 = require("../utils/crypto.utils");
+const uuid_2 = require("uuid");
 let UserService = class UserService {
     constructor(userModel, forgotPasswordModel, adminActionModel, authService) {
         this.userModel = userModel;
@@ -47,7 +49,55 @@ let UserService = class UserService {
     }
     create(createUserDto, organization) {
         return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkHierarchyPreconditions(createUserDto);
             const user = new this.userModel(Object.assign(Object.assign({}, createUserDto), { organization, verified: true }));
+            yield this.isEmailUnique(user.email);
+            this.setRegistrationInfo(user);
+            yield user.save();
+            return this.buildRegistrationInfo(user);
+        });
+    }
+    checkHierarchyPreconditions(createUserDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { reportsTo, roleType: userRoleType } = createUserDto;
+            const manager = yield this.userModel.findOne({ email: reportsTo }, { roleType: 1 }).lean().exec();
+            if (manager.roleType === 'frontline') {
+                throw new common_1.PreconditionFailedException('Cannot report to a frontline');
+            }
+            else if (userRoleType === 'frontline') {
+                return true;
+            }
+            else if (userRoleType === 'manager' && manager.roleType === 'manager') {
+                throw new common_1.PreconditionFailedException('manager cannot report to a manager');
+            }
+            else if (userRoleType === 'seniorManager' && ['manager', 'seniorManager'].includes(manager.roleType)) {
+                throw new common_1.PreconditionFailedException('Senior manager can only report to admin');
+            }
+            else if (userRoleType === 'admin' && !!manager.roleType) {
+                throw new common_1.PreconditionFailedException('Admin cannot report to anyone');
+            }
+        });
+    }
+    getSuperiorRoleTypes(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { roleType } = yield this.userModel.findOne({ email }, { roleType: 1 }).lean().exec();
+            if (roleType === 'admin') {
+                return [];
+            }
+            else if (roleType === 'seniorManager') {
+                return ['admin'];
+            }
+            else if (roleType === 'manager') {
+                return ['seniorManager', 'admin'];
+            }
+            else if (roleType === 'frontline') {
+                return ['seniorManager', 'admin', 'manager'];
+            }
+        });
+    }
+    createReseller(createResellerDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = new this.userModel(Object.assign(Object.assign({}, createResellerDto), { verified: true, roles: ["reseller"], roleType: 'reseller' }));
             yield this.isEmailUnique(user.email);
             this.setRegistrationInfo(user);
             yield user.save();
@@ -57,11 +107,12 @@ let UserService = class UserService {
     verifyEmail(req, verifyUuidDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.findByVerification(verifyUuidDto.verification);
+            const singleLoginKey = this.setSingleLoginKey(user);
             yield this.setUserAsVerified(user);
             return {
                 fullName: user.fullName,
                 email: user.email,
-                accessToken: yield this.authService.createAccessToken(user._id),
+                accessToken: yield this.authService.createAccessToken(user._id, singleLoginKey),
                 refreshToken: yield this.authService.createRefreshToken(req, user._id),
             };
         });
@@ -71,12 +122,13 @@ let UserService = class UserService {
             const user = yield this.findUserByEmail(loginUserDto.email);
             this.isUserBlocked(user);
             yield this.checkPassword(loginUserDto.password, user);
+            const singleLoginKey = this.setSingleLoginKey(user);
             yield this.passwordsAreMatch(user);
             return {
                 fullName: user.fullName,
                 email: user.email,
                 roleType: user.roleType,
-                accessToken: yield this.authService.createAccessToken(user._id),
+                accessToken: yield this.authService.createAccessToken(user._id, singleLoginKey),
                 refreshToken: yield this.authService.createRefreshToken(req, user._id),
             };
         });
@@ -85,11 +137,12 @@ let UserService = class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             const userId = yield this.authService.findRefreshToken(refreshAccessTokenDto.refreshToken);
             const user = yield this.userModel.findById(userId);
+            const singleLoginKey = this.setSingleLoginKey(user);
             if (!user) {
                 throw new common_1.BadRequestException("Bad request");
             }
             return {
-                accessToken: yield this.authService.createAccessToken(user._id),
+                accessToken: yield this.authService.createAccessToken(user._id, singleLoginKey),
             };
         });
     }
@@ -130,62 +183,65 @@ let UserService = class UserService {
     getAll(user, assigned, findAllDto, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             const { filters, page, perPage, searchTerm, showCols, sortBy } = findAllDto;
-            const skip = (page - 1) * perPage;
-            const subordinates = yield this.getSubordinates(user, organization);
-            const result = yield this.userModel.aggregate([
-                { $match: { email: { $in: subordinates }, organization } },
-                {
-                    $lookup: {
-                        from: "users",
-                        localField: "email",
-                        foreignField: "manages",
-                        as: "managedBy",
-                    },
-                },
-                { $unwind: "$managedBy" },
-                {
-                    $facet: {
-                        metadata: [
-                            { $count: "total" },
-                            { $addFields: { page: Number(page) } },
-                        ],
-                        users: [{ $skip: skip }, { $limit: perPage }],
-                    },
-                },
-            ]);
-            return { users: result[0].users, metadata: result[0].metadata[0] };
+            const skip = page * perPage;
+            const { email, roleType } = user;
+            const subordinates = yield this.getSubordinates(email, roleType, organization);
+            const matchQuery = { email: { $in: subordinates } };
+            const users = yield this.userModel.find(matchQuery, {
+                email: 1,
+                fullName: 1,
+                manages: 1,
+                roles: 1,
+                roleType: 1,
+                reportsTo: 1
+            }).skip(skip).limit(perPage).lean().exec();
+            const userCount = yield this.userModel.countDocuments(matchQuery).lean().exec();
+            return { users, total: userCount };
         });
     }
-    getSubordinates(user, organization) {
+    getAllManagers(organization, userEmail) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (user.roleType === "admin") {
-                const users = yield this.userModel.find({ organization }, { email: 1, _id: 0 });
-                return users.map((u) => u.email);
+            if (userEmail) {
+                const superiorRoleTypes = yield this.getSuperiorRoleTypes(userEmail);
+                return this.userModel.find({ organization, roleType: { $in: superiorRoleTypes } }, { email: 1, fullName: 1 }).lean().exec();
             }
-            if (user.roleType !== "manager" && user.roleType !== "seniorManager") {
-                return [user.email];
+            else {
+                return this.userModel.find({ roleType: { $ne: "frontline" } }, { email: 1, fullName: 1 }).lean().exec();
+            }
+        });
+    }
+    getSubordinates(email, roleType, organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (roleType === "frontline") {
+                return [email];
+            }
+            if (roleType === 'admin') {
+                const usrs = yield this.userModel.find({ organization }, { email: 1 }).lean().exec();
+                const emails = usrs.map(u => u.email);
+                return emails;
             }
             const fq = [
-                { $match: { email: user.email } },
+                { $match: { organization, email, verified: true } },
                 {
                     $graphLookup: {
                         from: "users",
-                        startWith: "$manages",
-                        connectFromField: "manages",
-                        connectToField: "email",
+                        startWith: "$email",
+                        connectFromField: "email",
+                        connectToField: "reportsTo",
                         as: "subordinates",
-                    },
+                        maxDepth: 5
+                    }
                 },
                 {
                     $project: {
                         subordinates: "$subordinates.email",
-                        roleType: "$roleType",
+                        roleType: "$subordinates.roleType",
                         hierarchyWeight: 1,
                     },
                 },
             ];
             const result = yield this.userModel.aggregate(fq);
-            return result[0].subordinates;
+            return [email, ...result[0].subordinates];
         });
     }
     isEmailUnique(email) {
@@ -282,6 +338,11 @@ let UserService = class UserService {
             yield user.save();
         });
     }
+    setSingleLoginKey(user) {
+        const singleLoginKey = uuid_2.v4();
+        user.singleLoginKey = singleLoginKey;
+        return singleLoginKey;
+    }
     saveForgotPassword(req, createForgotPasswordDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const verificationToken = uuid_1.v4();
@@ -377,7 +438,6 @@ let UserService = class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             const erroredUsers = [];
             for (const u of users) {
-                u.manages = this.parseManages(u);
                 u.hierarchyWeight = this.assignHierarchyWeight(u);
                 u.email = u.email.toLocaleLowerCase();
                 let user = yield this.userModel.findOne({ email: u.email });
@@ -420,18 +480,10 @@ let UserService = class UserService {
                 return 0;
         }
     }
-    managersForReassignment(manages, organization) {
+    managersForReassignment(email, roleType, organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.userModel
-                .find({
-                $and: [
-                    { organization },
-                    { email: { $in: manages } },
-                    { roleType: { $ne: "frontline" } },
-                ],
-            }, { email: 1 })
-                .lean()
-                .exec();
+            const emails = yield this.getSubordinates(email, roleType, organization);
+            return emails;
         });
     }
     saveToExcel(json) {
@@ -488,7 +540,7 @@ let UserService = class UserService {
     }
     getAllUsersHack(organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            const page = 1, perPage = 20, skip = 0;
+            const page = 1, perPage = 25, skip = 0;
             return this.userModel
                 .aggregate([
                 {
@@ -517,6 +569,7 @@ let UserService = class UserService {
     }
     updateUser(userid, user) {
         return __awaiter(this, void 0, void 0, function* () {
+            user.password = yield crypto_utils_1.hashPassword(user.password);
             return this.userModel.updateOne({ _id: userid }, user);
         });
     }

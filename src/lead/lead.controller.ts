@@ -13,11 +13,13 @@ import {
   UseInterceptors,
   UploadedFiles,
   PreconditionFailedException,
+  Res,
+  Logger,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
 import { FindAllDto } from "./dto/find-all.dto";
-import { CreateLeadDto } from "./dto/create-lead.dto";
+import { UpdateLeadDto } from "./dto/update-lead.dto";
 import { GeoLocationDto } from "./dto/geo-location.dto";
 import { ReassignLeadDto } from "./dto/reassign-lead.dto";
 import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
@@ -35,32 +37,96 @@ import { UserActivityDto } from "../user/dto/user-activity.dto";
 import { FollowUpDto } from "./dto/follow-up.dto";
 import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
+import { CreateLeadDto } from "./dto/create-lead.dto";
+import { GetTransactionDto } from "./dto/get-transaction.dto";
+import { utils, writeFile, WritingOptions } from "xlsx";
+import { createReadStream } from "fs";
+import { Response } from "express";
 
 @ApiTags("Lead")
 @Controller("lead")
 export class LeadController {
   constructor(private readonly leadService: LeadService) {}
 
-  @Get("getAllLeadColumns")
+  @Get("getAllLeadColumns/:campaignId")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Get lead by id",
   })
   @UseGuards(AuthGuard("jwt"))
   getAllLeadColumns(
-    @Query("campaignType") campaignType: string,
+    @Param("campaignId") campaignId: string,
+    @Query('remove') remove: string[] = [],
     @CurrentUser() user
   ) {
-    const { organization } = user;
-    return this.leadService.getLeadColumns(campaignType, organization);
+    Logger.debug(remove);
+    return this.leadService.getLeadColumns(campaignId, remove);
   }
 
-  @Post("")
-  @ApiOperation({ summary: "Fetches all lead for the given user" })
+  /** @Todo to replace campaignName with campaignId */
+  @Post("/create/:campaignId/:campaignName")
+  @ApiOperation({ summary: "Creates New Lead" })
+  @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
-  insertOne(@Body() body: CreateLeadDto, @CurrentUser() user: User) {
+  insertOne(
+    @Body() body: CreateLeadDto,
+    @CurrentUser() user: User,
+    @Param("campaignId") campaignId: string,
+    @Param("campaignName") campaignName: string
+  ) {
     const { organization, email } = user;
-    return this.leadService.insertOne(body, email, organization);
+    return this.leadService.createLead(
+      body,
+      email,
+      organization,
+      campaignId,
+      campaignName
+    );
+    // return this.leadService.insertOne(body, email, organization, campaignId);
+  }
+
+
+  /**
+   * 
+   * @param user User
+   * @param body GetTransationDto
+   * who can see these transactions - one who is assigned, his managers or admin
+   */
+  @Post("transactions")
+  @UseGuards(AuthGuard("jwt"))
+  async getTransactions(
+      @CurrentUser() user: User, 
+      @Body() body: GetTransactionDto, 
+      @Query('isStreamable') isStreamable: boolean,
+      @Res() res: Response
+    ) {
+    const { organization, email, roleType } = user;
+
+    const {response, total} = await this.leadService.getTransactions(organization, email, roleType, body, isStreamable);
+    if(!isStreamable) {
+      return res.status(200).send({response, total});
+    }
+
+    // convert to excel sheet and pipe the response to the frontend
+    if(isStreamable) {
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+      res.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx");
+
+      const wb = utils.book_new();                     // create workbook
+      /** @Todo too computationally intensive, to be replaced by mongoose */
+      const ws = utils.json_to_sheet(JSON.parse(JSON.stringify(response)));
+      utils.book_append_sheet(wb, ws, 'transactions');  // add sheet to workbook
+
+      const filename = "transactions.xlsx";
+      const wb_opts: WritingOptions = {bookType: 'xlsx', type: 'binary'};   // workbook options
+      writeFile(wb, filename, wb_opts);                // write workbook file
+
+      const stream = createReadStream(filename);         // create read stream
+      stream.pipe(res);     
+      stream.on("close", () => {
+        return res.end();
+      });
+    }
   }
 
   @Post("findAll")
@@ -76,6 +142,8 @@ export class LeadController {
       showCols,
       searchTerm,
       filters,
+      typeDict,
+      campaignId
     } = body;
 
     const { email, roleType, organization } = user;
@@ -88,7 +156,9 @@ export class LeadController {
       filters,
       email,
       roleType,
-      organization
+      organization,
+      typeDict,
+      campaignId
     );
   }
 
@@ -102,33 +172,20 @@ export class LeadController {
     return this.leadService.addGeolocation(_id, lat, lng, organization);
   }
 
-  @Put(":externalId")
+  @Put(":id")
   @ApiOperation({ summary: "Adds users location emitted from the device" })
   @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
   updateLead(
     @CurrentUser() user: User,
-    @Body() body: CreateLeadDto,
-    @Param("externalId") externalId: string
+    @Body() updateLeadObj: UpdateLeadDto,
+    @Param("id") leadId: string
   ) {
-    const { organization, email: loggedInUserEmail } = user;
-    const {
-      geoLocation,
-      lead,
-      reassignmentInfo,
-      emailForm,
-      requestedInformation,
-    } = body;
-    return this.leadService.updateLead({
-      organization,
-      externalId,
-      lead,
-      geoLocation,
-      loggedInUserEmail,
-      reassignmentInfo,
-      emailForm,
-      requestedInformation,
-    });
+    const { organization, email: handlerEmail, fullName: handlerName } = user;
+
+    return this.leadService.updateLead(
+      {...updateLeadObj, leadId, organization, handlerEmail, handlerName}
+    );
   }
 
   @Put("contact/:leadId")
@@ -146,7 +203,6 @@ export class LeadController {
   reassignLead(
     @Body() body: ReassignLeadDto,
     @CurrentUser() user: User,
-    @Param("externalId") externalId: string
   ) {
     return this.leadService.reassignLead(
       user.email,
@@ -156,17 +212,18 @@ export class LeadController {
     );
   }
 
-  @Post("syncPhoneCalls")
-  @UseGuards(AuthGuard("jwt"))
-  @ApiOperation({ summary: "Sync phone calls from device to database" })
-  @HttpCode(HttpStatus.OK)
-  syncPhoneCalls(
-    @Body() callLogs: SyncCallLogsDto[],
-    @CurrentUser() user: User
-  ) {
-    const { organization, _id } = user;
-    return this.leadService.syncPhoneCalls(callLogs, organization, _id);
-  }
+  // @Post("syncPhoneCalls/:leadId")
+  // @UseGuards(AuthGuard("jwt"))
+  // @ApiOperation({ summary: "Sync phone calls from device to database" })
+  // @HttpCode(HttpStatus.OK)
+  // syncPhoneCalls(
+  //   @Param('leadId') leadId: string,
+  //   @Body() callLogs: SyncCallLogsDto,
+  //   @CurrentUser() user: User
+  // ) {
+  //   const { organization, _id: agentId } = user;
+  //   return this.leadService.syncPhoneCalls(callLogs, organization, agentId, leadId);
+  // }
 
   @Get("getLeadHistoryById/:externalId")
   @ApiOperation({
@@ -222,14 +279,14 @@ export class LeadController {
     @CurrentUser() user: User,
     @Query("limit") limit: number = 10,
     @Query("skip") skip: number = 0,
-    @Query("campaignId") campaignId: string,
+    @Query("campaignId") campaignId: string
   ) {
     const { organization } = user;
     return this.leadService.getAllEmailTemplates(
       limit || 20,
       skip || 0,
       campaignId,
-      organization,
+      organization
     );
   }
 
@@ -288,14 +345,15 @@ export class LeadController {
   ) {
     /** @Todo add organization to lead file uploads also */
     const { email, organization, _id, pushtoken } = user;
-    const { campaignName, files } = body;
+    const { campaignName, files, campaignId } = body;
     return this.leadService.uploadMultipleLeadFiles(
       files,
       campaignName,
       email,
       organization,
       _id,
-      pushtoken
+      pushtoken,
+      campaignId
     );
   }
 
@@ -333,8 +391,6 @@ export class LeadController {
     return this.leadService.leadActivityByUser(startDate, endDate, email);
   }
 
-  // router.get("/fetchNextLead/:campaignId/:leadStatus", passportConfig.authenticateJWT, leadController.fetchNextLead);
-
   @Post("fetchNextLead/:campaignId")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({
@@ -348,7 +404,7 @@ export class LeadController {
     @Param("campaignId") campaignId: string,
     @Body() body: FetchNextLeadDto
   ) {
-    const { organization, email } = user;
+    const { organization, email, roleType } = user;
     const { filters, typeDict } = body;
     return this.leadService.fetchNextLead({
       campaignId,
@@ -356,6 +412,7 @@ export class LeadController {
       email,
       organization,
       typeDict,
+      roleType
     });
   }
 
@@ -401,25 +458,20 @@ export class LeadController {
     const { organization } = user;
     const {
       interval,
-      userEmail: email,
+      userEmail,
       campaignName,
       page,
       perPage,
     } = followUpDto;
 
-    if (email && !user.manages.indexOf(email) && user.roleType !== "admin") {
-      throw new PreconditionFailedException(
-        null,
-        "You do not manage the user whose followups you want to see"
-      );
-    }
+    await this.leadService.checkPrecondition(user, userEmail);
 
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
     return this.leadService.getFollowUps({
       interval,
       organization,
-      email: email || user.email,
+      email: userEmail || user.email,
       campaignName,
       limit,
       page,

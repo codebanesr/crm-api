@@ -8,6 +8,8 @@ import config from '../config';
 import { RedisModule} from 'nestjs-redis'
 import { SharedModule } from '../shared/shared.module';
 import { UserModule } from '../user/user.module';
+import { ResellerOrganizationSchema } from './schema/reseller-organization.schema';
+import { TransactionSchema } from './schema/transaction.schema';
 
 
 @Module({
@@ -20,7 +22,9 @@ import { UserModule } from '../user/user.module';
       authToken: config.twilio.authToken,
     }),
     MongooseModule.forFeature([
-      { name: "Organization", schema: OrganizationSchema }
+      { name: "Organization", schema: OrganizationSchema },
+      { name: "ResellerOrganization", schema: ResellerOrganizationSchema },
+      { name: "Transaction", schema: TransactionSchema}
     ]),
   ],
   providers: [OrganizationService],

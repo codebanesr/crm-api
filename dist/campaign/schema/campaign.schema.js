@@ -13,7 +13,8 @@ exports.CampaignSchema = new mongoose_1.Schema({
         required: true,
     },
     archived: Boolean,
-    interval: [Date],
+    startDate: Date,
+    endDate: Date,
     assignees: [{ type: mongoose_1.Types.ObjectId, ref: "User" }],
     type: { type: String },
     browsableCols: [String],
@@ -22,6 +23,7 @@ exports.CampaignSchema = new mongoose_1.Schema({
     assignTo: [String],
     advancedSettings: [String],
     formModel: Object,
+    autodialSettings: Object,
     groups: [
         {
             label: String,

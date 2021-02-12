@@ -13,7 +13,7 @@ export class LoginUserDto {
     })
     @IsNotEmpty()
     @IsString()
-    @MinLength(5)
+    @MinLength(4)
     @MaxLength(255)
     @IsEmail()
     readonly email: string;

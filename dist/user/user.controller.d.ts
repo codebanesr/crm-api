@@ -9,10 +9,12 @@ import { User } from "./interfaces/user.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
+import { CreateResellerDto } from "./dto/create-reseller.dto";
 export declare class UserController {
     private readonly userService;
     constructor(userService: UserService);
     register(createUserDto: CreateUserDto, user: User): Promise<any>;
+    registerReseller(createResellerDto: CreateResellerDto, user: User): Promise<any>;
     getAllUsersHack(user: User): Promise<any>;
     getUserById(user: User, userid: string): Promise<User>;
     verifyEmail(req: IRequest, verifyUuidDto: VerifyUuidDto): Promise<{
@@ -45,7 +47,8 @@ export declare class UserController {
         message: string;
     }>;
     findAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any>;
-    managersForReassignment(user: User, assigned: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    getAllManagers(user: User, userEmail: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    managersForReassignment(user: User, assigned: string): Promise<string[]>;
     add(req: any, assigned: string, file: any, user: User): Promise<import("./interfaces/admin-actions.interface").AdminAction>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
     subscribeToPush(user: User, body: PushNotificationDto): Promise<{

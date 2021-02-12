@@ -56,5 +56,10 @@ __decorate([
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], FindCampaignsDto.prototype, "sortBy", void 0);
+__decorate([
+    class_validator_1.IsOptional(),
+    class_validator_1.IsString({ each: true }),
+    __metadata("design:type", Array)
+], FindCampaignsDto.prototype, "select", void 0);
 exports.FindCampaignsDto = FindCampaignsDto;
 //# sourceMappingURL=find-campaigns.dto.js.map

@@ -12,16 +12,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserSchema = void 0;
 const mongoose_1 = require("mongoose");
 const validator_1 = require("validator");
-const bcrypt = require("bcryptjs");
+const crypto_utils_1 = require("../../utils/crypto.utils");
 exports.UserSchema = new mongoose_1.Schema({
     fullName: {
         type: String,
-        minlength: 6,
+        minlength: 5,
         maxlength: 255,
         required: [true, "NAME_IS_BLANK"],
     },
     email: {
         type: String,
+        unique: true,
         lowercase: true,
         validate: validator_1.default.isEmail,
         maxlength: 255,
@@ -42,6 +43,10 @@ exports.UserSchema = new mongoose_1.Schema({
         type: String,
         validate: validator_1.default.isUUID,
     },
+    singleLoginKey: {
+        type: String,
+        validate: validator_1.default.isUUID
+    },
     verified: {
         type: Boolean,
         default: false,
@@ -59,11 +64,14 @@ exports.UserSchema = new mongoose_1.Schema({
         default: Date.now,
     },
     roleType: { type: String, required: true },
-    manages: [String],
-    reportsTo: { type: String, default: null },
+    reportsTo: {
+        type: String,
+        validate: validator_1.default.isEmail,
+        required: true
+    },
     phoneNumber: { type: String, required: true, default: "00000" },
     history: { type: Array, default: null },
-    hierarchyWeight: Number,
+    hierarchyWeight: { type: Number },
     organization: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Organization",
@@ -77,6 +85,7 @@ exports.UserSchema = new mongoose_1.Schema({
             auth: String,
         },
     },
+    batLvl: Number
 }, {
     versionKey: false,
     timestamps: true,
@@ -87,7 +96,7 @@ exports.UserSchema.pre("save", function (next) {
             if (!this.isModified("password")) {
                 return next();
             }
-            const hashed = yield bcrypt.hash(this["password"], 10);
+            const hashed = yield crypto_utils_1.hashPassword(this["password"]);
             this["password"] = hashed;
             return next();
         }

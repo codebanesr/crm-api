@@ -3,4 +3,5 @@ export declare class FindCampaignsDto {
     perPage: number;
     filters: {};
     sortBy: string;
+    select?: string[];
 }

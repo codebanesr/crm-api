@@ -26,36 +26,20 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const fs_1 = require("fs");
+const lodash_1 = require("lodash");
+const moment = require("moment");
 let AgentService = class AgentService {
-    constructor(adminActionModel) {
+    constructor(adminActionModel, visitTrackModel, userModel) {
         this.adminActionModel = adminActionModel;
+        this.visitTrackModel = visitTrackModel;
+        this.userModel = userModel;
     }
-    listActions(activeUserId, organization, skip, fileType, sortBy = "handler", me) {
+    listActions(activeUserId, organization, skip, fileType, sortBy = "handler", me, campaign) {
         return __awaiter(this, void 0, void 0, function* () {
-            const fq = this.adminActionModel.aggregate();
-            fq.match({ organization });
-            if (me) {
-                fq.match({ userid: activeUserId });
-            }
-            fq.lookup({
-                from: "users",
-                localField: "userid",
-                foreignField: "_id",
-                as: "userdetails",
-            });
-            fq.unwind({ path: "$userdetails" });
-            fq.project({
-                email: "$userdetails.email",
-                savedOn: "$userdetails.savedOn",
-                filePath: "$filePath",
-                actionType: "$actionType",
-                createdAt: "$createdAt",
-                label: "$label",
-            });
-            fq.sort({ createdAt: -1 });
-            fq.skip(Number(skip));
-            fq.limit(20);
-            return fq.exec();
+            return this.adminActionModel.find({
+                campaign,
+                organization
+            }).sort({ createdAt: -1 }).limit(20).lean().exec();
         });
     }
     downloadFile(location, res) {
@@ -67,11 +51,78 @@ let AgentService = class AgentService {
             readStream.pipe(res);
         });
     }
+    updateBatteryStatus(userId, batLvlDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            common_1.Logger.debug(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}, ${batLvlDto.batLvl}`);
+            return this.visitTrackModel.findOneAndUpdate({ userId }, {
+                $set: {
+                    batLvl: batLvlDto.batLvl
+                }
+            }, { upsert: true });
+        });
+    }
+    addVisitTrack(userId, payload) {
+        return __awaiter(this, void 0, void 0, function* () {
+            common_1.Logger.debug(`userid: ${userId}, coorinates: ${payload.coordinate}`);
+            const start = moment().startOf('day');
+            const end = moment().endOf('day');
+            return this.visitTrackModel.findOneAndUpdate({ userId, createdAt: { $gte: start, $lt: end } }, {
+                $push: {
+                    locations: Object.assign(Object.assign({}, payload.coordinate), { timestamp: new Date() })
+                }
+            }, { upsert: true });
+        });
+    }
+    getVisitTrack(id, roleType, organization, userLocationDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let subordinateIds = yield this.getSubordinates(id, roleType);
+            subordinateIds = subordinateIds.map(s => s.toString());
+            const { campaign, startDate, endDate, userIds } = userLocationDto;
+            let validUserIds = lodash_1.intersection(userIds, subordinateIds);
+            validUserIds = lodash_1.union(validUserIds, [id.toString()]);
+            return this.visitTrackModel.find({
+                userId: { $in: validUserIds },
+                createdAt: { $gte: startDate, $lte: endDate }
+            });
+        });
+    }
+    getSubordinates(id, roleType) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (roleType === "frontline") {
+                return [id];
+            }
+            const fq = [
+                { $match: { _id: id } },
+                {
+                    $graphLookup: {
+                        from: "users",
+                        startWith: "$manages",
+                        connectFromField: "manages",
+                        connectToField: "_id",
+                        as: "subordinates",
+                    },
+                },
+                {
+                    $project: {
+                        subordinates: "$subordinates._id",
+                        roleType: "$roleType",
+                        hierarchyWeight: 1,
+                    },
+                },
+            ];
+            const result = yield this.userModel.aggregate(fq);
+            return [id, ...result[0].subordinates];
+        });
+    }
 };
 AgentService = __decorate([
     common_1.Injectable(),
     __param(0, mongoose_1.InjectModel("AdminAction")),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, mongoose_1.InjectModel("VisitTrack")),
+    __param(2, mongoose_1.InjectModel("User")),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model])
 ], AgentService);
 exports.AgentService = AgentService;
 //# sourceMappingURL=agent.service.js.map

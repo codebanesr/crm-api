@@ -23,7 +23,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
-const jwt_1 = require("@nestjs/jwt");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const jsonwebtoken_1 = require("jsonwebtoken");
@@ -31,16 +30,15 @@ const uuid_1 = require("uuid");
 const request_ip_1 = require("request-ip");
 const Cryptr = require("cryptr");
 let AuthService = class AuthService {
-    constructor(userModel, refreshTokenModel, roleModel, jwtService) {
+    constructor(userModel, refreshTokenModel, roleModel) {
         this.userModel = userModel;
         this.refreshTokenModel = refreshTokenModel;
         this.roleModel = roleModel;
-        this.jwtService = jwtService;
         this.cryptr = new Cryptr(process.env.ENCRYPT_JWT_SECRET);
     }
-    createAccessToken(userId) {
+    createAccessToken(userId, singleLoginKey) {
         return __awaiter(this, void 0, void 0, function* () {
-            const accessToken = jsonwebtoken_1.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION });
+            const accessToken = jsonwebtoken_1.sign({ userId, singleLoginKey }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION });
             return this.encryptText(accessToken);
         });
     }
@@ -68,7 +66,11 @@ let AuthService = class AuthService {
     }
     validateUser(jwtPayload) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.userModel.findOne({ _id: jwtPayload.userId, verified: true });
+            const user = yield this.userModel.findOne({
+                _id: jwtPayload.userId,
+                singleLoginKey: jwtPayload.singleLoginKey,
+                verified: true
+            });
             if (!user) {
                 throw new common_1.UnauthorizedException('User not found.');
             }
@@ -130,8 +132,7 @@ AuthService = __decorate([
     __param(2, mongoose_1.InjectModel('Role')),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model,
-        jwt_1.JwtService])
+        mongoose_2.Model])
 ], AuthService);
 exports.AuthService = AuthService;
 //# sourceMappingURL=auth.service.js.map

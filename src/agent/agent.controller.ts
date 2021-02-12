@@ -7,6 +7,8 @@ import {
   Query,
   Res,
   UseGuards,
+  Post,
+  Body,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AgentService } from "./agent.service";
@@ -16,6 +18,9 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { User } from "../user/interfaces/user.interface";
 import { Roles } from "../auth/decorators/roles.decorator";
+import { BatteryStatusDto } from "./schemas/battery-status.dto";
+import { AddLocationDto } from "./dto/add-location.dto";
+import { GetUsersLocationsDto } from "./dto/get-user-locations.dto";
 
 @ApiTags("Agent")
 @Controller("agent")
@@ -26,34 +31,70 @@ export class AgentController {
   @Get("listActions")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "List all admin actions" })
-  @Roles('admin')
+  @Roles('admin', 'manager')
   @HttpCode(HttpStatus.OK)
-  getUsersPerformance(
+  async getUsersPerformance(
     @CurrentUser() user: User,
     @Query("skip") skip: number = 0,
     @Query("fileType") fileType: string,
     @Query("sortBy") sortBy: string = 'handler',
-    @Query("me") me: boolean
+    @Query("me") me: boolean,
+    @Query("campaign") campaign: string
   ) {
     const { id: activeUserId, organization } = user;
 
+    /** remove aggregation and add stricter types using QueryParams and class validators */
     return this.agentService.listActions(
       activeUserId,
       organization,
       skip,
       fileType,
       sortBy,
-      me
+      me,
+      campaign
     );
   }
 
   @Get("download")
   @ApiOperation({ summary: "Get all admin actions" })
+  @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
-  downloadFile(
+  async downloadFile(
     @Res() res: Response,
     @Query("location") location: string,
   ) {
     this.agentService.downloadFile(location, res);
+  }
+
+
+  @Post("batteryStatus")
+  @ApiOperation({ summary: "Updates the battery status when it changes" })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard("jwt"))
+  async batteryStatus(
+    @Body() batLvl: BatteryStatusDto,
+    @CurrentUser() user: User
+  ) {
+
+    const { _id } = user;
+    return this.agentService.updateBatteryStatus(_id, batLvl);
+  }
+
+
+  @Post("visitTrack/get")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Updates the battery status when it changes" })
+  async getVisitTrack(@Body() userLocationDto: GetUsersLocationsDto, @CurrentUser() user: User) {
+    const {_id, organization, roleType} = user;
+    return this.agentService.getVisitTrack(_id, roleType, organization ,userLocationDto);
+  }
+
+  @Post("visitTrack")
+  @ApiOperation({ summary: "Update users visiting location" })
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard("jwt"))
+  async addVisitTrack(@CurrentUser() user: User, @Body() payload: AddLocationDto) {
+    const {_id} = user;
+    return this.agentService.addVisitTrack(_id, payload);
   }
 }

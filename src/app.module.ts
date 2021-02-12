@@ -11,22 +11,18 @@ import { AgentModule } from "./agent/agent.module";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { OrganizationModule } from "./organization/organization.module";
 import { SharedModule } from "./shared/shared.module";
-import { ServeStaticModule } from "@nestjs/serve-static/dist/serve-static.module";
-import { join } from "path";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { UploadService } from "./upload/upload.service";
 import { PushNotificationService } from "./push-notification/push-notification.service";
 import Config from "./config";
-import { LoggerModule } from "nestjs-pino";
+// import { LoggerModule } from "nestjs-pino";
+import { RulesModule } from './rules/rules.module';
 
 @Module({
   imports: [
-    LoggerModule.forRoot(),
+    // LoggerModule.forRoot(),
     CacheModule.register(),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, "..", "client"),
-    }),
-    MongooseModule.forRoot(Config.MONGODB_URI),
+    MongooseModule.forRoot(Config.MONGODB_URI, { useNewUrlParser: true }),
     UserModule,
     AuthModule,
     ArticleModule,
@@ -36,6 +32,7 @@ import { LoggerModule } from "nestjs-pino";
     OrganizationModule,
     SharedModule,
     DashboardModule,
+    RulesModule,
   ],
   controllers: [AppController],
   providers: [

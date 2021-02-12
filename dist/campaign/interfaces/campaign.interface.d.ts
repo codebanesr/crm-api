@@ -4,7 +4,8 @@ export interface Campaign extends Document {
     workflow: string;
     comment: string;
     createdBy: string;
-    interval: string[];
+    startDate: Date;
+    endDate: Date;
     type: string;
     organization: string;
     assignees: string[];
@@ -15,6 +16,7 @@ export interface Campaign extends Document {
     advancedSettings: string[];
     archived: boolean;
     assignTo: string[];
+    autodialSettings: Object;
     groups: {
         label: string;
         value: string[];

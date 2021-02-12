@@ -34,6 +34,10 @@ __decorate([
     class_validator_1.IsMongoId(),
     __metadata("design:type", String)
 ], FiltersDto.prototype, "selectedCampaign", void 0);
+__decorate([
+    class_validator_1.IsString({ each: true }),
+    __metadata("design:type", Array)
+], FiltersDto.prototype, "leadStatusKeys", void 0);
 exports.FiltersDto = FiltersDto;
 class FindAllDto {
     constructor() {
@@ -61,7 +65,7 @@ __decorate([
         format: "number",
         default: 15,
     }),
-    class_validator_1.IsNumber(),
+    class_validator_1.IsPositive(),
     __metadata("design:type", Number)
 ], FindAllDto.prototype, "perPage", void 0);
 __decorate([

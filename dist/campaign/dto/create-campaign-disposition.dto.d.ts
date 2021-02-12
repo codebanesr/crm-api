@@ -1,4 +1,13 @@
 export declare class CreateCampaignAndDispositionDto {
-    dispositionData: string;
-    campaignInfo: string;
+    dispositionData: any;
+    campaignInfo: any;
+    editableCols: string;
+    browsableCols: string;
+    uniqueCols: string;
+    formModel: JSON;
+    assignTo: string;
+    advancedSettings: string;
+    groups: string;
+    isNew: boolean;
+    autodialSettings: JSON;
 }

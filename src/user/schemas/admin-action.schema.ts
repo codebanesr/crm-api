@@ -4,6 +4,7 @@ export const AdminActionSchema = new Schema(
   {
     userid: { type: Schema.Types.ObjectId, ref: "User" },
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
+    campaign: {type: Schema.Types.ObjectId, ref: "Campaign"},
     actionType: String,
     filePath: String,
     savedOn: {

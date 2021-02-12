@@ -25,7 +25,7 @@ __decorate([
     }),
     class_validator_1.IsNotEmpty(),
     class_validator_1.IsString(),
-    class_validator_1.MinLength(5),
+    class_validator_1.MinLength(4),
     class_validator_1.MaxLength(255),
     class_validator_1.IsEmail(),
     __metadata("design:type", String)
