@@ -5,12 +5,12 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { warn } from "console";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { ValidationPipe } from "@nestjs/common";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { LeadModule } from "./lead/lead.module";
 import { CampaignModule } from "./campaign/campaign.module";
 import { AgentModule } from "./agent/agent.module";
 import { OrganizationModule } from "./organization/organization.module";
-import { Logger } from "nestjs-pino";
+// import { Logger } from "nestjs-pino";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
