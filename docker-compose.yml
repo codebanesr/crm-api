@@ -23,7 +23,7 @@ services:
     ports:
       - "3000:3000"
     tty: true
-    command: "yarn start:prod"
+    command: "yarn start"
     env_file:
       - .env
     networks:
