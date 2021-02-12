@@ -12,4 +12,8 @@ export const CampaignConfigSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Organization",
   },
+  campaignId: {
+    type: Schema.Types.ObjectId,
+    ref: "Campaign"
+  }
 });

@@ -49,4 +49,10 @@ export default {
     VAPID_PUBLIC: process.env.VAPID_PUBLIC,
     VAPID_PRIVATE: process.env.VAPID_PRIVATE,
   },
+
+  BULL: {
+    REDIS_PASSWORD: process.env.BULL_REDIS_PASSWORD,
+    REDIS_URL: process.env.BULL_REDIS_URL,
+    REDIS_PORT: process.env.BULL_REDIS_PORT,
+  }
 };

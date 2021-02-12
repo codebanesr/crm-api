@@ -13,8 +13,8 @@ import { OrganizationModule } from "./organization/organization.module";
 import { Logger } from "nestjs-pino";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { logger: false });
-  app.useLogger(app.get(Logger));
+  const app = await NestFactory.create(AppModule);
+  // app.useLogger(app.get(Logger));
 
   app.enableCors();
   // ╦ ╦╔═╗╔═╗  ╔═╗╦  ╔═╗╔╗ ╔═╗╦    ╔═╗╦╔═╗╔═╗╔═╗
@@ -30,12 +30,14 @@ async function bootstrap() {
   // ╔═╗╦ ╦╔═╗╔═╗╔═╗╔═╗╦═╗
   // ╚═╗║║║╠═╣║ ╦║ ╦║╣ ╠╦╝
   // ╚═╝╚╩╝╩ ╩╚═╝╚═╝╚═╝╩╚═
+  app.setGlobalPrefix('api');
+
   const options = new DocumentBuilder()
-    .setTitle("API")
-    .setDescription("API description")
-    .setVersion("1.0")
-    .addTag("API")
-    .build();
+  .setTitle("API")
+  .setDescription("API description")
+  .setVersion("1.0")
+  .addTag("API")
+  .build();
   const document = SwaggerModule.createDocument(app, options, {
     include: [
       UserModule,
@@ -46,7 +48,7 @@ async function bootstrap() {
       OrganizationModule,
     ],
   });
-  SwaggerModule.setup("api", app, document);
+  SwaggerModule.setup("api/swagger", app, document);
 
   // ╔╦╗╔═╗╔═╗╦╔╗╔╔═╗  ╔═╗╔╗╔╔╦╗  ╦  ╦╔═╗╔╦╗╔═╗╔╗╔  ╔╦╗╔═╗  ╔═╗╔═╗╦═╗╔╦╗
   // ║║║╣ ╠╣ ║║║║║╣    ╠═╣║║║ ║║  ║  ║╚═╗ ║ ║╣ ║║║   ║ ║ ║  ╠═╝║ ║╠╦╝ ║

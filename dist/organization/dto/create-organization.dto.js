@@ -34,7 +34,7 @@ __decorate([
     class_validator_1.MaxLength(255),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], CreateOrganizationDto.prototype, "organizationName", void 0);
+], CreateOrganizationDto.prototype, "name", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: 'shanur@gmail.com',
@@ -121,5 +121,14 @@ __decorate([
     class_validator_1.MaxLength(14),
     __metadata("design:type", String)
 ], CreateOrganizationDto.prototype, "password", void 0);
+__decorate([
+    swagger_1.ApiProperty({
+        example: "https://s3.ap-south-1.amazonaws.com/molecule.static.files/_1607512889676anjeline.jpg",
+        description: 'Enter the image for the organization for white labelling',
+        type: String,
+    }),
+    class_validator_1.IsUrl(),
+    __metadata("design:type", String)
+], CreateOrganizationDto.prototype, "organizationImage", void 0);
 exports.CreateOrganizationDto = CreateOrganizationDto;
 //# sourceMappingURL=create-organization.dto.js.map

@@ -12,6 +12,7 @@ import { Request } from "express";
 import { AdminAction } from "./interfaces/admin-actions.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
+import { CreateResellerDto } from "./dto/create-reseller.dto";
 export declare class UserService {
     private readonly userModel;
     private readonly forgotPasswordModel;
@@ -22,6 +23,9 @@ export declare class UserService {
     LOGIN_ATTEMPTS_TO_BLOCK: number;
     constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, authService: AuthService);
     create(createUserDto: CreateUserDto, organization: string): Promise<any>;
+    checkHierarchyPreconditions(createUserDto: CreateUserDto): Promise<boolean>;
+    getSuperiorRoleTypes(email: string): Promise<string[]>;
+    createReseller(createResellerDto: CreateResellerDto): Promise<any>;
     verifyEmail(req: Request, verifyUuidDto: VerifyUuidDto): Promise<{
         fullName: string;
         email: string;
@@ -52,7 +56,8 @@ export declare class UserService {
         message: string;
     }>;
     getAll(user: User, assigned: string, findAllDto: FindAllDto, organization: any): Promise<any>;
-    getSubordinates(user: User, organization: string): Promise<any>;
+    getAllManagers(organization: string, userEmail?: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    getSubordinates(email: string, roleType: string, organization: string): Promise<string[]>;
     private isEmailUnique;
     private setRegistrationInfo;
     private buildRegistrationInfo;
@@ -65,6 +70,7 @@ export declare class UserService {
     private passwordsDoNotMatch;
     private blockUser;
     private passwordsAreMatch;
+    private setSingleLoginKey;
     private saveForgotPassword;
     private findForgotPasswordByUuid;
     private setForgotPasswordFirstUsed;
@@ -76,7 +82,7 @@ export declare class UserService {
     private withManages;
     private parseManages;
     private assignHierarchyWeight;
-    managersForReassignment(manages: string[], organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "manages" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    managersForReassignment(email: string, roleType: string, organization: string): Promise<string[]>;
     saveToExcel(json: any): string;
     sendEmailForgotPassword(email: string, token: string): Promise<boolean>;
     getAllUsersHack(organization: string): Promise<any>;

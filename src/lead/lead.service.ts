@@ -2,34 +2,35 @@ import {
   Injectable,
   Logger,
   PreconditionFailedException,
+  UnprocessableEntityException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model, NativeError } from "mongoose";
-import { Lead, LeadHistory } from "./interfaces/lead.interface";
-import { get, isArray, isEmpty, keyBy, keys, values } from "lodash";
+import { Model } from "mongoose";
+import { Lead } from "./interfaces/lead.interface";
+import { get, intersection, isArray, isEmpty, values } from "lodash";
 import { Types } from "mongoose";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
-import { sendEmail } from "../utils/sendMail";
-import { IConfig } from "../utils/renameJson";
-import parseExcel from "../utils/parseExcel";
-import { utils, write } from "xlsx";
+import { NotificationService } from "../utils/notification.service";
 import { EmailTemplate } from "./interfaces/email-template.interface";
 import { CampaignConfig } from "./interfaces/campaign-config.interface";
-import { CallLog } from "./interfaces/call-log.interface";
 import { GeoLocation } from "./interfaces/geo-location.interface";
-import { CreateLeadDto, ReassignmentInfo } from "./dto/create-lead.dto";
-import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
+import { UpdateLeadDto } from "./dto/update-lead.dto";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";
-import { createTransport, SendMailOptions } from "nodemailer";
-import { default as config } from "../config";
 import { S3UploadedFiles } from "./dto/generic.dto";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
-import { UploadService } from "../upload/upload.service";
-import { PushNotificationService } from "../push-notification/push-notification.service";
 import { UpdateContactDto } from "./dto/update-contact.dto";
+import { CreateLeadDto } from "./dto/create-lead.dto";
+import { LeadHistory } from "./interfaces/lead-history.interface";
+import { GetTransactionDto } from "./dto/get-transaction.dto";
+import { RulesService } from "../rules/rules.service";
+import { UserService } from "../user/user.service";
+import { InjectQueue } from "@nestjs/bull";
+import { Queue } from "bull";
+import { createTransport, SendMailOptions } from "nodemailer";
+import config from '../config';
 @Injectable()
 export class LeadService {
   constructor(
@@ -38,9 +39,6 @@ export class LeadService {
 
     @InjectModel("AdminAction")
     private readonly adminActionModel: Model<AdminAction>,
-
-    @InjectModel("User")
-    private readonly userModel: Model<User>,
 
     @InjectModel("CampaignConfig")
     private readonly campaignConfigModel: Model<CampaignConfig>,
@@ -51,8 +49,8 @@ export class LeadService {
     @InjectModel("EmailTemplate")
     private readonly emailTemplateModel: Model<EmailTemplate>,
 
-    @InjectModel("CallLog")
-    private readonly callLogModel: Model<CallLog>,
+    @InjectModel("LeadHistory")
+    private readonly leadHistoryModel: Model<LeadHistory>,
 
     @InjectModel("GeoLocation")
     private readonly geoLocationModel: Model<GeoLocation>,
@@ -60,9 +58,15 @@ export class LeadService {
     @InjectModel("Alarm")
     private readonly alarmModel: Model<Alarm>,
 
-    private readonly s3UploadService: UploadService,
 
-    private readonly pushNotificationService: PushNotificationService
+    @InjectQueue('leadQ') 
+    private leadUploadQueue: Queue,
+
+    private readonly ruleService: RulesService,
+
+    private userService: UserService,
+
+    private notificationService: NotificationService,
   ) {}
 
   saveEmailAttachments(files) {
@@ -77,21 +81,21 @@ export class LeadService {
   ) {
     try {
       const assigned = oldUserEmail ? "reassigned" : "assigned";
-      let note = "";
+      let notes = "";
       if (oldUserEmail) {
-        note = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
+        notes = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
       } else {
-        note = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
+        notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
       }
-      const history = {
+      const history: Partial<LeadHistory> = {
         oldUser: oldUserEmail,
         newUser: newUserEmail,
-        note,
-      } as LeadHistory;
+        notes,
+      };
 
       const result = await this.leadModel
         .updateOne(
-          { externalId: lead.externalId },
+          { _id: lead._id },
           { email: newUserEmail, $push: { history: history } }
         )
         .lean()
@@ -102,8 +106,7 @@ export class LeadService {
     }
   }
 
-  // filePath: String,
-  // fileName: String
+
   async createEmailTemplate(
     userEmail: string,
     content: any,
@@ -195,11 +198,13 @@ export class LeadService {
     filters: FiltersDto,
     activeUserEmail: string,
     roleType: string,
-    organization: string
+    organization: string,
+    typeDict,
+    campaignId: string
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
-    const { assigned, selectedCampaign, dateRange } = filters;
+    const { assigned, selectedCampaign, dateRange, leadStatusKeys, ...otherFilters } = filters;
     const [startDate, endDate] = dateRange || [];
 
     const leadAgg = this.leadModel.aggregate();
@@ -208,16 +213,70 @@ export class LeadService {
       leadAgg.match({ $text: { $search: searchTerm } });
     }
 
-    leadAgg.match({ organization });
+    const matchQuery = { organization };
+
+    if(campaignId!=='all') {
+      matchQuery['campaignId'] = Types.ObjectId(campaignId);
+    }else {
+      /**  a lead cannot be present without a campaignId, if a campaignId was passed use that campaign id to filter leads. nahi to a lead 
+      must atleast have a campaignId, use a worker process to delete leads that dont belong to a campaign and log those leads that were
+      deleted. @Todo remove this check when everything works fine, we should not have this situation in the first place */
+      matchQuery['campaignId'] = { $exists: true }
+    }
+
+    if(leadStatusKeys?.length > 0) {
+      matchQuery["leadStatusKeys"] = {$in: leadStatusKeys};
+    }
+
+    Object.keys(otherFilters).forEach((k) => {
+      if (!otherFilters[k]) {
+        delete otherFilters[k];
+      }
+    });
+
+    Object.keys(otherFilters).forEach((key) => {
+      switch (typeDict[key].type) {
+        case "string":
+        case "select":
+        case "tel":
+          /** @Todo coalesce all match queries in order of best match to worst match */
+          const expr = new RegExp(otherFilters[key]);
+          matchQuery[key] = { $regex: expr, $options: "i" };
+          break;
+        case "date":
+          const dateInput = otherFilters[key];
+          if (dateInput.length === 2) {
+            const startDate = new Date(dateInput[0]);
+            const endDate = new Date(dateInput[1]);
+
+            matchQuery[key] = { $gte: startDate, $lt: endDate };
+          } else if (dateInput.length === 1) {
+            matchQuery[key] = { $eq: new Date(dateInput[0]) };
+          }
+          break;
+      }
+    });
+
+    leadAgg.match(matchQuery);
 
     if (assigned) {
-      const subordinateEmails = await this.getSubordinates(
+      const subordinateEmails = await this.userService.getSubordinates(
         activeUserEmail,
-        roleType
+        roleType,
+        organization
       );
 
+      // leadAgg.match({
+      //   email: { $in: [...subordinateEmails, activeUserEmail] },
+      // });
+
+
+      /** @Todo this should be changed to use userid and not email */
       leadAgg.match({
-        email: { $in: [...subordinateEmails, activeUserEmail] },
+        $or: [
+          { email: { $in: [...subordinateEmails, activeUserEmail] } },
+          { email: { $exists: false } },
+        ],
       });
     }
 
@@ -258,7 +317,8 @@ export class LeadService {
     const projectQ = {} as any;
 
     flds.forEach((fld: string) => {
-      projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
+      // projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
+      projectQ[fld] = 1;
     });
 
     if (Object.keys(projectQ).length > 0) {
@@ -280,20 +340,9 @@ export class LeadService {
     };
   }
 
-  async getLeadColumns(campaignType: string = "core", organization: string) {
-    if (campaignType !== "core") {
-      const campaign: any = await this.campaignModel
-        .findOne({ _id: Types.ObjectId(campaignType), organization })
-        .lean()
-        .exec();
-      campaignType = campaign.campaignName;
-    }
-    const matchQ: any = { name: campaignType };
-
-    const paths = await this.campaignConfigModel
-      .aggregate([{ $match: matchQ }])
-      .exec();
-
+  async getLeadColumns(campaignId, removeFields) {
+    const project = {};
+    const paths = await this.campaignConfigModel.find({campaignId, internalField: {$nin: removeFields}});
     return { paths: paths };
   }
 
@@ -318,10 +367,18 @@ export class LeadService {
 
   async findOneById(leadId: string, organization: string) {
     const lead = await this.leadModel
-      .findOne({ _id: leadId, organization })
+      .findById(leadId)
       .lean()
       .exec();
-    return lead;
+
+
+    let leadHistory = []
+    if(lead) {
+      leadHistory = await this.leadHistoryModel
+      .find({ lead: lead._id })
+      .limit(5);
+    }
+    return {lead, leadHistory};
   }
 
   async patch(productId: string, body: any[]) {
@@ -333,6 +390,32 @@ export class LeadService {
     return this.leadModel
       .update({ _id: productId }, { $set: updateOps })
       .exec();
+  }
+
+  async createLead(
+    body: CreateLeadDto,
+    email: string,
+    organization: string,
+    campaignId: string,
+    campaignName: string
+  ) {
+    const { contact, lead } = body;
+
+    /** lead gets assigned to whoever creates it, he can go back and reassign the lead if he wishes to */
+    lead.email = email;
+    lead.firstName = lead.firstName || 'Undefined';
+
+    if(!lead.fullName) {
+      lead.fullName = `${lead.firstName} ${lead.lastName}`;
+    }
+    
+    return this.leadModel.create({
+      ...lead,
+      campaignId,
+      campaign: campaignName,
+      organization,
+      contact,
+    });
   }
 
   async deleteOne(leadId: string, activeUserEmail: string) {
@@ -371,7 +454,7 @@ export class LeadService {
     emails = isArray(emails) ? emails : [emails];
     const sepEmails = emails.join(",");
     try {
-      sendEmail(sepEmails, subject, text, attachments);
+      this.notificationService.sendMail({ subject, text, attachments, to: sepEmails });
       return { success: true };
     } catch (e) {
       Logger.error(
@@ -423,60 +506,13 @@ export class LeadService {
     uploader: string,
     organization: string,
     userId: string,
-    pushtoken: any
+    pushtoken: any,
+    campaignId: string
   ) {
-    const ccnfg = (await this.campaignConfigModel
-      .find(
-        { name: campaignName, organization },
-        { readableField: 1, internalField: 1, _id: 0 }
-      )
-      .lean()
-      .exec()) as IConfig[];
-    if (!ccnfg) {
-      throw new Error(
-        `Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`
-      );
-    }
-
-    const adminActions = new this.adminActionModel({
-      userid: userId,
-      organization,
-      actionType: "lead",
-      filePath: files[0].Location,
-      savedOn: "s3",
-      fileType: "campaignConfig",
-    });
-
-    await adminActions.save();
-
-    const result = await this.parseLeadFiles(
-      files,
-      ccnfg,
-      campaignName,
-      organization,
-      uploader,
-      userId,
-      pushtoken
-    );
-    // parse data here
-    return { files, result };
+    return this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
   }
 
-  async syncPhoneCalls(callLogs: SyncCallLogsDto[], organization, user) {
-    try {
-      const transformed = callLogs.map((callLog) => {
-        return { ...callLog, organization, user };
-      });
-      return this.callLogModel.insertMany(transformed);
-    } catch (e) {
-      Logger.error(
-        "An error occured while syncing phone calls in leadService.ts",
-        e.message
-      );
-      return e.message;
-    }
-  }
-
+  
   async addGeolocation(
     activeUserId: string,
     lat: number,
@@ -501,26 +537,30 @@ export class LeadService {
   /** @Todo trim all string fields otherwise they will give trouble with equality later on */
   async updateLead({
     organization,
-    externalId,
+    leadId,
     lead,
     geoLocation,
-    loggedInUserEmail,
+    handlerEmail,
+    handlerName,
     reassignmentInfo,
     emailForm,
     requestedInformation,
-  }: CreateLeadDto & {
-    externalId: string;
+    campaignId,
+    callRecord
+  }: UpdateLeadDto & {
+    leadId: string;
     organization: string;
-    loggedInUserEmail: string;
+    handlerEmail: string;
+    handlerName: string;
   }) {
     let obj = {} as Partial<Lead>;
     Logger.debug({ geoLocation, reassignmentInfo });
     const keysToUpdate = Object.keys(lead);
 
-    if (keysToUpdate.length > 25) {
+    if (keysToUpdate.length > 40) {
       throw new PreconditionFailedException(
         null,
-        "Cannot have more than 25 fields in the lead schema"
+        "Cannot have more than 40 fields in the lead schema"
       );
     }
     keysToUpdate.forEach((key) => {
@@ -530,39 +570,45 @@ export class LeadService {
     });
 
     const oldLead = await this.leadModel
-      .findOne({ externalId, organization })
+      .findOne({ _id: leadId, organization })
       .lean()
       .exec();
 
-    const len = oldLead.history?.length;
     const nextEntryInHistory = {
       geoLocation: {},
     } as LeadHistory;
 
+    /** This is a required property for querying later */
+    nextEntryInHistory.lead = leadId;
+
     // this len condition maybe unnecessary if mongoose itself handles
     // this condition being an array since that is what we defined in
     // the schema, also try
-    const prevHistory = get(oldLead, `history${[len - 1]}`, null);
-    if (len === 0 && !reassignmentInfo) {
+    // const prevHistory = get(oldLead, `history${[len - 1]}`, null);
+    const [prevHistory] = await this.leadHistoryModel
+      .find({})
+      .sort({ $natural: -1 })
+      .limit(1);
+
+    if (!reassignmentInfo) {
       // assign to logged in user and notes will be lead was created by
-      nextEntryInHistory[
-        "notes"
-      ] = `Lead has been assigned to ${loggedInUserEmail} by default`;
-      nextEntryInHistory["newUser"] = loggedInUserEmail;
+      nextEntryInHistory.notes = `Lead has been assigned to ${handlerName}`;
+      nextEntryInHistory.newUser = handlerEmail;
+    }
+
+
+    if(lead.documentLinks?.length>0) {
+      nextEntryInHistory.documentLinks = lead.documentLinks;
     }
 
     if (reassignmentInfo && prevHistory?.newUser !== reassignmentInfo.newUser) {
-      nextEntryInHistory[
-        "notes"
-      ] = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
-      nextEntryInHistory["oldUser"] = prevHistory.newUser;
-      nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
+      nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${handlerName}`;
+      nextEntryInHistory.oldUser = prevHistory.newUser;
+      nextEntryInHistory.newUser = reassignmentInfo.newUser;
     }
 
     if (lead.leadStatus !== oldLead.leadStatus) {
-      nextEntryInHistory[
-        "notes"
-      ] = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+      nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${handlerName}`;
     }
 
     nextEntryInHistory.geoLocation = geoLocation;
@@ -572,20 +618,30 @@ export class LeadService {
         (ri) => Object.keys(ri).length > 0
       );
     }
+    /** @Todo add dialed phone number */
+    nextEntryInHistory.prospectName = `${lead.firstName} ${lead.lastName}`;
+    nextEntryInHistory.leadStatus = lead.leadStatus;
+    nextEntryInHistory.followUp = lead.followUp?.toString();
+    nextEntryInHistory.organization = organization;
+    nextEntryInHistory.campaign = campaignId;
+    lead.nextAction && (nextEntryInHistory.nextAction = lead.nextAction);
 
     /** Do not update contact, there will be a separate api for adding contact information */
-    let { history, contact, ...filteredObj } = obj;
+    let { contact, ...filteredObj } = obj;
 
     // if reassignment is required, change that in the lead
     if (get(reassignmentInfo, "newUser")) {
       obj.email = reassignmentInfo.newUser;
     }
 
+
+    await this.ruleService.applyRules(campaignId, oldLead, lead, nextEntryInHistory);
     const result = await this.leadModel.findOneAndUpdate(
-      { externalId: externalId, organization },
-      { $set: filteredObj, $push: { history: nextEntryInHistory } }
+      { _id: leadId, organization },
+      { $set: filteredObj }
     );
 
+    await this.leadHistoryModel.create({...nextEntryInHistory, ...callRecord});
     if (!values(emailForm).every(isEmpty)) {
       const { subject, attachments, content } = emailForm;
       this.sendEmailToLead({
@@ -598,203 +654,23 @@ export class LeadService {
     return result;
   }
 
-  /** Findone and update implementation */
-  // async saveLeads(
-  //   leads: any[],
-  //   campaignName: string,
-  //   originalFileName: string
-  // ) {
-  //   const created = [];
-  //   const updated = [];
-  //   const error = [];
-
-  //   for (const l of leads) {
-  //     const { lastErrorObject, value } = await this.leadModel
-  //       .findOneAndUpdate(
-  //         { externalId: l.externalId },
-  //         { ...l, campaign: campaignName },
-  //         { new: true, upsert: true, rawResult: true }
-  //       )
-  //       .lean()
-  //       .exec();
-  //     if (lastErrorObject.updatedExisting === true) {
-  //       updated.push(value);
-  //     } else if (lastErrorObject.upserted) {
-  //       created.push(value);
-  //     } else {
-  //       error.push(value);
-  //     }
-  //   }
-
-  //   // createExcel files and update them to aws and then store the urls in database with AdminActions
-  //   const created_ws = utils.json_to_sheet(created);
-  //   const updated_ws = utils.json_to_sheet(updated);
-
-  //   const wb = utils.book_new();
-  //   utils.book_append_sheet(wb, updated_ws, "updated");
-  //   utils.book_append_sheet(wb, created_ws, "created");
-
-  //   writeFile(wb, originalFileName + "_system");
-
-  //   const result = await this.s3.upload({
-  //     Key: `lead:${originalFileName}:${new Date().toDateString()}`,
-  //     Body: wb,
-  //     Bucket: AppConfig.s3.region,
-  //     ContentType: "application/vnd.ms-excel",
-  //   });
-
-  //   Logger.debug(result);
-  //   // console.log(
-  //   //   "created: ",
-  //   //   created.length,
-  //   //   "updated: ",
-  //   //   updated.length,
-  //   //   "error:",
-  //   //   error.length
-  //   // );
-  // }
-
-  async getSubordinates(email: string, roleType: string) {
-    if (roleType !== "manager" && roleType !== "seniorManager") {
-      return [email];
-    }
-    const fq: any = [
-      { $match: { email: email } },
-      {
-        $graphLookup: {
-          from: "users",
-          startWith: "$manages",
-          connectFromField: "manages",
-          connectToField: "email",
-          as: "subordinates",
-        },
+  async sendEmailToLead({ content, subject, attachments, email }) {
+    this.notificationService.sendMail({
+      from: '"Company" <' + config.mail.user + ">",
+      to: ["shanur.cse.nitap@gmail.com"],
+      subject: subject,
+      text: content,
+      replyTo: {
+        name: "shanur",
+        address: "mnsh0203@gmail.com",
       },
-      {
-        $project: {
-          subordinates: "$subordinates.email",
-          roleType: "$roleType",
-          hierarchyWeight: 1,
-        },
-      },
-    ];
-
-    const result = await this.userModel.aggregate(fq);
-    return result[0].subordinates;
-  }
-
-  async parseLeadFiles(
-    files: S3UploadedFiles[],
-    ccnfg: IConfig[],
-    campaignName: string,
-    organization: string,
-    uploader: string,
-    uploaderId: string,
-    pushtoken
-  ) {
-    files.forEach(async (file) => {
-      const jsonRes = await parseExcel(file.Location, ccnfg);
-      await this.saveLeadsFromExcel(
-        jsonRes,
-        campaignName,
-        file.Key,
-        organization,
-        uploader,
-        uploaderId,
-        pushtoken
-      );
+      attachments: attachments?.map((a) => {
+        return {
+          filename: a.fileName,
+          path: a.filePath,
+        };
+      }),
     });
-  }
-
-  async saveLeadsFromExcel(
-    leads: any[],
-    campaignName: string,
-    originalFileName: string,
-    organization: string,
-    uploader: string,
-    uploaderId: string,
-    pushtoken
-  ) {
-    const created = [];
-    const updated = [];
-    const error = [];
-
-    const leadColumns = await this.campaignConfigModel
-      .find({
-        name: campaignName,
-        organization,
-      })
-      .lean()
-      .exec();
-
-    const leadMappings = keyBy(leadColumns, "internalField");
-    for (const lead of leads) {
-      let contact = [];
-      Object.keys(lead).forEach((key) => {
-        if (leadMappings[key].group === "contact") {
-          contact.push({
-            label: leadMappings[key].readableField,
-            value: lead[key],
-          });
-          delete lead[key];
-        }
-      });
-
-      const { lastErrorObject, value } = await this.leadModel
-        .findOneAndUpdate(
-          { externalId: lead.externalId },
-          { ...lead, campaign: campaignName, contact, organization, uploader },
-          { new: true, upsert: true, rawResult: true }
-        )
-        .lean()
-        .exec();
-      if (lastErrorObject.updatedExisting === true) {
-        updated.push(value);
-      } else if (lastErrorObject.upserted) {
-        created.push(value);
-      } else {
-        error.push(value);
-      }
-    }
-
-    // createExcel files and update them to aws and then store the urls in database with AdminActions
-    const created_ws = utils.json_to_sheet(created);
-    const updated_ws = utils.json_to_sheet(updated);
-
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, updated_ws, "tickets updated");
-    utils.book_append_sheet(wb, created_ws, "tickets created");
-
-    // writeFile(wb, originalFileName + "_system");
-    const wbOut = write(wb, {
-      bookType: "xlsx",
-      type: "buffer",
-    });
-
-    const fileName = `result-${originalFileName}`;
-    const result = await this.s3UploadService.uploadFileBuffer(fileName, wbOut);
-
-    const adminActions = new this.adminActionModel({
-      label: fileName,
-      userid: uploaderId,
-      organization,
-      actionType: "lead",
-      filePath: result.Location,
-      savedOn: "s3",
-      fileType: "lead",
-    });
-
-    await adminActions.save();
-
-    await this.pushNotificationService.sendPushNotification(pushtoken, {
-      notification: {
-        title: "File Upload Complete",
-        icon: `https://cdn3.vectorstock.com/i/1000x1000/94/72/cute-black-cat-icon-vector-13499472.jpg`,
-        body: `please visit ${result.Location} for the result`,
-        tag: "some random tag",
-        badge: `https://e7.pngegg.com/pngimages/564/873/png-clipart-computer-icons-education-molecule-icon-structure-area.png`,
-      },
-    });
-    return result;
   }
 
   async leadActivityByUser(startDate: string, endDate: string, email: string) {
@@ -832,12 +708,14 @@ export class LeadService {
     email,
     organization,
     typeDict,
+    roleType
   }: {
     campaignId: string;
     filters: Map<string, string>;
     email: string;
     organization: string;
     typeDict: Map<string, any>;
+    roleType: string
   }) {
     // Null value removal
     Object.keys(filters).forEach((k) => {
@@ -851,20 +729,35 @@ export class LeadService {
       .lean()
       .exec();
 
-    if (!campaign.browsableCols || !campaign.editableCols) {
-      throw new NativeError(
-        "Please add browsable and editable columns for this campaign"
-      );
+    if (!campaign || !campaign.browsableCols || !campaign.editableCols) {
+      throw new UnprocessableEntityException();
     }
 
     const singleLeadAgg = this.leadModel.aggregate();
-    singleLeadAgg.match({ campaign: campaign.campaignName, email });
+    singleLeadAgg.match({ campaignId: campaign._id });
+
+
+    /** @Todo Try to cache this call */
+    const subordinateEmails = await this.userService.getSubordinates(
+      email,
+      roleType,
+      organization
+    );
+
+
+    singleLeadAgg.match({
+      $or: [
+        { email: { $in: [...subordinateEmails, email] } },
+        { email: { $exists: false } },
+      ],
+    })
 
     Object.keys(filters).forEach((key) => {
       switch (typeDict[key].type) {
         case "string":
         case "select":
         case "tel":
+          /** @Todo coalesce all match queries in order of best match to worst match */
           const expr = new RegExp(filters[key]);
           singleLeadAgg.match({ [key]: { $regex: expr, $options: "i" } });
           break;
@@ -892,10 +785,13 @@ export class LeadService {
     });
 
     // oldest lead first from match queries
-    singleLeadAgg.sort({ _id: 1 });
+    singleLeadAgg.sort({ updatedAt: 1 });
     singleLeadAgg.limit(1);
 
-    let projection = {};
+    // this should always be fetched ...
+    let projection = {
+      documentLinks: 1
+    };
 
     campaign.browsableCols.forEach((c) => {
       projection[c] = 1;
@@ -903,13 +799,21 @@ export class LeadService {
 
     /** @Todo Quick fix for sending contact ionformation to frontend, to put some effort into this if required */
     projection["contact"] = 1;
+    projection["nextAction"] = 1;
 
     // other information that should always show up, one is history
-    projection["history"] = 1;
 
     singleLeadAgg.project(projection);
-    const result = (await singleLeadAgg.exec())[0];
-    return Promise.resolve({ result });
+    const lead = (await singleLeadAgg.exec())[0];
+
+    /** Only call lead history if there is a lead with the applied filters */
+    let leadHistory = [];
+    if (lead) {
+      leadHistory = await this.leadHistoryModel
+        .find({ lead: lead._id })
+        .limit(5);
+    }
+    return { lead, leadHistory };
   }
 
   getSaleAmountByLeadStatus(campaignName?: string) {
@@ -926,6 +830,62 @@ export class LeadService {
     return qb.exec();
   }
 
+  async getTransactions(
+      organization: string, 
+      email: string, 
+      roleType: string, 
+      payload: GetTransactionDto, 
+      isStreamable: boolean
+    ): Promise<{ response: Partial<LeadHistory>[], total: number }> {
+    // get email ids of users after him
+    let conditionalQueries = {};
+    let subordinateEmails = await this.userService.getSubordinates(email, roleType, organization);
+
+    // if the user only wants to see results for some subordinates this will filter it out
+    if(payload.filters?.handler?.length > 0) {
+      subordinateEmails = intersection(payload.filters.handler, subordinateEmails, [email])
+    };
+
+    if(payload.filters?.leadId) {
+      conditionalQueries['lead'] = payload.filters.leadId;
+    }
+
+    if(payload.filters?.prospectName) {
+      /** @Todo to be filled later, we have firstname, lastname, fullName, these should be combined in a text index for search */ 
+      const expr = new RegExp(payload.filters.prospectName);
+      conditionalQueries['prospectName'] = { $regex: expr, $options: "i" }
+    }
+
+    if(payload.filters?.campaign) {
+      conditionalQueries["campaign"] = payload.filters.campaign;
+    }
+
+    if(payload.filters?.startDate) {
+      conditionalQueries["createdAt"] = {};
+      conditionalQueries["createdAt"]["$gte"] = new Date(payload.filters.startDate);
+    }
+
+    if(payload.filters?.endDate) {
+      conditionalQueries["createdAt"]["$lte"] = new Date(payload.filters.endDate);
+    }
+
+    const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
+
+    const query = {organization, newUser: {$in: subordinateEmails}, ...conditionalQueries};
+    const result = this.leadHistoryModel
+      .find(query)
+      .sort({ [payload.pagination.sortBy]: sortOrder });
+
+
+    let count = 0;
+    if(!isStreamable) {
+      result.limit(payload.pagination.perPage).skip(payload.pagination.page * payload.pagination.perPage);
+      count = await this.leadHistoryModel.countDocuments(query);
+    }
+
+    const response = await result.lean().exec();
+    return { response, total: count };
+  }
   // date will always be greater than today
   async getFollowUps({
     interval,
@@ -977,6 +937,20 @@ export class LeadService {
     return leadAgg.exec();
   }
 
+
+  async checkPrecondition(user: User, subordinateEmail: string) {
+
+    const subordinates = await this.userService.getSubordinates(user.email, user.roleType, user.organization);
+
+    if (!subordinates.indexOf(subordinateEmail) && user.roleType !== "admin") {
+      throw new PreconditionFailedException(
+        null,
+        "You do not manage the user whose followups you want to see"
+      );
+    }
+  }
+
+
   async getAllAlarms(body, organization) {
     const { page = 1, perPage = 20, filters = {}, sortBy = "createdAt" } = body;
 
@@ -1008,52 +982,11 @@ export class LeadService {
       userAgg.match({ createdAt: { $gte: startDate, $lt: endDate } });
     }
 
-    // project fields that we want
     userAgg.project({ amount: "$amount", leadStatus: "$leadStatus" });
 
-    // group by lead status
     userAgg.group({ _id: "$leadStatus", amount: { $sum: "$amount" } });
 
     return userAgg.exec();
-  }
-
-  async sendEmailToLead({ content, subject, attachments, email }) {
-    let transporter = createTransport({
-      service: "Mailgun",
-      auth: {
-        user: config.mail.user,
-        pass: config.mail.pass,
-      },
-    });
-
-    let mailOptions: SendMailOptions = {
-      from: '"Company" <' + config.mail.user + ">",
-      to: ["shanur.cse.nitap@gmail.com"],
-      subject: subject,
-      text: content,
-      replyTo: {
-        name: "shanur",
-        address: "mnsh0203@gmail.com",
-      },
-      attachments: attachments?.map((a) => {
-        return {
-          filename: a.fileName,
-          path: a.filePath,
-        };
-      }),
-    };
-
-    var sended = await new Promise<boolean>(async function (resolve, reject) {
-      return await transporter.sendMail(mailOptions, async (error, info) => {
-        if (error) {
-          console.log("Message sent: %s", error);
-          return reject(false);
-        }
-        console.log("Message sent: %s", info.messageId);
-        resolve(true);
-      });
-    });
-    return sended;
   }
 
   async addContact(contact: UpdateContactDto, leadId: string) {

@@ -10,11 +10,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.slim
-      target: production
+      target: development
     user: "node"
     working_dir: /usr/src/app
     environment:
-      - NODE_ENV=production
+      # - NODE_ENV=production
       - VERSION=1.0
     volumes:
       - .:/usr/src/app
@@ -39,7 +39,6 @@ services:
     ports:
       - "9000:9000"
 
-
   mongodb:
     container_name: mongoback  # take snapshot:: `docker exec mongoback sh -c 'mongodump --archive' > db.dump`
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
@@ -49,6 +48,28 @@ services:
       - 'mongodb_data:/bitnami/mongodb'
     networks:
       - webnet
+  
+  # this will run on a separate instance in production later
+  worker:
+    image: "node:14.15.1-alpine3.12"
+    container_name: worker
+    build:
+      context: ~/Documents/personal/molecule_bull_microservice
+      dockerfile: Dockerfile.prod
+      # target: production
+    user: "node"
+    working_dir: /usr/src/app
+    environment:
+      - NODE_ENV=production
+      - VERSION=1.0
+
+    tty: true
+    command: "yarn start:prod"
+    env_file:
+      - ~/Documents/personal/molecule_bull_microservice/.env
+    networks:
+      - webnet
+    restart: always
   redis:
     image: 'bitnami/redis:latest'
     environment:
@@ -60,6 +81,16 @@ services:
       - "6379:6379"
     networks:
       - webnet
+  # minio:
+  #   image: 'bitnami/minio:latest'
+  #   ports:
+  #     - '9009:9000'
+  #   environment:
+  #     - MINIO_ACCESS_KEY=AKIARGBOXP35BONONB4J
+  #     - MINIO_SECRET_KEY=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
+  #   networks:
+  #     - webnet
+
 
 networks:
   webnet:

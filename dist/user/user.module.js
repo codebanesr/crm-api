@@ -24,7 +24,7 @@ UserModule = __decorate([
             mongoose_1.MongooseModule.forFeature([
                 { name: "User", schema: user_schema_1.UserSchema },
                 { name: "ForgotPassword", schema: forgot_password_schema_1.ForgotPasswordSchema },
-                { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },
+                { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema }
             ]),
             platform_express_1.MulterModule.register({
                 dest: "~/.upload/users",

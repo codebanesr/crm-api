@@ -14,9 +14,28 @@ import { MulterModule } from "@nestjs/platform-express";
 import { AdminActionSchema } from "../user/schemas/admin-action.schema";
 import { UploadService } from "../upload/upload.service";
 import { PushNotificationService } from "../push-notification/push-notification.service";
+import { LeadHistory } from "./schema/lead-history.schema";
+import { RulesModule } from "../rules/rules.module";
+import { LeadAnalyticService } from "./lead-analytic.service";
+import { LeadAnalyticController } from "./lead-analytic.controller";
+import { UserModule } from "../user/user.module";
+import { BullModule } from "@nestjs/bull";
+import config from "../config";
+import { NotificationService } from "../utils/notification.service";
 
 @Module({
   imports: [
+    BullModule.registerQueue({
+      name: 'leadQ',
+      redis: {
+        name: 'BullQueueWorker',
+        host: config.BULL.REDIS_URL,
+        port: +config.BULL.REDIS_PORT,
+        password: config.BULL.REDIS_PASSWORD
+      }
+    }),
+    RulesModule,
+    UserModule,
     MulterModule.register({
       dest: "~/.upload",
     }),
@@ -30,9 +49,16 @@ import { PushNotificationService } from "../push-notification/push-notification.
       { name: "User", schema: UserSchema },
       { name: "Lead", schema: LeadSchema },
       { name: "AdminAction", schema: AdminActionSchema },
+      { name: "LeadHistory", schema: LeadHistory },
     ]),
   ],
-  providers: [LeadService, UploadService, PushNotificationService],
-  controllers: [LeadController],
+  providers: [
+    LeadService, 
+    UploadService, 
+    PushNotificationService, 
+    LeadAnalyticService,
+    NotificationService
+  ],
+  controllers: [LeadController, LeadAnalyticController],
 })
 export class LeadModule {}

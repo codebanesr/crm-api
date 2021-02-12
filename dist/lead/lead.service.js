@@ -38,26 +38,25 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const lodash_1 = require("lodash");
 const mongoose_3 = require("mongoose");
-const sendMail_1 = require("../utils/sendMail");
-const parseExcel_1 = require("../utils/parseExcel");
-const xlsx_1 = require("xlsx");
-const nodemailer_1 = require("nodemailer");
+const notification_service_1 = require("../utils/notification.service");
+const rules_service_1 = require("../rules/rules.service");
+const user_service_1 = require("../user/user.service");
+const bull_1 = require("@nestjs/bull");
 const config_1 = require("../config");
-const upload_service_1 = require("../upload/upload.service");
-const push_notification_service_1 = require("../push-notification/push-notification.service");
 let LeadService = class LeadService {
-    constructor(leadModel, adminActionModel, userModel, campaignConfigModel, campaignModel, emailTemplateModel, callLogModel, geoLocationModel, alarmModel, s3UploadService, pushNotificationService) {
+    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
-        this.userModel = userModel;
         this.campaignConfigModel = campaignConfigModel;
         this.campaignModel = campaignModel;
         this.emailTemplateModel = emailTemplateModel;
-        this.callLogModel = callLogModel;
+        this.leadHistoryModel = leadHistoryModel;
         this.geoLocationModel = geoLocationModel;
         this.alarmModel = alarmModel;
-        this.s3UploadService = s3UploadService;
-        this.pushNotificationService = pushNotificationService;
+        this.leadUploadQueue = leadUploadQueue;
+        this.ruleService = ruleService;
+        this.userService = userService;
+        this.notificationService = notificationService;
     }
     saveEmailAttachments(files) {
         return files;
@@ -66,20 +65,20 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const assigned = oldUserEmail ? "reassigned" : "assigned";
-                let note = "";
+                let notes = "";
                 if (oldUserEmail) {
-                    note = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
+                    notes = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
                 }
                 else {
-                    note = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
+                    notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
                 }
                 const history = {
                     oldUser: oldUserEmail,
                     newUser: newUserEmail,
-                    note,
+                    notes,
                 };
                 const result = yield this.leadModel
-                    .updateOne({ externalId: lead.externalId }, { email: newUserEmail, $push: { history: history } })
+                    .updateOne({ _id: lead._id }, { email: newUserEmail, $push: { history: history } })
                     .lean()
                     .exec();
                 return result;
@@ -153,22 +152,61 @@ let LeadService = class LeadService {
             return { result, total };
         });
     }
-    findAll(page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, activeUserEmail, roleType, organization) {
+    findAll(page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, activeUserEmail, roleType, organization, typeDict, campaignId) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
-            const { assigned, selectedCampaign, dateRange } = filters;
+            const { assigned, selectedCampaign, dateRange, leadStatusKeys } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange", "leadStatusKeys"]);
             const [startDate, endDate] = dateRange || [];
             const leadAgg = this.leadModel.aggregate();
             if (searchTerm) {
                 leadAgg.match({ $text: { $search: searchTerm } });
             }
-            leadAgg.match({ organization });
+            const matchQuery = { organization };
+            if (campaignId !== 'all') {
+                matchQuery['campaignId'] = mongoose_3.Types.ObjectId(campaignId);
+            }
+            else {
+                matchQuery['campaignId'] = { $exists: true };
+            }
+            if ((leadStatusKeys === null || leadStatusKeys === void 0 ? void 0 : leadStatusKeys.length) > 0) {
+                matchQuery["leadStatusKeys"] = { $in: leadStatusKeys };
+            }
+            Object.keys(otherFilters).forEach((k) => {
+                if (!otherFilters[k]) {
+                    delete otherFilters[k];
+                }
+            });
+            Object.keys(otherFilters).forEach((key) => {
+                switch (typeDict[key].type) {
+                    case "string":
+                    case "select":
+                    case "tel":
+                        const expr = new RegExp(otherFilters[key]);
+                        matchQuery[key] = { $regex: expr, $options: "i" };
+                        break;
+                    case "date":
+                        const dateInput = otherFilters[key];
+                        if (dateInput.length === 2) {
+                            const startDate = new Date(dateInput[0]);
+                            const endDate = new Date(dateInput[1]);
+                            matchQuery[key] = { $gte: startDate, $lt: endDate };
+                        }
+                        else if (dateInput.length === 1) {
+                            matchQuery[key] = { $eq: new Date(dateInput[0]) };
+                        }
+                        break;
+                }
+            });
+            leadAgg.match(matchQuery);
             if (assigned) {
-                const subordinateEmails = yield this.getSubordinates(activeUserEmail, roleType);
+                const subordinateEmails = yield this.userService.getSubordinates(activeUserEmail, roleType, organization);
                 leadAgg.match({
-                    email: { $in: [...subordinateEmails, activeUserEmail] },
+                    $or: [
+                        { email: { $in: [...subordinateEmails, activeUserEmail] } },
+                        { email: { $exists: false } },
+                    ],
                 });
             }
             if (startDate) {
@@ -200,7 +238,7 @@ let LeadService = class LeadService {
             }
             const projectQ = {};
             flds.forEach((fld) => {
-                projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
+                projectQ[fld] = 1;
             });
             if (Object.keys(projectQ).length > 0) {
                 leadAgg.project(projectQ);
@@ -218,19 +256,10 @@ let LeadService = class LeadService {
             };
         });
     }
-    getLeadColumns(campaignType = "core", organization) {
+    getLeadColumns(campaignId, removeFields) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (campaignType !== "core") {
-                const campaign = yield this.campaignModel
-                    .findOne({ _id: mongoose_3.Types.ObjectId(campaignType), organization })
-                    .lean()
-                    .exec();
-                campaignType = campaign.campaignName;
-            }
-            const matchQ = { name: campaignType };
-            const paths = yield this.campaignConfigModel
-                .aggregate([{ $match: matchQ }])
-                .exec();
+            const project = {};
+            const paths = yield this.campaignConfigModel.find({ campaignId, internalField: { $nin: removeFields } });
             return { paths: paths };
         });
     }
@@ -253,10 +282,16 @@ let LeadService = class LeadService {
     findOneById(leadId, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             const lead = yield this.leadModel
-                .findOne({ _id: leadId, organization })
+                .findById(leadId)
                 .lean()
                 .exec();
-            return lead;
+            let leadHistory = [];
+            if (lead) {
+                leadHistory = yield this.leadHistoryModel
+                    .find({ lead: lead._id })
+                    .limit(5);
+            }
+            return { lead, leadHistory };
         });
     }
     patch(productId, body) {
@@ -269,6 +304,18 @@ let LeadService = class LeadService {
             return this.leadModel
                 .update({ _id: productId }, { $set: updateOps })
                 .exec();
+        });
+    }
+    createLead(body, email, organization, campaignId, campaignName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { contact, lead } = body;
+            lead.email = email;
+            lead.firstName = lead.firstName || 'Undefined';
+            if (!lead.fullName) {
+                lead.fullName = `${lead.firstName} ${lead.lastName}`;
+            }
+            return this.leadModel.create(Object.assign(Object.assign({}, lead), { campaignId, campaign: campaignName, organization,
+                contact }));
         });
     }
     deleteOne(leadId, activeUserEmail) {
@@ -296,7 +343,7 @@ let LeadService = class LeadService {
             emails = lodash_1.isArray(emails) ? emails : [emails];
             const sepEmails = emails.join(",");
             try {
-                sendMail_1.sendEmail(sepEmails, subject, text, attachments);
+                this.notificationService.sendMail({ subject, text, attachments, to: sepEmails });
                 return { success: true };
             }
             catch (e) {
@@ -319,40 +366,9 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken) {
+    uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const ccnfg = (yield this.campaignConfigModel
-                .find({ name: campaignName, organization }, { readableField: 1, internalField: 1, _id: 0 })
-                .lean()
-                .exec());
-            if (!ccnfg) {
-                throw new Error(`Campaign with name ${campaignName} not found, create a campaign before uploading leads for that campaign`);
-            }
-            const adminActions = new this.adminActionModel({
-                userid: userId,
-                organization,
-                actionType: "lead",
-                filePath: files[0].Location,
-                savedOn: "s3",
-                fileType: "campaignConfig",
-            });
-            yield adminActions.save();
-            const result = yield this.parseLeadFiles(files, ccnfg, campaignName, organization, uploader, userId, pushtoken);
-            return { files, result };
-        });
-    }
-    syncPhoneCalls(callLogs, organization, user) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const transformed = callLogs.map((callLog) => {
-                    return Object.assign(Object.assign({}, callLog), { organization, user });
-                });
-                return this.callLogModel.insertMany(transformed);
-            }
-            catch (e) {
-                common_1.Logger.error("An error occured while syncing phone calls in leadService.ts", e.message);
-                return e.message;
-            }
+            return this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
         });
     }
     addGeolocation(activeUserId, lat, lng, organization) {
@@ -371,14 +387,14 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead({ organization, externalId, lead, geoLocation, loggedInUserEmail, reassignmentInfo, emailForm, requestedInformation, }) {
-        var _a;
+    updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
             common_1.Logger.debug({ geoLocation, reassignmentInfo });
             const keysToUpdate = Object.keys(lead);
-            if (keysToUpdate.length > 25) {
-                throw new common_1.PreconditionFailedException(null, "Cannot have more than 25 fields in the lead schema");
+            if (keysToUpdate.length > 40) {
+                throw new common_1.PreconditionFailedException(null, "Cannot have more than 40 fields in the lead schema");
             }
             keysToUpdate.forEach((key) => {
                 if (!!lead[key]) {
@@ -386,35 +402,49 @@ let LeadService = class LeadService {
                 }
             });
             const oldLead = yield this.leadModel
-                .findOne({ externalId, organization })
+                .findOne({ _id: leadId, organization })
                 .lean()
                 .exec();
-            const len = (_a = oldLead.history) === null || _a === void 0 ? void 0 : _a.length;
             const nextEntryInHistory = {
                 geoLocation: {},
             };
-            const prevHistory = lodash_1.get(oldLead, `history${[len - 1]}`, null);
-            if (len === 0 && !reassignmentInfo) {
-                nextEntryInHistory["notes"] = `Lead has been assigned to ${loggedInUserEmail} by default`;
-                nextEntryInHistory["newUser"] = loggedInUserEmail;
+            nextEntryInHistory.lead = leadId;
+            const [prevHistory] = yield this.leadHistoryModel
+                .find({})
+                .sort({ $natural: -1 })
+                .limit(1);
+            if (!reassignmentInfo) {
+                nextEntryInHistory.notes = `Lead has been assigned to ${handlerName}`;
+                nextEntryInHistory.newUser = handlerEmail;
+            }
+            if (((_a = lead.documentLinks) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                nextEntryInHistory.documentLinks = lead.documentLinks;
             }
             if (reassignmentInfo && (prevHistory === null || prevHistory === void 0 ? void 0 : prevHistory.newUser) !== reassignmentInfo.newUser) {
-                nextEntryInHistory["notes"] = `Lead has been assigned to ${reassignmentInfo.newUser} by ${loggedInUserEmail}`;
-                nextEntryInHistory["oldUser"] = prevHistory.newUser;
-                nextEntryInHistory["newUser"] = reassignmentInfo.newUser;
+                nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${handlerName}`;
+                nextEntryInHistory.oldUser = prevHistory.newUser;
+                nextEntryInHistory.newUser = reassignmentInfo.newUser;
             }
             if (lead.leadStatus !== oldLead.leadStatus) {
-                nextEntryInHistory["notes"] = `Lead status changed from ${oldLead.leadStatus} to ${lead.leadStatus} by ${loggedInUserEmail}`;
+                nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${handlerName}`;
             }
             nextEntryInHistory.geoLocation = geoLocation;
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
                 nextEntryInHistory["requestedInformation"] = requestedInformation.filter((ri) => Object.keys(ri).length > 0);
             }
-            let { history, contact } = obj, filteredObj = __rest(obj, ["history", "contact"]);
+            nextEntryInHistory.prospectName = `${lead.firstName} ${lead.lastName}`;
+            nextEntryInHistory.leadStatus = lead.leadStatus;
+            nextEntryInHistory.followUp = (_b = lead.followUp) === null || _b === void 0 ? void 0 : _b.toString();
+            nextEntryInHistory.organization = organization;
+            nextEntryInHistory.campaign = campaignId;
+            lead.nextAction && (nextEntryInHistory.nextAction = lead.nextAction);
+            let { contact } = obj, filteredObj = __rest(obj, ["contact"]);
             if (lodash_1.get(reassignmentInfo, "newUser")) {
                 obj.email = reassignmentInfo.newUser;
             }
-            const result = yield this.leadModel.findOneAndUpdate({ externalId: externalId, organization }, { $set: filteredObj, $push: { history: nextEntryInHistory } });
+            yield this.ruleService.applyRules(campaignId, oldLead, lead, nextEntryInHistory);
+            const result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj });
+            yield this.leadHistoryModel.create(Object.assign(Object.assign({}, nextEntryInHistory), callRecord));
             if (!lodash_1.values(emailForm).every(lodash_1.isEmpty)) {
                 const { subject, attachments, content } = emailForm;
                 this.sendEmailToLead({
@@ -427,111 +457,24 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    getSubordinates(email, roleType) {
+    sendEmailToLead({ content, subject, attachments, email }) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (roleType !== "manager" && roleType !== "seniorManager") {
-                return [email];
-            }
-            const fq = [
-                { $match: { email: email } },
-                {
-                    $graphLookup: {
-                        from: "users",
-                        startWith: "$manages",
-                        connectFromField: "manages",
-                        connectToField: "email",
-                        as: "subordinates",
-                    },
+            this.notificationService.sendMail({
+                from: '"Company" <' + config_1.default.mail.user + ">",
+                to: ["shanur.cse.nitap@gmail.com"],
+                subject: subject,
+                text: content,
+                replyTo: {
+                    name: "shanur",
+                    address: "mnsh0203@gmail.com",
                 },
-                {
-                    $project: {
-                        subordinates: "$subordinates.email",
-                        roleType: "$roleType",
-                        hierarchyWeight: 1,
-                    },
-                },
-            ];
-            const result = yield this.userModel.aggregate(fq);
-            return result[0].subordinates;
-        });
-    }
-    parseLeadFiles(files, ccnfg, campaignName, organization, uploader, uploaderId, pushtoken) {
-        return __awaiter(this, void 0, void 0, function* () {
-            files.forEach((file) => __awaiter(this, void 0, void 0, function* () {
-                const jsonRes = yield parseExcel_1.default(file.Location, ccnfg);
-                yield this.saveLeadsFromExcel(jsonRes, campaignName, file.Key, organization, uploader, uploaderId, pushtoken);
-            }));
-        });
-    }
-    saveLeadsFromExcel(leads, campaignName, originalFileName, organization, uploader, uploaderId, pushtoken) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const created = [];
-            const updated = [];
-            const error = [];
-            const leadColumns = yield this.campaignConfigModel
-                .find({
-                name: campaignName,
-                organization,
-            })
-                .lean()
-                .exec();
-            const leadMappings = lodash_1.keyBy(leadColumns, "internalField");
-            for (const lead of leads) {
-                let contact = [];
-                Object.keys(lead).forEach((key) => {
-                    if (leadMappings[key].group === "contact") {
-                        contact.push({
-                            label: leadMappings[key].readableField,
-                            value: lead[key],
-                        });
-                        delete lead[key];
-                    }
-                });
-                const { lastErrorObject, value } = yield this.leadModel
-                    .findOneAndUpdate({ externalId: lead.externalId }, Object.assign(Object.assign({}, lead), { campaign: campaignName, contact, organization, uploader }), { new: true, upsert: true, rawResult: true })
-                    .lean()
-                    .exec();
-                if (lastErrorObject.updatedExisting === true) {
-                    updated.push(value);
-                }
-                else if (lastErrorObject.upserted) {
-                    created.push(value);
-                }
-                else {
-                    error.push(value);
-                }
-            }
-            const created_ws = xlsx_1.utils.json_to_sheet(created);
-            const updated_ws = xlsx_1.utils.json_to_sheet(updated);
-            const wb = xlsx_1.utils.book_new();
-            xlsx_1.utils.book_append_sheet(wb, updated_ws, "tickets updated");
-            xlsx_1.utils.book_append_sheet(wb, created_ws, "tickets created");
-            const wbOut = xlsx_1.write(wb, {
-                bookType: "xlsx",
-                type: "buffer",
+                attachments: attachments === null || attachments === void 0 ? void 0 : attachments.map((a) => {
+                    return {
+                        filename: a.fileName,
+                        path: a.filePath,
+                    };
+                }),
             });
-            const fileName = `result-${originalFileName}`;
-            const result = yield this.s3UploadService.uploadFileBuffer(fileName, wbOut);
-            const adminActions = new this.adminActionModel({
-                label: fileName,
-                userid: uploaderId,
-                organization,
-                actionType: "lead",
-                filePath: result.Location,
-                savedOn: "s3",
-                fileType: "lead",
-            });
-            yield adminActions.save();
-            yield this.pushNotificationService.sendPushNotification(pushtoken, {
-                notification: {
-                    title: "File Upload Complete",
-                    icon: `https://cdn3.vectorstock.com/i/1000x1000/94/72/cute-black-cat-icon-vector-13499472.jpg`,
-                    body: `please visit ${result.Location} for the result`,
-                    tag: "some random tag",
-                    badge: `https://e7.pngegg.com/pngimages/564/873/png-clipart-computer-icons-education-molecule-icon-structure-area.png`,
-                },
-            });
-            return result;
         });
     }
     leadActivityByUser(startDate, endDate, email) {
@@ -558,7 +501,7 @@ let LeadService = class LeadService {
             return uq;
         });
     }
-    fetchNextLead({ campaignId, filters, email, organization, typeDict, }) {
+    fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType }) {
         return __awaiter(this, void 0, void 0, function* () {
             Object.keys(filters).forEach((k) => {
                 if (!filters[k]) {
@@ -569,11 +512,18 @@ let LeadService = class LeadService {
                 .findOne({ _id: campaignId, organization })
                 .lean()
                 .exec();
-            if (!campaign.browsableCols || !campaign.editableCols) {
-                throw new mongoose_2.NativeError("Please add browsable and editable columns for this campaign");
+            if (!campaign || !campaign.browsableCols || !campaign.editableCols) {
+                throw new common_1.UnprocessableEntityException();
             }
             const singleLeadAgg = this.leadModel.aggregate();
-            singleLeadAgg.match({ campaign: campaign.campaignName, email });
+            singleLeadAgg.match({ campaignId: campaign._id });
+            const subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
+            singleLeadAgg.match({
+                $or: [
+                    { email: { $in: [...subordinateEmails, email] } },
+                    { email: { $exists: false } },
+                ],
+            });
             Object.keys(filters).forEach((key) => {
                 switch (typeDict[key].type) {
                     case "string":
@@ -604,17 +554,25 @@ let LeadService = class LeadService {
                         break;
                 }
             });
-            singleLeadAgg.sort({ _id: 1 });
+            singleLeadAgg.sort({ updatedAt: 1 });
             singleLeadAgg.limit(1);
-            let projection = {};
+            let projection = {
+                documentLinks: 1
+            };
             campaign.browsableCols.forEach((c) => {
                 projection[c] = 1;
             });
             projection["contact"] = 1;
-            projection["history"] = 1;
+            projection["nextAction"] = 1;
             singleLeadAgg.project(projection);
-            const result = (yield singleLeadAgg.exec())[0];
-            return Promise.resolve({ result });
+            const lead = (yield singleLeadAgg.exec())[0];
+            let leadHistory = [];
+            if (lead) {
+                leadHistory = yield this.leadHistoryModel
+                    .find({ lead: lead._id })
+                    .limit(5);
+            }
+            return { lead, leadHistory };
         });
     }
     getSaleAmountByLeadStatus(campaignName) {
@@ -629,6 +587,46 @@ let LeadService = class LeadService {
             },
         });
         return qb.exec();
+    }
+    getTransactions(organization, email, roleType, payload, isStreamable) {
+        var _a, _b, _c, _d, _e, _f, _g;
+        return __awaiter(this, void 0, void 0, function* () {
+            let conditionalQueries = {};
+            let subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
+            if (((_b = (_a = payload.filters) === null || _a === void 0 ? void 0 : _a.handler) === null || _b === void 0 ? void 0 : _b.length) > 0) {
+                subordinateEmails = lodash_1.intersection(payload.filters.handler, subordinateEmails, [email]);
+            }
+            ;
+            if ((_c = payload.filters) === null || _c === void 0 ? void 0 : _c.leadId) {
+                conditionalQueries['lead'] = payload.filters.leadId;
+            }
+            if ((_d = payload.filters) === null || _d === void 0 ? void 0 : _d.prospectName) {
+                const expr = new RegExp(payload.filters.prospectName);
+                conditionalQueries['prospectName'] = { $regex: expr, $options: "i" };
+            }
+            if ((_e = payload.filters) === null || _e === void 0 ? void 0 : _e.campaign) {
+                conditionalQueries["campaign"] = payload.filters.campaign;
+            }
+            if ((_f = payload.filters) === null || _f === void 0 ? void 0 : _f.startDate) {
+                conditionalQueries["createdAt"] = {};
+                conditionalQueries["createdAt"]["$gte"] = new Date(payload.filters.startDate);
+            }
+            if ((_g = payload.filters) === null || _g === void 0 ? void 0 : _g.endDate) {
+                conditionalQueries["createdAt"]["$lte"] = new Date(payload.filters.endDate);
+            }
+            const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
+            const query = Object.assign({ organization, newUser: { $in: subordinateEmails } }, conditionalQueries);
+            const result = this.leadHistoryModel
+                .find(query)
+                .sort({ [payload.pagination.sortBy]: sortOrder });
+            let count = 0;
+            if (!isStreamable) {
+                result.limit(payload.pagination.perPage).skip(payload.pagination.page * payload.pagination.perPage);
+                count = yield this.leadHistoryModel.countDocuments(query);
+            }
+            const response = yield result.lean().exec();
+            return { response, total: count };
+        });
     }
     getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -668,6 +666,14 @@ let LeadService = class LeadService {
             return leadAgg.exec();
         });
     }
+    checkPrecondition(user, subordinateEmail) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const subordinates = yield this.userService.getSubordinates(user.email, user.roleType, user.organization);
+            if (!subordinates.indexOf(subordinateEmail) && user.roleType !== "admin") {
+                throw new common_1.PreconditionFailedException(null, "You do not manage the user whose followups you want to see");
+            }
+        });
+    }
     getAllAlarms(body, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             const { page = 1, perPage = 20, filters = {}, sortBy = "createdAt" } = body;
@@ -696,46 +702,6 @@ let LeadService = class LeadService {
             return userAgg.exec();
         });
     }
-    sendEmailToLead({ content, subject, attachments, email }) {
-        return __awaiter(this, void 0, void 0, function* () {
-            let transporter = nodemailer_1.createTransport({
-                service: "Mailgun",
-                auth: {
-                    user: config_1.default.mail.user,
-                    pass: config_1.default.mail.pass,
-                },
-            });
-            let mailOptions = {
-                from: '"Company" <' + config_1.default.mail.user + ">",
-                to: ["shanur.cse.nitap@gmail.com"],
-                subject: subject,
-                text: content,
-                replyTo: {
-                    name: "shanur",
-                    address: "mnsh0203@gmail.com",
-                },
-                attachments: attachments === null || attachments === void 0 ? void 0 : attachments.map((a) => {
-                    return {
-                        filename: a.fileName,
-                        path: a.filePath,
-                    };
-                }),
-            };
-            var sended = yield new Promise(function (resolve, reject) {
-                return __awaiter(this, void 0, void 0, function* () {
-                    return yield transporter.sendMail(mailOptions, (error, info) => __awaiter(this, void 0, void 0, function* () {
-                        if (error) {
-                            console.log("Message sent: %s", error);
-                            return reject(false);
-                        }
-                        console.log("Message sent: %s", info.messageId);
-                        resolve(true);
-                    }));
-                });
-            });
-            return sended;
-        });
-    }
     addContact(contact, leadId) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.leadModel.findByIdAndUpdate(leadId, {
@@ -748,13 +714,13 @@ LeadService = __decorate([
     common_1.Injectable(),
     __param(0, mongoose_1.InjectModel("Lead")),
     __param(1, mongoose_1.InjectModel("AdminAction")),
-    __param(2, mongoose_1.InjectModel("User")),
-    __param(3, mongoose_1.InjectModel("CampaignConfig")),
-    __param(4, mongoose_1.InjectModel("Campaign")),
-    __param(5, mongoose_1.InjectModel("EmailTemplate")),
-    __param(6, mongoose_1.InjectModel("CallLog")),
-    __param(7, mongoose_1.InjectModel("GeoLocation")),
-    __param(8, mongoose_1.InjectModel("Alarm")),
+    __param(2, mongoose_1.InjectModel("CampaignConfig")),
+    __param(3, mongoose_1.InjectModel("Campaign")),
+    __param(4, mongoose_1.InjectModel("EmailTemplate")),
+    __param(5, mongoose_1.InjectModel("LeadHistory")),
+    __param(6, mongoose_1.InjectModel("GeoLocation")),
+    __param(7, mongoose_1.InjectModel("Alarm")),
+    __param(8, bull_1.InjectQueue('leadQ')),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
@@ -762,10 +728,9 @@ LeadService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model,
-        mongoose_2.Model,
-        upload_service_1.UploadService,
-        push_notification_service_1.PushNotificationService])
+        mongoose_2.Model, Object, rules_service_1.RulesService,
+        user_service_1.UserService,
+        notification_service_1.NotificationService])
 ], LeadService);
 exports.LeadService = LeadService;
 //# sourceMappingURL=lead.service.js.map

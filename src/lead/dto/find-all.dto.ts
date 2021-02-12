@@ -18,6 +18,8 @@ import {
   IsEmail,
   ValidateNested,
   IsMongoId,
+  IsPositive,
+  IsNotEmpty,
 } from "class-validator";
 
 export class FiltersDto {
@@ -32,6 +34,9 @@ export class FiltersDto {
 
   @IsMongoId()
   selectedCampaign: string = undefined;
+
+  @IsString({each: true})
+  leadStatusKeys: string[]
 }
 
 export class FindAllDto {
@@ -50,7 +55,7 @@ export class FindAllDto {
     format: "number",
     default: 15,
   })
-  @IsNumber()
+  @IsPositive()
   readonly perPage: number = 20;
 
   @ApiProperty({
@@ -86,4 +91,9 @@ export class FindAllDto {
     },
   })
   readonly filters?: FiltersDto;
+
+  readonly typeDict?: any;
+
+  // @IsString()
+  campaignId: string;
 }

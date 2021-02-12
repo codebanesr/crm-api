@@ -1,0 +1,1 @@
+{"version":3,"file":"reseller-organization.schema.js","sourceRoot":"","sources":["../../../src/organization/schema/reseller-organization.schema.ts"],"names":[],"mappings":";;;AAAA,uCAAkC;AAGrB,QAAA,0BAA0B,GAAG,IAAI,iBAAM,CAAC;IACjD,OAAO,EAAE,MAAM;IACf,KAAK,EAAE,MAAM;IACb,YAAY,EAAE,MAAM;IACpB,UAAU,EAAE,MAAM;IAClB,MAAM,EAAE,MAAM;CACjB,EAAE,EAAC,UAAU,EAAE,IAAI,EAAC,CAAC,CAAA"}

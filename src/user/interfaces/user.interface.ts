@@ -8,12 +8,15 @@ export interface User extends Document {
   verification: string;
   verified: boolean;
   verificationExpires: Date;
+  reportsTo: string;
   loginAttempts?: number;
   blockExpires?: Date;
   bankAccountNumber?: string;
   bankAccountName?: string;
+  batLvl: number;
   roleType: string;
-  manages: string[];
+  singleLoginKey: string;
+  // manages: string[];
   history: string[];
   hierarchyWeight: number;
   organization: string;

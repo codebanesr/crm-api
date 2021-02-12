@@ -23,11 +23,30 @@ const platform_express_1 = require("@nestjs/platform-express");
 const admin_action_schema_1 = require("../user/schemas/admin-action.schema");
 const upload_service_1 = require("../upload/upload.service");
 const push_notification_service_1 = require("../push-notification/push-notification.service");
+const lead_history_schema_1 = require("./schema/lead-history.schema");
+const rules_module_1 = require("../rules/rules.module");
+const lead_analytic_service_1 = require("./lead-analytic.service");
+const lead_analytic_controller_1 = require("./lead-analytic.controller");
+const user_module_1 = require("../user/user.module");
+const bull_1 = require("@nestjs/bull");
+const config_1 = require("../config");
+const notification_service_1 = require("../utils/notification.service");
 let LeadModule = class LeadModule {
 };
 LeadModule = __decorate([
     common_1.Module({
         imports: [
+            bull_1.BullModule.registerQueue({
+                name: 'leadQ',
+                redis: {
+                    name: 'BullQueueWorker',
+                    host: config_1.default.BULL.REDIS_URL,
+                    port: +config_1.default.BULL.REDIS_PORT,
+                    password: config_1.default.BULL.REDIS_PASSWORD
+                }
+            }),
+            rules_module_1.RulesModule,
+            user_module_1.UserModule,
             platform_express_1.MulterModule.register({
                 dest: "~/.upload",
             }),
@@ -41,10 +60,17 @@ LeadModule = __decorate([
                 { name: "User", schema: user_schema_1.UserSchema },
                 { name: "Lead", schema: lead_schema_1.LeadSchema },
                 { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },
+                { name: "LeadHistory", schema: lead_history_schema_1.LeadHistory },
             ]),
         ],
-        providers: [lead_service_1.LeadService, upload_service_1.UploadService, push_notification_service_1.PushNotificationService],
-        controllers: [lead_controller_1.LeadController],
+        providers: [
+            lead_service_1.LeadService,
+            upload_service_1.UploadService,
+            push_notification_service_1.PushNotificationService,
+            lead_analytic_service_1.LeadAnalyticService,
+            notification_service_1.NotificationService
+        ],
+        controllers: [lead_controller_1.LeadController, lead_analytic_controller_1.LeadAnalyticController],
     })
 ], LeadModule);
 exports.LeadModule = LeadModule;

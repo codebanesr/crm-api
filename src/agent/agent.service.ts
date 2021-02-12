@@ -4,12 +4,25 @@ import { Model, Types } from "mongoose";
 import { createReadStream } from "fs";
 import { Response } from "express";
 import { AdminAction } from "../user/interfaces/admin-actions.interface";
+import { User } from "../user/interfaces/user.interface";
+import { BatteryStatusDto } from "./schemas/battery-status.dto";
+import { VisitTrack } from "./interface/visit-track.interface";
+import { AddLocationDto } from "./dto/add-location.dto";
+import { intersection, union } from "lodash";
+import { GetUsersLocationsDto } from "./dto/get-user-locations.dto";
+import * as moment from "moment";
 
 @Injectable()
 export class AgentService {
   constructor(
     @InjectModel("AdminAction")
-    private readonly adminActionModel: Model<AdminAction>
+    private readonly adminActionModel: Model<AdminAction>,
+
+    @InjectModel("VisitTrack")
+    private readonly visitTrackModel: Model<VisitTrack>,
+
+    @InjectModel("User")
+    private readonly userModel: Model<User>
   ) {}
 
   async listActions(
@@ -18,41 +31,47 @@ export class AgentService {
     skip,
     fileType,
     sortBy = "handler",
-    me
+    me,
+    campaign: string
   ) {
-    const fq = this.adminActionModel.aggregate();
-    fq.match({ organization });
 
-    if (me) {
-      fq.match({ userid: activeUserId });
-    }
+    return this.adminActionModel.find({
+      campaign,
+      organization
+    }).sort({createdAt: -1}).limit(20).lean().exec();
+    // const fq = this.adminActionModel.aggregate();
+    // fq.match({ organization, campaign });
 
-    // if (fileType) {
-    //   fq.match({ fileType });
+    // if (me) {
+    //   fq.match({ userid: activeUserId });
     // }
 
-    fq.lookup({
-      from: "users",
-      localField: "userid",
-      foreignField: "_id",
-      as: "userdetails",
-    });
+    // // if (fileType) {
+    // //   fq.match({ fileType });
+    // // }
 
-    fq.unwind({ path: "$userdetails" });
+    // fq.lookup({
+    //   from: "users",
+    //   localField: "userid",
+    //   foreignField: "_id",
+    //   as: "userdetails",
+    // });
 
-    fq.project({
-      email: "$userdetails.email",
-      savedOn: "$userdetails.savedOn",
-      filePath: "$filePath",
-      actionType: "$actionType",
-      createdAt: "$createdAt",
-      label: "$label",
-    });
+    // fq.unwind({ path: "$userdetails" });
 
-    fq.sort({ createdAt: -1 });
-    fq.skip(Number(skip));
-    fq.limit(20);
-    return fq.exec();
+    // fq.project({
+    //   email: "$userdetails.email",
+    //   savedOn: "$userdetails.savedOn",
+    //   filePath: "$filePath",
+    //   actionType: "$actionType",
+    //   createdAt: "$createdAt",
+    //   label: "$label",
+    // });
+
+    // fq.sort({ createdAt: -1 });
+    // fq.skip(Number(skip));
+    // fq.limit(20);
+    // return fq.exec();
   }
 
   async downloadFile(location: string, res: Response) {
@@ -61,5 +80,78 @@ export class AgentService {
       res.end();
     });
     readStream.pipe(res);
+  }
+
+
+  async updateBatteryStatus(userId: string, batLvlDto: BatteryStatusDto) {
+    Logger.debug(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}, ${batLvlDto.batLvl}`)
+    return this.visitTrackModel.findOneAndUpdate({userId}, {
+      $set: {
+        batLvl: batLvlDto.batLvl
+      }
+    }, {upsert: true});
+  }
+
+
+  async addVisitTrack(userId: string, payload: AddLocationDto) {
+    Logger.debug(`userid: ${userId}, coorinates: ${payload.coordinate}`);
+
+
+    const start = moment().startOf('day');
+    const end = moment().endOf('day');
+
+    return this.visitTrackModel.findOneAndUpdate({userId, createdAt: {$gte: start, $lt: end}}, {
+      $push: {
+        locations: {...payload.coordinate, timestamp: new Date()}
+      }
+    }, {upsert: true})
+  }
+
+
+  async getVisitTrack(id: string, roleType: string, organization: string ,userLocationDto: GetUsersLocationsDto) {
+    let subordinateIds = await this.getSubordinates(id, roleType);
+    subordinateIds = subordinateIds.map(s=>s.toString())
+
+    const { campaign, startDate, endDate, userIds } = userLocationDto;
+    /** @Todo check if intersection works as expected */
+    let validUserIds = intersection(userIds, subordinateIds);
+    validUserIds = union(validUserIds, [id.toString()]);
+
+    return this.visitTrackModel.find({
+      userId: {$in: validUserIds},
+      createdAt: { $gte: startDate, $lte: endDate }
+    });
+  }
+
+
+    /** @Todo replace getSubordinates in user.service with this one, checked: true is missing over there, and this should be
+   * moved into a shared service
+   */
+  async getSubordinates(id: string, roleType: string) {
+    if (roleType === "frontline") {
+      return [id];
+    }
+    const fq: any = [
+      { $match: { _id: id } },
+      {
+        $graphLookup: {
+          from: "users",
+          startWith: "$manages",
+          connectFromField: "manages",
+          connectToField: "_id",
+          as: "subordinates",
+        },
+      },
+      {
+        $project: {
+          subordinates: "$subordinates._id",
+          roleType: "$roleType",
+          hierarchyWeight: 1,
+        },
+      },
+    ];
+
+    const result = await this.userModel.aggregate(fq);
+    return [id, ...result[0].subordinates];
   }
 }

@@ -11,6 +11,7 @@ import { getClientIp } from 'request-ip';
 import * as Cryptr from 'cryptr';
 import { Role } from './interfaces/role.interface';
 import { Request } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -21,14 +22,13 @@ export class AuthService {
     @InjectModel('User') private readonly userModel: Model<User>,
     @InjectModel('RefreshToken') private readonly refreshTokenModel: Model<RefreshToken>,
     @InjectModel('Role') private readonly roleModel: Model<Role>,
-    private readonly jwtService: JwtService,
   ) {
     this.cryptr = new Cryptr(process.env.ENCRYPT_JWT_SECRET);
   }
 
-  async createAccessToken(userId: string) {
-    // const accessToken = this.jwtService.sign({userId});
-    const accessToken = sign({userId}, process.env.JWT_SECRET , { expiresIn: process.env.JWT_EXPIRATION });
+  async createAccessToken(userId: string, singleLoginKey: string) {
+    // create a single signon token
+    const accessToken = sign({userId, singleLoginKey}, process.env.JWT_SECRET , { expiresIn: process.env.JWT_EXPIRATION });
     return this.encryptText(accessToken);
   }
 
@@ -53,7 +53,12 @@ export class AuthService {
   }
 
   async validateUser(jwtPayload: JwtPayload): Promise<any> {
-    const user = await this.userModel.findOne({_id: jwtPayload.userId, verified: true});
+    const user = await this.userModel.findOne({
+      _id: jwtPayload.userId, 
+      singleLoginKey: jwtPayload.singleLoginKey,
+      verified: true
+    });
+    
     if (!user) {
       throw new UnauthorizedException('User not found.');
     }

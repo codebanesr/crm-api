@@ -12,12 +12,18 @@ const agent_controller_1 = require("./agent.controller");
 const agent_service_1 = require("./agent.service");
 const mongoose_1 = require("@nestjs/mongoose");
 const admin_action_schema_1 = require("../user/schemas/admin-action.schema");
+const user_schema_1 = require("../user/schemas/user.schema");
+const visit_track_schema_1 = require("./schemas/visit-track.schema");
 let AgentModule = class AgentModule {
 };
 AgentModule = __decorate([
     common_1.Module({
         imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: 'AdminAction', schema: admin_action_schema_1.AdminActionSchema }])
+            mongoose_1.MongooseModule.forFeature([
+                { name: 'AdminAction', schema: admin_action_schema_1.AdminActionSchema },
+                { name: 'User', schema: user_schema_1.UserSchema },
+                { name: 'VisitTrack', schema: visit_track_schema_1.VisitTrackSchema }
+            ])
         ],
         controllers: [agent_controller_1.AgentController],
         providers: [agent_service_1.AgentService]

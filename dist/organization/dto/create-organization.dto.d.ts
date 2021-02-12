@@ -1,5 +1,5 @@
 export declare class CreateOrganizationDto {
-    readonly organizationName: string;
+    readonly name: string;
     readonly email: string;
     readonly type: String;
     phoneNumberPrefix: string;
@@ -7,4 +7,5 @@ export declare class CreateOrganizationDto {
     otp: string;
     fullName: string;
     password: string;
+    organizationImage: string;
 }

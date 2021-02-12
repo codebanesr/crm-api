@@ -3,6 +3,7 @@ export declare class FiltersDto {
     assigned: true;
     dateRange: string[];
     selectedCampaign: string;
+    leadStatusKeys: string[];
 }
 export declare class FindAllDto {
     readonly page: number;
@@ -11,4 +12,6 @@ export declare class FindAllDto {
     readonly showCols: string[];
     readonly searchTerm: string;
     readonly filters?: FiltersDto;
+    readonly typeDict?: any;
+    campaignId: string;
 }

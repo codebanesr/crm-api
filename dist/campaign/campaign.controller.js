@@ -20,6 +20,8 @@ const platform_express_1 = require("@nestjs/platform-express");
 const find_campaigns_dto_1 = require("./dto/find-campaigns.dto");
 const passport_1 = require("@nestjs/passport");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
+const update_configs_dto_1 = require("./dto/update-configs.dto");
+const create_campaign_disposition_dto_1 = require("./dto/create-campaign-disposition.dto");
 let CampaignController = class CampaignController {
     constructor(campaignService) {
         this.campaignService = campaignService;
@@ -58,26 +60,12 @@ let CampaignController = class CampaignController {
             campaign,
         });
     }
-    findOneByIdOrName(campaignId, identifier) {
-        return this.campaignService.findOneByIdOrName(campaignId, identifier);
+    findOneByIdOrName(campaignId) {
+        return this.campaignService.findOneByIdOrName(campaignId);
     }
-    createCampaignAndDisposition(currrentUser, file, body) {
+    createCampaignAndDisposition(currrentUser, body) {
         const { id: activeUserId, organization } = currrentUser;
-        const { dispositionData, campaignInfo, editableCols, browsableCols, uniqueCols, formModel, assignTo, advancedSettings, groups, } = body;
-        return this.campaignService.createCampaignAndDisposition({
-            activeUserId,
-            file,
-            dispositionData,
-            campaignInfo,
-            organization,
-            editableCols,
-            browsableCols,
-            formModel,
-            uniqueCols,
-            assignTo,
-            advancedSettings,
-            groups,
-        });
+        return this.campaignService.createCampaignAndDisposition(Object.assign(Object.assign({}, body), { activeUserId, organization }));
     }
     getDispositionByCampaignName(campaignName, user) {
         const { organization } = user;
@@ -86,6 +74,10 @@ let CampaignController = class CampaignController {
     archiveCampaign(user, body) {
         const { organization } = user;
         return this.campaignService.archiveCampaign(body);
+    }
+    updateConfigs(user, configs, campaignId, campaignName) {
+        const { organization } = user;
+        return this.campaignService.updateConfigs(configs, organization, campaignId, campaignName);
     }
 };
 __decorate([
@@ -155,9 +147,8 @@ __decorate([
     swagger_1.ApiOperation({ summary: "Get one campaign by id" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, common_1.Param("campaignId")),
-    __param(1, common_1.Query("identifier")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "findOneByIdOrName", null);
 __decorate([
@@ -169,10 +160,9 @@ __decorate([
     }),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, current_user_decorator_1.CurrentUser()),
-    __param(1, common_1.UploadedFile()),
-    __param(2, common_1.Body()),
+    __param(1, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:paramtypes", [Object, create_campaign_disposition_dto_1.CreateCampaignAndDispositionDto]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "createCampaignAndDisposition", null);
 __decorate([
@@ -180,7 +170,6 @@ __decorate([
     swagger_1.ApiOperation({ summary: "Get disposition By Campaign Name" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    common_1.CacheTTL(300),
     __param(0, common_1.Param("campaignName")),
     __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
@@ -188,7 +177,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "getDispositionByCampaignName", null);
 __decorate([
-    common_1.Post("/archive"),
+    common_1.Post("archive"),
     swagger_1.ApiOperation({ summary: "Archives a campaign" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
@@ -197,6 +186,19 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "archiveCampaign", null);
+__decorate([
+    common_1.Patch("addConfigs/:campaignId/:campaignName"),
+    swagger_1.ApiOperation({ summary: "Archives a campaign" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(1, common_1.Body()),
+    __param(2, common_1.Param('campaignId')),
+    __param(3, common_1.Param('campaignName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_configs_dto_1.UpdateConfigsDto, String, String]),
+    __metadata("design:returntype", void 0)
+], CampaignController.prototype, "updateConfigs", null);
 CampaignController = __decorate([
     swagger_1.ApiTags("Campaign"),
     common_1.Controller("campaign"),

@@ -11,24 +11,32 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateCampaignAndDispositionDto = void 0;
 const class_validator_1 = require("class-validator");
-const swagger_1 = require("@nestjs/swagger");
 class CreateCampaignAndDispositionDto {
 }
 __decorate([
-    swagger_1.ApiProperty({
-        description: "Contains the disposition tree for the given campaign",
-        example: "This will be a stringified json tree structure, check db schema for more details",
-    }),
-    class_validator_1.IsString(),
+    class_validator_1.IsString({ each: true }),
     __metadata("design:type", String)
-], CreateCampaignAndDispositionDto.prototype, "dispositionData", void 0);
+], CreateCampaignAndDispositionDto.prototype, "editableCols", void 0);
 __decorate([
-    swagger_1.ApiProperty({
-        description: "Contains information about the campaign",
-        example: "Check the database schema for more details",
-    }),
-    class_validator_1.IsString(),
+    class_validator_1.IsString({ each: true }),
     __metadata("design:type", String)
-], CreateCampaignAndDispositionDto.prototype, "campaignInfo", void 0);
+], CreateCampaignAndDispositionDto.prototype, "browsableCols", void 0);
+__decorate([
+    class_validator_1.IsString({ each: true }),
+    __metadata("design:type", String)
+], CreateCampaignAndDispositionDto.prototype, "uniqueCols", void 0);
+__decorate([
+    class_validator_1.IsString({ each: true }),
+    __metadata("design:type", String)
+], CreateCampaignAndDispositionDto.prototype, "assignTo", void 0);
+__decorate([
+    class_validator_1.IsNotEmpty(),
+    class_validator_1.IsBoolean(),
+    __metadata("design:type", Boolean)
+], CreateCampaignAndDispositionDto.prototype, "isNew", void 0);
+__decorate([
+    class_validator_1.IsObject(),
+    __metadata("design:type", Object)
+], CreateCampaignAndDispositionDto.prototype, "autodialSettings", void 0);
 exports.CreateCampaignAndDispositionDto = CreateCampaignAndDispositionDto;
 //# sourceMappingURL=create-campaign-disposition.dto.js.map

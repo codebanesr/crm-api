@@ -44,6 +44,7 @@ import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { UserActivityDto } from "./dto/user-activity.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
+import { CreateResellerDto } from "./dto/create-reseller.dto";
 
 @ApiTags("User")
 @Controller("user")
@@ -58,14 +59,29 @@ export class UserController {
   @UseGuards(AuthGuard("jwt"))
   @Roles("admin")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Register user" })
+  @ApiOperation({ summary: "Registers user/admin" })
   @ApiCreatedResponse({})
   async register(
     @Body() createUserDto: CreateUserDto,
     @CurrentUser() user: User
   ) {
+    // liu -> logged in user
     const { organization } = user;
     return this.userService.create(createUserDto, organization);
+  }
+
+
+  @Post("reseller")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("superadmin")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Registers user/admin/reseller" })
+  @ApiCreatedResponse({})
+  async registerReseller(
+    @Body() createResellerDto: CreateResellerDto,
+    @CurrentUser() user: User
+  ) {
+    return this.userService.createReseller(createResellerDto);
   }
 
   @Get()
@@ -150,7 +166,7 @@ export class UserController {
     return this.userService.resetPassword(resetPasswordDto);
   }
 
-  @Get("allUsers")
+  @Post("allUsers")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Gets all users" })
   @ApiHeader({
@@ -168,6 +184,13 @@ export class UserController {
     return this.userService.getAll(user, assigned, findAllDto, organization);
   }
 
+  @Get("managers")
+  @UseGuards(AuthGuard("jwt"))
+  getAllManagers(@CurrentUser() user: User, @Query('userEmail') userEmail: string) {
+    const { organization } = user;
+    return this.userService.getAllManagers(organization, userEmail);
+  }
+
   @Get("managersForReassignment")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Gets all users" })
@@ -181,8 +204,8 @@ export class UserController {
     @CurrentUser() user: User,
     @Query("assigned") assigned: string
   ) {
-    const { organization } = user;
-    return this.userService.managersForReassignment(user.manages, organization);
+    const { organization, email, roleType } = user;
+    return this.userService.managersForReassignment(email, roleType, organization);
   }
 
   @Post("many")

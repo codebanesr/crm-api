@@ -26,7 +26,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const lead_service_1 = require("./lead.service");
 const find_all_dto_1 = require("./dto/find-all.dto");
-const create_lead_dto_1 = require("./dto/create-lead.dto");
+const update_lead_dto_1 = require("./dto/update-lead.dto");
 const geo_location_dto_1 = require("./dto/geo-location.dto");
 const reassign_lead_dto_1 = require("./dto/reassign-lead.dto");
 const create_email_template_dto_1 = require("./dto/create-email-template.dto");
@@ -39,51 +39,65 @@ const user_activity_dto_1 = require("../user/dto/user-activity.dto");
 const follow_up_dto_1 = require("./dto/follow-up.dto");
 const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 const update_contact_dto_1 = require("./dto/update-contact.dto");
+const create_lead_dto_1 = require("./dto/create-lead.dto");
+const get_transaction_dto_1 = require("./dto/get-transaction.dto");
+const xlsx_1 = require("xlsx");
+const fs_1 = require("fs");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
     }
-    getAllLeadColumns(campaignType, user) {
-        const { organization } = user;
-        return this.leadService.getLeadColumns(campaignType, organization);
+    getAllLeadColumns(campaignId, remove = [], user) {
+        common_1.Logger.debug(remove);
+        return this.leadService.getLeadColumns(campaignId, remove);
     }
-    insertOne(body, user) {
+    insertOne(body, user, campaignId, campaignName) {
         const { organization, email } = user;
-        return this.leadService.insertOne(body, email, organization);
+        return this.leadService.createLead(body, email, organization, campaignId, campaignName);
+    }
+    getTransactions(user, body, isStreamable, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { organization, email, roleType } = user;
+            const { response, total } = yield this.leadService.getTransactions(organization, email, roleType, body, isStreamable);
+            if (!isStreamable) {
+                return res.status(200).send({ response, total });
+            }
+            if (isStreamable) {
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+                res.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx");
+                const wb = xlsx_1.utils.book_new();
+                const ws = xlsx_1.utils.json_to_sheet(JSON.parse(JSON.stringify(response)));
+                xlsx_1.utils.book_append_sheet(wb, ws, 'transactions');
+                const filename = "transactions.xlsx";
+                const wb_opts = { bookType: 'xlsx', type: 'binary' };
+                xlsx_1.writeFile(wb, filename, wb_opts);
+                const stream = fs_1.createReadStream(filename);
+                stream.pipe(res);
+                stream.on("close", () => {
+                    return res.end();
+                });
+            }
+        });
     }
     findAll(body, user) {
-        const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, } = body;
+        const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, typeDict, campaignId } = body;
         const { email, roleType, organization } = user;
-        return this.leadService.findAll(page, perPage, sortBy, showCols, searchTerm, filters, email, roleType, organization);
+        return this.leadService.findAll(page, perPage, sortBy, showCols, searchTerm, filters, email, roleType, organization, typeDict, campaignId);
     }
     addGeoLocation(body, user) {
         const { lat, lng } = body;
         const { _id, organization } = user;
         return this.leadService.addGeolocation(_id, lat, lng, organization);
     }
-    updateLead(user, body, externalId) {
-        const { organization, email: loggedInUserEmail } = user;
-        const { geoLocation, lead, reassignmentInfo, emailForm, requestedInformation, } = body;
-        return this.leadService.updateLead({
-            organization,
-            externalId,
-            lead,
-            geoLocation,
-            loggedInUserEmail,
-            reassignmentInfo,
-            emailForm,
-            requestedInformation,
-        });
+    updateLead(user, updateLeadObj, leadId) {
+        const { organization, email: handlerEmail, fullName: handlerName } = user;
+        return this.leadService.updateLead(Object.assign(Object.assign({}, updateLeadObj), { leadId, organization, handlerEmail, handlerName }));
     }
     addContact(body, leadId) {
         return this.leadService.addContact(body, leadId);
     }
-    reassignLead(body, user, externalId) {
+    reassignLead(body, user) {
         return this.leadService.reassignLead(user.email, body.oldUserEmail, body.newUserEmail, body.lead);
-    }
-    syncPhoneCalls(callLogs, user) {
-        const { organization, _id } = user;
-        return this.leadService.syncPhoneCalls(callLogs, organization, _id);
     }
     getLeadHistoryById(user, externalId) {
         const { organization } = user;
@@ -115,8 +129,8 @@ let LeadController = class LeadController {
     }
     uploadMultipleLeadFiles(user, body) {
         const { email, organization, _id, pushtoken } = user;
-        const { campaignName, files } = body;
-        return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization, _id, pushtoken);
+        const { campaignName, files, campaignId } = body;
+        return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization, _id, pushtoken, campaignId);
     }
     saveEmailAttachments(files) {
         return this.leadService.saveEmailAttachments(files);
@@ -129,7 +143,7 @@ let LeadController = class LeadController {
         return this.leadService.leadActivityByUser(startDate, endDate, email);
     }
     fetchNextLead(user, campaignId, body) {
-        const { organization, email } = user;
+        const { organization, email, roleType } = user;
         const { filters, typeDict } = body;
         return this.leadService.fetchNextLead({
             campaignId,
@@ -137,6 +151,7 @@ let LeadController = class LeadController {
             email,
             organization,
             typeDict,
+            roleType
         });
     }
     getAllAlarms(user, body) {
@@ -153,16 +168,14 @@ let LeadController = class LeadController {
     fetchFollowUps(followUpDto, user) {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization } = user;
-            const { interval, userEmail: email, campaignName, page, perPage, } = followUpDto;
-            if (email && !user.manages.indexOf(email) && user.roleType !== "admin") {
-                throw new common_1.PreconditionFailedException(null, "You do not manage the user whose followups you want to see");
-            }
+            const { interval, userEmail, campaignName, page, perPage, } = followUpDto;
+            yield this.leadService.checkPrecondition(user, userEmail);
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
             return this.leadService.getFollowUps({
                 interval,
                 organization,
-                email: email || user.email,
+                email: userEmail || user.email,
                 campaignName,
                 limit,
                 page,
@@ -172,27 +185,43 @@ let LeadController = class LeadController {
     }
 };
 __decorate([
-    common_1.Get("getAllLeadColumns"),
+    common_1.Get("getAllLeadColumns/:campaignId"),
     common_1.HttpCode(common_1.HttpStatus.OK),
     swagger_1.ApiOperation({
         summary: "Get lead by id",
     }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    __param(0, common_1.Query("campaignType")),
-    __param(1, current_user_decorator_1.CurrentUser()),
+    __param(0, common_1.Param("campaignId")),
+    __param(1, common_1.Query('remove')),
+    __param(2, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Array, Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "getAllLeadColumns", null);
 __decorate([
-    common_1.Post(""),
-    swagger_1.ApiOperation({ summary: "Fetches all lead for the given user" }),
+    common_1.Post("/create/:campaignId/:campaignName"),
+    swagger_1.ApiOperation({ summary: "Creates New Lead" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Body()), __param(1, current_user_decorator_1.CurrentUser()),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
+    __param(2, common_1.Param("campaignId")),
+    __param(3, common_1.Param("campaignName")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_lead_dto_1.CreateLeadDto, Object]),
+    __metadata("design:paramtypes", [create_lead_dto_1.CreateLeadDto, Object, String, String]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "insertOne", null);
+__decorate([
+    common_1.Post("transactions"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(1, common_1.Body()),
+    __param(2, common_1.Query('isStreamable')),
+    __param(3, common_1.Res()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, get_transaction_dto_1.GetTransactionDto, Boolean, Object]),
+    __metadata("design:returntype", Promise)
+], LeadController.prototype, "getTransactions", null);
 __decorate([
     common_1.Post("findAll"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
@@ -215,15 +244,15 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "addGeoLocation", null);
 __decorate([
-    common_1.Put(":externalId"),
+    common_1.Put(":id"),
     swagger_1.ApiOperation({ summary: "Adds users location emitted from the device" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, current_user_decorator_1.CurrentUser()),
     __param(1, common_1.Body()),
-    __param(2, common_1.Param("externalId")),
+    __param(2, common_1.Param("id")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_lead_dto_1.CreateLeadDto, String]),
+    __metadata("design:paramtypes", [Object, update_lead_dto_1.UpdateLeadDto, String]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "updateLead", null);
 __decorate([
@@ -243,22 +272,10 @@ __decorate([
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, common_1.Body()),
     __param(1, current_user_decorator_1.CurrentUser()),
-    __param(2, common_1.Param("externalId")),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [reassign_lead_dto_1.ReassignLeadDto, Object, String]),
+    __metadata("design:paramtypes", [reassign_lead_dto_1.ReassignLeadDto, Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "reassignLead", null);
-__decorate([
-    common_1.Post("syncPhoneCalls"),
-    common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    swagger_1.ApiOperation({ summary: "Sync phone calls from device to database" }),
-    common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, common_1.Body()),
-    __param(1, current_user_decorator_1.CurrentUser()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Array, Object]),
-    __metadata("design:returntype", void 0)
-], LeadController.prototype, "syncPhoneCalls", null);
 __decorate([
     common_1.Get("getLeadHistoryById/:externalId"),
     swagger_1.ApiOperation({

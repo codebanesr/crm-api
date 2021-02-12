@@ -6,16 +6,11 @@ import {
   UploadedFile,
   UseInterceptors,
   Post,
-  Request,
   Body,
   Param,
   Query,
-  UsePipes,
-  ValidationPipe,
-  CacheKey,
-  CacheTTL,
   UseGuards,
-  Logger,
+  Patch,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiConsumes } from "@nestjs/swagger";
 import { CampaignService } from "./campaign.service";
@@ -25,6 +20,8 @@ import { FindCampaignsDto } from "./dto/find-campaigns.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../user/interfaces/user.interface";
+import { UpdateConfigsDto } from "./dto/update-configs.dto";
+import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
 
 @ApiTags("Campaign")
 @Controller("campaign")
@@ -104,10 +101,9 @@ export class CampaignController {
   @ApiOperation({ summary: "Get one campaign by id" })
   @HttpCode(HttpStatus.OK)
   findOneByIdOrName(
-    @Param("campaignId") campaignId: string,
-    @Query("identifier") identifier: string
+    @Param("campaignId") campaignId: string
   ) {
-    return this.campaignService.findOneByIdOrName(campaignId, identifier);
+    return this.campaignService.findOneByIdOrName(campaignId);
   }
 
   @Post("createCampaignAndDisposition")
@@ -119,43 +115,16 @@ export class CampaignController {
   @HttpCode(HttpStatus.OK)
   createCampaignAndDisposition(
     @CurrentUser() currrentUser: User,
-    @UploadedFile() file,
-    @Body() body
+    @Body() body: CreateCampaignAndDispositionDto
   ) {
     const { id: activeUserId, organization } = currrentUser;
-    const {
-      dispositionData,
-      campaignInfo,
-      editableCols,
-      browsableCols,
-      uniqueCols,
-      formModel,
-      assignTo,
-      advancedSettings,
-      groups,
-    } = body;
-
-    return this.campaignService.createCampaignAndDisposition({
-      activeUserId,
-      file,
-      dispositionData,
-      campaignInfo,
-      organization,
-      editableCols,
-      browsableCols,
-      formModel,
-      uniqueCols,
-      assignTo,
-      advancedSettings,
-      groups,
-    });
+    return this.campaignService.createCampaignAndDisposition({...body, activeUserId, organization});
   }
 
   @Get("disposition/campaignName/:campaignName")
   @ApiOperation({ summary: "Get disposition By Campaign Name" })
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard("jwt"))
-  @CacheTTL(300)
   getDispositionByCampaignName(
     @Param("campaignName") campaignName: string,
     @CurrentUser() user: User
@@ -167,7 +136,7 @@ export class CampaignController {
     );
   }
 
-  @Post("/archive")
+  @Post("archive")
   @ApiOperation({ summary: "Archives a campaign" })
   @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
@@ -175,4 +144,19 @@ export class CampaignController {
     const { organization } = user;
     return this.campaignService.archiveCampaign(body);
   }
+
+  @Patch("addConfigs/:campaignId/:campaignName")
+  @ApiOperation({ summary: "Archives a campaign" })
+  @UseGuards(AuthGuard("jwt"))
+  @HttpCode(HttpStatus.OK)
+  updateConfigs(
+      @CurrentUser() user: User, 
+      @Body() configs: UpdateConfigsDto,
+      @Param('campaignId') campaignId: string, 
+      @Param('campaignName') campaignName: string
+    ) {
+    const { organization } = user;
+    return this.campaignService.updateConfigs(configs, organization, campaignId, campaignName);
+  }
 }
+// PATCH /campaign/addConfigs/5f49637c37c8e231c6711b36/spec-v4
