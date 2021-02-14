@@ -87,18 +87,6 @@ __decorate([
 ], CreateOrganizationDto.prototype, "phoneNumber", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        example: "11Ads2",
-        description: 'OTP sent to your mobile Number',
-        type: String,
-    }),
-    class_validator_1.IsString(),
-    class_validator_1.IsNotEmpty(),
-    class_validator_1.MinLength(4),
-    class_validator_1.MaxLength(14),
-    __metadata("design:type", String)
-], CreateOrganizationDto.prototype, "otp", void 0);
-__decorate([
-    swagger_1.ApiProperty({
         example: "Shanur Rahman",
         description: 'Full name of the account holder',
         type: String,
@@ -106,7 +94,7 @@ __decorate([
     class_validator_1.IsString(),
     class_validator_1.IsNotEmpty(),
     class_validator_1.MinLength(4),
-    class_validator_1.MaxLength(14),
+    class_validator_1.MaxLength(128),
     __metadata("design:type", String)
 ], CreateOrganizationDto.prototype, "fullName", void 0);
 __decorate([

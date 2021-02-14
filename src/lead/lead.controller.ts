@@ -374,8 +374,8 @@ export class LeadController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard("jwt"))
   findOneById(@Param("leadId") leadId: string, @CurrentUser() user: User) {
-    const { organization } = user;
-    return this.leadService.findOneById(leadId, organization);
+    const { email, roleType } = user;
+    return this.leadService.findOneById(leadId, email, roleType);
   }
 
   @Get("activity/:email")

@@ -22,6 +22,7 @@ import { ResellerOrganization } from "../organization/interface/reseller-organiz
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import * as moment from "moment";
 import { Transaction } from "./interface/transaction.interface";
+import { RoleType } from "../shared/role-type.enum";
 
 @Injectable()
 export class OrganizationService {
@@ -62,11 +63,9 @@ export class OrganizationService {
       email,
       fullName,
       password,
-      roleType: "admin",
-      roles: ["admin"],
-      reportsTo: "",
-      phoneNumber
-    }, result._id);
+      roleType: RoleType.admin,
+      phoneNumber,
+    }, result._id, true);
   }
 
 
@@ -117,20 +116,23 @@ export class OrganizationService {
   async isOrganizationalPayloadValid(
     createOrganizationDto: CreateOrganizationDto
   ) {
-    const correctOTP = await this.getOTPForNumber(
-        createOrganizationDto.phoneNumber
-    );
-    const { email, phoneNumber, name } = createOrganizationDto;
-    const count = await this.organizationalModel.count({
-      $or: [{ name }, { email }, { phoneNumber }],
-    });
-    Logger.debug({ count });
-    if (createOrganizationDto.otp !== correctOTP) {
-      throw new HttpException("Incorrect otp", 421);
-    }
-    if (count !== 0) {
-      throw new ConflictException();
-    }
+    // const correctOTP = await this.getOTPForNumber(
+    //     createOrganizationDto.phoneNumber
+    // );
+    // const { email, phoneNumber, name } = createOrganizationDto;
+    // const count = await this.organizationalModel.count({
+    //   $or: [{ name }, { email }, { phoneNumber }],
+    // });
+    // Logger.debug({ count });
+    // if (createOrganizationDto.otp !== correctOTP) {
+    //   throw new HttpException("Incorrect otp", 421);
+    // }
+    // if (count !== 0) {
+    //   throw new ConflictException();
+    // }
+
+
+    return true;
   }
 
 

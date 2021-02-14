@@ -26,7 +26,7 @@ export declare class UserController {
     login(req: IRequest, loginUserDto: LoginUserDto): Promise<{
         fullName: string;
         email: string;
-        roleType: string;
+        roleType: import("../shared/role-type.enum").RoleType;
         accessToken: string;
         refreshToken: string;
     }>;

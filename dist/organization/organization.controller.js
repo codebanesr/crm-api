@@ -32,6 +32,7 @@ const generate_token_dto_1 = require("./dto/generate-token.dto");
 const validation_dto_1 = require("./dto/validation.dto");
 const organization_service_1 = require("./organization.service");
 const update_quota_dto_1 = require("./dto/update-quota.dto");
+const roles_guard_1 = require("../auth/guards/roles.guard");
 let OrganizationController = class OrganizationController {
     constructor(organizationService) {
         this.organizationService = organizationService;
@@ -74,20 +75,25 @@ let OrganizationController = class OrganizationController {
 __decorate([
     common_1.Post(),
     common_1.HttpCode(common_1.HttpStatus.CREATED),
-    swagger_1.ApiOperation({ summary: "Registers Organization and automatically creates a user for that organization" }),
+    swagger_1.ApiOperation({
+        summary: "Registers Organization and automatically creates a user for that organization",
+    }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    roles_decorator_1.Roles("reseller"),
+    roles_decorator_1.Roles("reseller", "superAdmin"),
     swagger_1.ApiCreatedResponse({}),
-    __param(0, common_1.Body()), __param(1, current_user_decorator_1.CurrentUser()),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_organization_dto_1.CreateOrganizationDto, Object]),
     __metadata("design:returntype", Promise)
 ], OrganizationController.prototype, "register", null);
 __decorate([
-    swagger_1.ApiOperation({ summary: "Get all organization details for logged in reseller" }),
+    swagger_1.ApiOperation({
+        summary: "Get all organization details for logged in reseller",
+    }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    roles_decorator_1.Roles("reseller"),
-    common_1.Get('reseller'),
+    roles_decorator_1.Roles("reseller", "superAdmin"),
+    common_1.Get("reseller"),
     __param(0, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -96,9 +102,11 @@ __decorate([
 __decorate([
     common_1.Post("otp"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    roles_decorator_1.Roles("reseller"),
+    roles_decorator_1.Roles("reseller", "superAdmin"),
     common_1.HttpCode(common_1.HttpStatus.CREATED),
-    swagger_1.ApiOperation({ summary: "Generates an otp for given mobile number and sends it to that number" }),
+    swagger_1.ApiOperation({
+        summary: "Generates an otp for given mobile number and sends it to that number",
+    }),
     swagger_1.ApiCreatedResponse({}),
     __param(0, common_1.Body()),
     __metadata("design:type", Function),
@@ -108,9 +116,11 @@ __decorate([
 __decorate([
     common_1.Post("quota"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    roles_decorator_1.Roles("reseller"),
+    roles_decorator_1.Roles("reseller", "superAdmin"),
     common_1.HttpCode(common_1.HttpStatus.CREATED),
-    swagger_1.ApiOperation({ summary: "Generates an otp for given mobile number and sends it to that number" }),
+    swagger_1.ApiOperation({
+        summary: "Generates an otp for given mobile number and sends it to that number",
+    }),
     swagger_1.ApiCreatedResponse({}),
     __param(0, common_1.Body()),
     __metadata("design:type", Function),
@@ -132,14 +142,15 @@ __decorate([
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Validate create-organization paylod" }),
     swagger_1.ApiCreatedResponse({}),
-    __param(0, common_1.Query('organization')),
+    __param(0, common_1.Query("organization")),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], OrganizationController.prototype, "getPayments", null);
 OrganizationController = __decorate([
-    common_1.Controller('organization'),
+    common_1.Controller("organization"),
     swagger_1.ApiTags("organization"),
+    common_1.UseGuards(roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [organization_service_1.OrganizationService])
 ], OrganizationController);
 exports.OrganizationController = OrganizationController;

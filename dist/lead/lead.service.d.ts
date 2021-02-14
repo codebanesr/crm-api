@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { Model } from "mongoose";
 import { Lead } from "./interfaces/lead.interface";
 import { User } from "../user/interfaces/user.interface";
@@ -33,6 +34,7 @@ export declare class LeadService {
     private userService;
     private notificationService;
     constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, leadUploadQueue: Queue, ruleService: RulesService, userService: UserService, notificationService: NotificationService);
+    logger: Logger;
     saveEmailAttachments(files: any): any;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string, templateName: string): Promise<EmailTemplate>;
@@ -52,7 +54,7 @@ export declare class LeadService {
         paths: CampaignConfig[];
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
-    findOneById(leadId: string, organization: string): Promise<{
+    findOneById(leadId: string, email: string, roleType: string): Promise<{
         lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation">;
         leadHistory: any[];
     }>;

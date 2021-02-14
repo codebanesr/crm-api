@@ -31,6 +31,7 @@ const nestjs_redis_1 = require("nestjs-redis");
 const config_1 = require("../config");
 const user_service_1 = require("../user/user.service");
 const moment = require("moment");
+const role_type_enum_1 = require("../shared/role-type.enum");
 let OrganizationService = class OrganizationService {
     constructor(organizationalModel, resellerOrganizationModel, transactionModel, twilioService, sharedService, redisService, userService) {
         this.organizationalModel = organizationalModel;
@@ -58,11 +59,9 @@ let OrganizationService = class OrganizationService {
                 email,
                 fullName,
                 password,
-                roleType: "admin",
-                roles: ["admin"],
-                reportsTo: "",
-                phoneNumber
-            }, result._id);
+                roleType: role_type_enum_1.RoleType.admin,
+                phoneNumber,
+            }, result._id, true);
         });
     }
     getAllResellerOrganization(id) {
@@ -107,18 +106,7 @@ let OrganizationService = class OrganizationService {
     }
     isOrganizationalPayloadValid(createOrganizationDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const correctOTP = yield this.getOTPForNumber(createOrganizationDto.phoneNumber);
-            const { email, phoneNumber, name } = createOrganizationDto;
-            const count = yield this.organizationalModel.count({
-                $or: [{ name }, { email }, { phoneNumber }],
-            });
-            common_1.Logger.debug({ count });
-            if (createOrganizationDto.otp !== correctOTP) {
-                throw new common_1.HttpException("Incorrect otp", 421);
-            }
-            if (count !== 0) {
-                throw new common_1.ConflictException();
-            }
+            return true;
         });
     }
     createOrUpdateUserQuota(obj) {

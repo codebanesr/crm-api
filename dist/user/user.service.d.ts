@@ -13,6 +13,7 @@ import { AdminAction } from "./interfaces/admin-actions.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
+import { RoleType } from "../shared/role-type.enum";
 export declare class UserService {
     private readonly userModel;
     private readonly forgotPasswordModel;
@@ -22,9 +23,9 @@ export declare class UserService {
     HOURS_TO_BLOCK: number;
     LOGIN_ATTEMPTS_TO_BLOCK: number;
     constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, authService: AuthService);
-    create(createUserDto: CreateUserDto, organization: string): Promise<any>;
+    create(createUserDto: CreateUserDto, organization: string, isFirstUser?: boolean): Promise<any>;
     checkHierarchyPreconditions(createUserDto: CreateUserDto): Promise<boolean>;
-    getSuperiorRoleTypes(email: string): Promise<string[]>;
+    getSuperiorRoleTypes(email: string): Promise<RoleType[]>;
     createReseller(createResellerDto: CreateResellerDto): Promise<any>;
     verifyEmail(req: Request, verifyUuidDto: VerifyUuidDto): Promise<{
         fullName: string;
@@ -35,7 +36,7 @@ export declare class UserService {
     login(req: Request, loginUserDto: LoginUserDto): Promise<{
         fullName: string;
         email: string;
-        roleType: string;
+        roleType: RoleType;
         accessToken: string;
         refreshToken: string;
     }>;

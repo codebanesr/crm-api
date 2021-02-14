@@ -31,6 +31,7 @@ import { InjectQueue } from "@nestjs/bull";
 import { Queue } from "bull";
 import { createTransport, SendMailOptions } from "nodemailer";
 import config from '../config';
+import { RoleType } from "../shared/role-type.enum";
 @Injectable()
 export class LeadService {
   constructor(
@@ -69,6 +70,8 @@ export class LeadService {
     private notificationService: NotificationService,
   ) {}
 
+
+  logger = new Logger("leadService", true);
   saveEmailAttachments(files) {
     return files;
   }
@@ -365,18 +368,27 @@ export class LeadService {
     return result;
   }
 
-  async findOneById(leadId: string, organization: string) {
+  async findOneById(leadId: string, email: string, roleType: string) {
+    /**  */
     const lead = await this.leadModel
       .findById(leadId)
       .lean()
       .exec();
 
 
+    if(!lead.email && roleType!== RoleType.frontline) {
+      await this.leadModel.findOneAndUpdate({_id: leadId}, {email}, {timestamps: false}).lean().exec();
+      lead.email = email;
+    }
+
+
     let leadHistory = []
     if(lead) {
       leadHistory = await this.leadHistoryModel
       .find({ lead: lead._id })
-      .limit(5);
+      .limit(5)
+      .lean()
+      .exec();
     }
     return {lead, leadHistory};
   }
@@ -800,6 +812,7 @@ export class LeadService {
     /** @Todo Quick fix for sending contact ionformation to frontend, to put some effort into this if required */
     projection["contact"] = 1;
     projection["nextAction"] = 1;
+    projection["email"] = 1;
 
     // other information that should always show up, one is history
 
@@ -812,6 +825,17 @@ export class LeadService {
       leadHistory = await this.leadHistoryModel
         .find({ lead: lead._id })
         .limit(5);
+    }
+
+
+    // before sending the lead, assign this lead to the user who is going to view it; do not change the timestamp
+    // this operation is performed by the system internally.
+    // If this lead was not already assigned to a user, it should be assigned to the user who is going to 
+    // see this lead.
+    if(!lead.email && roleType === RoleType.frontline) {
+      lead.email = email;
+      await this.leadModel.findOneAndUpdate({_id: lead._id}, {email}, {timestamps: false});
+      this.logger.debug(`Assigned lead ${lead._id} to ${email}`);
     }
     return { lead, leadHistory };
   }

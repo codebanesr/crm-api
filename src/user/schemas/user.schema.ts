@@ -59,7 +59,6 @@ export const UserSchema = new Schema(
     reportsTo: { 
       type: String, 
       validate: validator.isEmail,
-      required: true
     },
 
     /**@todo this default has to be removed */

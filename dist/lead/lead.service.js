@@ -43,6 +43,7 @@ const rules_service_1 = require("../rules/rules.service");
 const user_service_1 = require("../user/user.service");
 const bull_1 = require("@nestjs/bull");
 const config_1 = require("../config");
+const role_type_enum_1 = require("../shared/role-type.enum");
 let LeadService = class LeadService {
     constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService) {
         this.leadModel = leadModel;
@@ -57,6 +58,7 @@ let LeadService = class LeadService {
         this.ruleService = ruleService;
         this.userService = userService;
         this.notificationService = notificationService;
+        this.logger = new common_1.Logger("leadService", true);
     }
     saveEmailAttachments(files) {
         return files;
@@ -279,17 +281,23 @@ let LeadService = class LeadService {
             return result;
         });
     }
-    findOneById(leadId, organization) {
+    findOneById(leadId, email, roleType) {
         return __awaiter(this, void 0, void 0, function* () {
             const lead = yield this.leadModel
                 .findById(leadId)
                 .lean()
                 .exec();
+            if (!lead.email && roleType !== role_type_enum_1.RoleType.frontline) {
+                yield this.leadModel.findOneAndUpdate({ _id: leadId }, { email }, { timestamps: false }).lean().exec();
+                lead.email = email;
+            }
             let leadHistory = [];
             if (lead) {
                 leadHistory = yield this.leadHistoryModel
                     .find({ lead: lead._id })
-                    .limit(5);
+                    .limit(5)
+                    .lean()
+                    .exec();
             }
             return { lead, leadHistory };
         });
@@ -564,6 +572,7 @@ let LeadService = class LeadService {
             });
             projection["contact"] = 1;
             projection["nextAction"] = 1;
+            projection["email"] = 1;
             singleLeadAgg.project(projection);
             const lead = (yield singleLeadAgg.exec())[0];
             let leadHistory = [];
@@ -571,6 +580,11 @@ let LeadService = class LeadService {
                 leadHistory = yield this.leadHistoryModel
                     .find({ lead: lead._id })
                     .limit(5);
+            }
+            if (!lead.email && roleType === role_type_enum_1.RoleType.frontline) {
+                lead.email = email;
+                yield this.leadModel.findOneAndUpdate({ _id: lead._id }, { email }, { timestamps: false });
+                this.logger.debug(`Assigned lead ${lead._id} to ${email}`);
             }
             return { lead, leadHistory };
         });

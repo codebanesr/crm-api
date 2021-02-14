@@ -25,7 +25,7 @@ export declare class OrganizationService {
     getOTPForNumber(mobileNumber: string): Promise<string>;
     sendOtp(otp: any, mobileNumber: any): Promise<import("twilio/lib/rest/api/v2010/account/message").MessageInstance>;
     isAttributeValid(validationDto: ValidateNewOrganizationDto): Promise<void>;
-    isOrganizationalPayloadValid(createOrganizationDto: CreateOrganizationDto): Promise<void>;
+    isOrganizationalPayloadValid(createOrganizationDto: CreateOrganizationDto): Promise<boolean>;
     createOrUpdateUserQuota(obj: UpdateQuotaDto): Promise<Transaction>;
     getAllPayments(organization: any): Promise<Transaction[]>;
 }

@@ -1,9 +1,9 @@
-import { User } from '../user/interfaces/user.interface';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { GenerateTokenDto } from './dto/generate-token.dto';
-import { ValidateNewOrganizationDto } from './dto/validation.dto';
-import { OrganizationService } from './organization.service';
-import { UpdateQuotaDto } from './dto/update-quota.dto';
+import { User } from "../user/interfaces/user.interface";
+import { CreateOrganizationDto } from "./dto/create-organization.dto";
+import { GenerateTokenDto } from "./dto/generate-token.dto";
+import { ValidateNewOrganizationDto } from "./dto/validation.dto";
+import { OrganizationService } from "./organization.service";
+import { UpdateQuotaDto } from "./dto/update-quota.dto";
 export declare class OrganizationController {
     private organizationService;
     constructor(organizationService: OrganizationService);
