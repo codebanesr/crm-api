@@ -73,16 +73,16 @@ export class CreateOrganizationDto {
 
 
 
-      @ApiProperty({
-        example: "11Ads2",
-        description: 'OTP sent to your mobile Number',
-        type: String,
-      })
-      @IsString()
-      @IsNotEmpty()
-      @MinLength(4)
-      @MaxLength(14)
-      otp: string
+      // @ApiProperty({
+      //   example: "11Ads2",
+      //   description: 'OTP sent to your mobile Number',
+      //   type: String,
+      // })
+      // @IsString()
+      // @IsNotEmpty()
+      // @MinLength(4)
+      // @MaxLength(14)
+      // otp: string
 
       @ApiProperty({
         example: "Shanur Rahman",
@@ -92,7 +92,7 @@ export class CreateOrganizationDto {
       @IsString()
       @IsNotEmpty()
       @MinLength(4)
-      @MaxLength(14)
+      @MaxLength(128)
       fullName: string
 
 

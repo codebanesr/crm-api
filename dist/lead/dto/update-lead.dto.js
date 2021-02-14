@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateLeadDto = exports.ReassignmentInfo = void 0;
+exports.UpdateLeadDto = exports.UpdateLead = exports.ReassignmentInfo = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const call_status_enum_1 = require("../enum/call-status.enum");
@@ -33,12 +33,20 @@ __decorate([
     class_validator_1.IsEnum(call_status_enum_1.ECallStatus),
     __metadata("design:type", String)
 ], CallRecord.prototype, "callStatus", void 0);
+class UpdateLead extends lead_model_dto_1.Lead {
+}
+__decorate([
+    class_validator_1.IsNotEmpty(),
+    class_validator_1.IsString(),
+    __metadata("design:type", String)
+], UpdateLead.prototype, "leadStatus", void 0);
+exports.UpdateLead = UpdateLead;
 class UpdateLeadDto {
 }
 __decorate([
     class_validator_1.ValidateNested(),
-    class_transformer_1.Type(() => lead_model_dto_1.Lead),
-    __metadata("design:type", lead_model_dto_1.Lead)
+    class_transformer_1.Type(() => UpdateLead),
+    __metadata("design:type", UpdateLead)
 ], UpdateLeadDto.prototype, "lead", void 0);
 __decorate([
     class_validator_1.ValidateNested(),

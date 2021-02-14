@@ -5,6 +5,7 @@ import {
   IsMongoId,
   IsNotEmpty,
   IsEnum,
+  IsString,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ECallStatus } from "../enum/call-status.enum";
@@ -31,10 +32,16 @@ class CallRecord {
   callStatus: string;
 }
 
+export class UpdateLead extends Lead {
+  @IsNotEmpty()
+  @IsString()
+  leadStatus: string;
+}
+
 export class UpdateLeadDto {
   @ValidateNested()
-  @Type(() => Lead)
-  lead: Lead;
+  @Type(() => UpdateLead)
+  lead: UpdateLead;
 
   @ValidateNested()
   geoLocation: GeoLocation;

@@ -1,4 +1,5 @@
 import { Document, Schema } from "mongoose";
+import { RoleType } from "../../shared/role-type.enum";
 
 export interface User extends Document {
   fullName: string;
@@ -8,13 +9,13 @@ export interface User extends Document {
   verification: string;
   verified: boolean;
   verificationExpires: Date;
-  reportsTo: string;
+  reportsTo?: string;
   loginAttempts?: number;
   blockExpires?: Date;
   bankAccountNumber?: string;
   bankAccountName?: string;
   batLvl: number;
-  roleType: string;
+  roleType: RoleType;
   singleLoginKey: string;
   // manages: string[];
   history: string[];

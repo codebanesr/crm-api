@@ -67,7 +67,6 @@ exports.UserSchema = new mongoose_1.Schema({
     reportsTo: {
         type: String,
         validate: validator_1.default.isEmail,
-        required: true
     },
     phoneNumber: { type: String, required: true, default: "00000" },
     history: { type: Array, default: null },

@@ -37,6 +37,7 @@ import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { hashPassword } from "../utils/crypto.utils";
 import { v4 as uuidv4 } from 'uuid';
+import { RoleType } from "../shared/role-type.enum";
 
 @Injectable()
 export class UserService {
@@ -59,13 +60,17 @@ export class UserService {
   // └─┘┴└─└─┘┴ ┴ ┴ └─┘  └─┘└─┘└─┘┴└─
   // to call from api use this
   // if we have the organiztion then we call this function directly, to call from some other service
-  async create(createUserDto: CreateUserDto, organization: string) {
-    await this.checkHierarchyPreconditions(createUserDto);
+  async create(createUserDto: CreateUserDto, organization: string, isFirstUser: boolean = false) {
+    !isFirstUser && await this.checkHierarchyPreconditions(createUserDto);
     const user = new this.userModel({
       ...createUserDto,
       organization,
       verified: true,
     });
+
+    /** @Todo remove this duplicate variable and slowly remove this dependency */
+    user.roles = [createUserDto.roleType];
+
     await this.isEmailUnique(user.email);
     this.setRegistrationInfo(user);
     await user.save();
@@ -75,16 +80,17 @@ export class UserService {
   async checkHierarchyPreconditions(createUserDto: CreateUserDto) {
     const {reportsTo, roleType: userRoleType} = createUserDto;
     const manager = await this.userModel.findOne({email: reportsTo}, {roleType: 1}).lean().exec();
-    if(manager.roleType === 'frontline') {
+
+    if(manager.roleType === RoleType.frontline) {
       throw new PreconditionFailedException('Cannot report to a frontline');
     }
-    else if(userRoleType === 'frontline') {
+    else if(userRoleType === RoleType.frontline) {
       return true;
-    } else if(userRoleType === 'manager' && manager.roleType === 'manager') {
+    } else if(userRoleType === RoleType.manager && manager.roleType === RoleType.manager) {
       throw new PreconditionFailedException('manager cannot report to a manager');
-    } else if(userRoleType === 'seniorManager' && ['manager', 'seniorManager'].includes(manager.roleType)) {
+    } else if(userRoleType === RoleType.seniorManager && [RoleType.manager, RoleType.seniorManager].includes(manager.roleType)) {
       throw new PreconditionFailedException('Senior manager can only report to admin');
-    } else if(userRoleType === 'admin' && !!manager.roleType) {
+    } else if(userRoleType === RoleType.admin && !!manager.roleType) {
       throw new PreconditionFailedException('Admin cannot report to anyone');
     }
   }
@@ -92,14 +98,14 @@ export class UserService {
 
   async getSuperiorRoleTypes(email: string) {
     const {roleType} = await this.userModel.findOne({email}, {roleType: 1}).lean().exec();
-    if(roleType === 'admin') {
+    if(roleType === RoleType.admin) {
       return []
-    }else if(roleType === 'seniorManager') {
-      return ['admin']
-    }else if(roleType === 'manager') {
-      return ['seniorManager', 'admin']
-    }else if(roleType === 'frontline') {
-      return ['seniorManager', 'admin', 'manager']
+    }else if(roleType === RoleType.seniorManager) {
+      return [RoleType.admin]
+    }else if(roleType === RoleType.manager) {
+      return [RoleType.seniorManager, RoleType.admin]
+    }else if(roleType === RoleType.frontline) {
+      return [RoleType.seniorManager, RoleType.admin, RoleType.manager]
     }
   }
 
@@ -256,7 +262,7 @@ export class UserService {
       const superiorRoleTypes = await this.getSuperiorRoleTypes(userEmail);
       return this.userModel.find({organization, roleType: {$in: superiorRoleTypes}}, {email: 1, fullName: 1}).lean().exec();
     }else {
-      return this.userModel.find({roleType: {$ne: "frontline"}}, {email: 1, fullName: 1}).lean().exec();
+      return this.userModel.find({roleType: {$ne: RoleType.frontline}}, {email: 1, fullName: 1}).lean().exec();
     }
   }
 

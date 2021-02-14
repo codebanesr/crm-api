@@ -136,8 +136,8 @@ let LeadController = class LeadController {
         return this.leadService.saveEmailAttachments(files);
     }
     findOneById(leadId, user) {
-        const { organization } = user;
-        return this.leadService.findOneById(leadId, organization);
+        const { email, roleType } = user;
+        return this.leadService.findOneById(leadId, email, roleType);
     }
     leadActivityByUser(email, startDate, endDate) {
         return this.leadService.leadActivityByUser(startDate, endDate, email);

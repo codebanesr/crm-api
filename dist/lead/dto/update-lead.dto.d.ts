@@ -11,8 +11,11 @@ declare class CallRecord {
     type: number;
     callStatus: string;
 }
+export declare class UpdateLead extends Lead {
+    leadStatus: string;
+}
 export declare class UpdateLeadDto {
-    lead: Lead;
+    lead: UpdateLead;
     geoLocation: GeoLocation;
     reassignmentInfo?: ReassignmentInfo;
     emailForm: {

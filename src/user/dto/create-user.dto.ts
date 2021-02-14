@@ -8,9 +8,11 @@ import {
   IsArray,
   ValidateIf,
   IsPhoneNumber,
+  IsEnum,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
+import { RoleType } from "../../shared/role-type.enum";
 
 export class CreateUserDto {
   // fullName
@@ -69,10 +71,10 @@ export class CreateUserDto {
   })
   @ApiProperty()
   @IsNotEmpty()
-  @IsIn(["admin", "manager", "seniorManager", "frontline"])
+  @IsEnum(RoleType)
   @MinLength(5)
   @MaxLength(1024)
-  readonly roleType: string;
+  readonly roleType: RoleType;
 
   // @ApiProperty({
   //   example: ["user1@gmail.com"],
@@ -93,21 +95,21 @@ export class CreateUserDto {
     description: "Who will he report to",
     type: String,
   })
-  @ValidateIf((o) => o.roleType !== "admin")
+  @ValidateIf((o) => o.roleType !== RoleType.admin)
   @ApiProperty()
   @IsString()
-  readonly reportsTo: string;
+  readonly reportsTo?: string;
 
   // is in validator has to be applied to every element in this array
-  @ApiProperty({
-    example: ["admin"],
-    description: "What roles does this user have admin, admin can only assign admin and user roles or both / reseller roles can only be assigned by super admin / us",
-    type: String,
-  })
-  @ApiProperty()
-  @IsIn(["admin", "user"], {each: true})
-  @IsString({each: true})
-  readonly roles: string[];
+  // @ApiProperty({
+  //   example: ["admin"],
+  //   description: "What roles does this user have admin, admin can only assign admin and user roles or both / reseller roles can only be assigned by super admin / us",
+  //   type: String,
+  // })
+  // @ApiProperty()
+  // @IsIn(["admin", "user"], {each: true})
+  // @IsString({each: true})
+  // readonly roles: string[];
 
 
   @ApiProperty({

@@ -37,6 +37,7 @@ const nodemailer_1 = require("nodemailer");
 const forgot_password_template_1 = require("../utils/forgot-password-template");
 const crypto_utils_1 = require("../utils/crypto.utils");
 const uuid_2 = require("uuid");
+const role_type_enum_1 = require("../shared/role-type.enum");
 let UserService = class UserService {
     constructor(userModel, forgotPasswordModel, adminActionModel, authService) {
         this.userModel = userModel;
@@ -47,10 +48,11 @@ let UserService = class UserService {
         this.HOURS_TO_BLOCK = 6;
         this.LOGIN_ATTEMPTS_TO_BLOCK = 5;
     }
-    create(createUserDto, organization) {
+    create(createUserDto, organization, isFirstUser = false) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.checkHierarchyPreconditions(createUserDto);
+            !isFirstUser && (yield this.checkHierarchyPreconditions(createUserDto));
             const user = new this.userModel(Object.assign(Object.assign({}, createUserDto), { organization, verified: true }));
+            user.roles = [createUserDto.roleType];
             yield this.isEmailUnique(user.email);
             this.setRegistrationInfo(user);
             yield user.save();
@@ -61,19 +63,19 @@ let UserService = class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             const { reportsTo, roleType: userRoleType } = createUserDto;
             const manager = yield this.userModel.findOne({ email: reportsTo }, { roleType: 1 }).lean().exec();
-            if (manager.roleType === 'frontline') {
+            if (manager.roleType === role_type_enum_1.RoleType.frontline) {
                 throw new common_1.PreconditionFailedException('Cannot report to a frontline');
             }
-            else if (userRoleType === 'frontline') {
+            else if (userRoleType === role_type_enum_1.RoleType.frontline) {
                 return true;
             }
-            else if (userRoleType === 'manager' && manager.roleType === 'manager') {
+            else if (userRoleType === role_type_enum_1.RoleType.manager && manager.roleType === role_type_enum_1.RoleType.manager) {
                 throw new common_1.PreconditionFailedException('manager cannot report to a manager');
             }
-            else if (userRoleType === 'seniorManager' && ['manager', 'seniorManager'].includes(manager.roleType)) {
+            else if (userRoleType === role_type_enum_1.RoleType.seniorManager && [role_type_enum_1.RoleType.manager, role_type_enum_1.RoleType.seniorManager].includes(manager.roleType)) {
                 throw new common_1.PreconditionFailedException('Senior manager can only report to admin');
             }
-            else if (userRoleType === 'admin' && !!manager.roleType) {
+            else if (userRoleType === role_type_enum_1.RoleType.admin && !!manager.roleType) {
                 throw new common_1.PreconditionFailedException('Admin cannot report to anyone');
             }
         });
@@ -81,17 +83,17 @@ let UserService = class UserService {
     getSuperiorRoleTypes(email) {
         return __awaiter(this, void 0, void 0, function* () {
             const { roleType } = yield this.userModel.findOne({ email }, { roleType: 1 }).lean().exec();
-            if (roleType === 'admin') {
+            if (roleType === role_type_enum_1.RoleType.admin) {
                 return [];
             }
-            else if (roleType === 'seniorManager') {
-                return ['admin'];
+            else if (roleType === role_type_enum_1.RoleType.seniorManager) {
+                return [role_type_enum_1.RoleType.admin];
             }
-            else if (roleType === 'manager') {
-                return ['seniorManager', 'admin'];
+            else if (roleType === role_type_enum_1.RoleType.manager) {
+                return [role_type_enum_1.RoleType.seniorManager, role_type_enum_1.RoleType.admin];
             }
-            else if (roleType === 'frontline') {
-                return ['seniorManager', 'admin', 'manager'];
+            else if (roleType === role_type_enum_1.RoleType.frontline) {
+                return [role_type_enum_1.RoleType.seniorManager, role_type_enum_1.RoleType.admin, role_type_enum_1.RoleType.manager];
             }
         });
     }
@@ -206,7 +208,7 @@ let UserService = class UserService {
                 return this.userModel.find({ organization, roleType: { $in: superiorRoleTypes } }, { email: 1, fullName: 1 }).lean().exec();
             }
             else {
-                return this.userModel.find({ roleType: { $ne: "frontline" } }, { email: 1, fullName: 1 }).lean().exec();
+                return this.userModel.find({ roleType: { $ne: role_type_enum_1.RoleType.frontline } }, { email: 1, fullName: 1 }).lean().exec();
             }
         });
     }

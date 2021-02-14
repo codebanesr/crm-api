@@ -13,6 +13,7 @@ exports.CreateUserDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
+const role_type_enum_1 = require("../../shared/role-type.enum");
 class CreateUserDto {
 }
 __decorate([
@@ -70,7 +71,7 @@ __decorate([
     }),
     swagger_1.ApiProperty(),
     class_validator_1.IsNotEmpty(),
-    class_validator_1.IsIn(["admin", "manager", "seniorManager", "frontline"]),
+    class_validator_1.IsEnum(role_type_enum_1.RoleType),
     class_validator_1.MinLength(5),
     class_validator_1.MaxLength(1024),
     __metadata("design:type", String)
@@ -81,22 +82,11 @@ __decorate([
         description: "Who will he report to",
         type: String,
     }),
-    class_validator_1.ValidateIf((o) => o.roleType !== "admin"),
+    class_validator_1.ValidateIf((o) => o.roleType !== role_type_enum_1.RoleType.admin),
     swagger_1.ApiProperty(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "reportsTo", void 0);
-__decorate([
-    swagger_1.ApiProperty({
-        example: ["admin"],
-        description: "What roles does this user have admin, admin can only assign admin and user roles or both / reseller roles can only be assigned by super admin / us",
-        type: String,
-    }),
-    swagger_1.ApiProperty(),
-    class_validator_1.IsIn(["admin", "user"], { each: true }),
-    class_validator_1.IsString({ each: true }),
-    __metadata("design:type", Array)
-], CreateUserDto.prototype, "roles", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "phoneNumber",
