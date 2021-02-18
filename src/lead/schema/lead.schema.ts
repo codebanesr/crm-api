@@ -29,7 +29,11 @@ export const LeadSchema = new Schema(
     pincode: Number,
     nextAction: String,
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
-    documentLinks: [String]
+    documentLinks: [String],
+    isPristine: {
+      type: Boolean,
+      default: true
+    }
   },
   {
     timestamps: true,

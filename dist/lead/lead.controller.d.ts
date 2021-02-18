@@ -30,7 +30,7 @@ export declare class LeadController {
     addGeoLocation(body: GeoLocationDto, user: any): Promise<import("./interfaces/geo-location.interface").GeoLocation>;
     updateLead(user: User, updateLeadObj: UpdateLeadDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
     addContact(body: UpdateContactDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
-    reassignLead(body: ReassignLeadDto, user: User): Promise<any>;
+    reassignLead(body: ReassignLeadDto, user: User): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
     getLeadHistoryById(user: User, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
     getUsersPerformance(req: any): Promise<void>;
     getLeadSuggestions(user: User, externalId: string, page?: number, perPage?: number): Promise<any>;
@@ -50,7 +50,7 @@ export declare class LeadController {
     uploadMultipleLeadFiles(user: User, body: UploadMultipleFilesDto): Promise<import("bull").Job<any>>;
     saveEmailAttachments(files: any): any;
     findOneById(leadId: string, user: User): Promise<{
-        lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation">;
+        lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine">;
         leadHistory: any[];
     }>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;

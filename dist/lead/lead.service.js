@@ -44,6 +44,7 @@ const user_service_1 = require("../user/user.service");
 const bull_1 = require("@nestjs/bull");
 const config_1 = require("../config");
 const role_type_enum_1 = require("../shared/role-type.enum");
+const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 let LeadService = class LeadService {
     constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService) {
         this.leadModel = leadModel;
@@ -65,29 +66,24 @@ let LeadService = class LeadService {
     }
     reassignLead(activeUserEmail, oldUserEmail, newUserEmail, lead) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const assigned = oldUserEmail ? "reassigned" : "assigned";
-                let notes = "";
-                if (oldUserEmail) {
-                    notes = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
-                }
-                else {
-                    notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
-                }
-                const history = {
-                    oldUser: oldUserEmail,
-                    newUser: newUserEmail,
-                    notes,
-                };
-                const result = yield this.leadModel
-                    .updateOne({ _id: lead._id }, { email: newUserEmail, $push: { history: history } })
-                    .lean()
-                    .exec();
-                return result;
+            const assigned = oldUserEmail ? "reassigned" : "assigned";
+            let notes = "";
+            if (oldUserEmail) {
+                notes = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
             }
-            catch (e) {
-                return e.message;
+            else {
+                notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
             }
+            const history = {
+                oldUser: oldUserEmail,
+                newUser: newUserEmail,
+                notes,
+            };
+            const result = yield this.leadModel
+                .updateOne({ _id: lead._id }, { email: newUserEmail, $push: { history: history } })
+                .lean()
+                .exec();
+            return result;
         });
     }
     createEmailTemplate(userEmail, content, subject, campaign, attachments, organization, templateName) {
@@ -451,6 +447,7 @@ let LeadService = class LeadService {
                 obj.email = reassignmentInfo.newUser;
             }
             yield this.ruleService.applyRules(campaignId, oldLead, lead, nextEntryInHistory);
+            filteredObj.isPristine = false;
             const result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj });
             yield this.leadHistoryModel.create(Object.assign(Object.assign({}, nextEntryInHistory), callRecord));
             if (!lodash_1.values(emailForm).every(lodash_1.isEmpty)) {
@@ -509,7 +506,7 @@ let LeadService = class LeadService {
             return uq;
         });
     }
-    fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType }) {
+    fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters }) {
         return __awaiter(this, void 0, void 0, function* () {
             Object.keys(filters).forEach((k) => {
                 if (!filters[k]) {
@@ -532,6 +529,34 @@ let LeadService = class LeadService {
                     { email: { $exists: false } },
                 ],
             });
+            if (nonKeyFilters) {
+                var todayStart = new Date();
+                todayStart.setHours(0);
+                todayStart.setMinutes(0);
+                todayStart.setSeconds(1);
+                var todayEnd = new Date();
+                todayEnd.setHours(23);
+                todayEnd.setMinutes(59);
+                todayEnd.setSeconds(59);
+                switch (nonKeyFilters.typeOfLead) {
+                    case fetch_next_lead_dto_1.TypeOfLead.followUp: {
+                        singleLeadAgg.match({
+                            followUp: {
+                                $gte: new Date(todayStart),
+                                $lte: new Date(todayEnd),
+                            },
+                        });
+                        break;
+                    }
+                    case fetch_next_lead_dto_1.TypeOfLead.fresh: {
+                        singleLeadAgg.match({ isPristine: true });
+                        break;
+                    }
+                    case fetch_next_lead_dto_1.TypeOfLead.freshAndFollowUp: {
+                        break;
+                    }
+                }
+            }
             Object.keys(filters).forEach((key) => {
                 switch (typeDict[key].type) {
                     case "string":

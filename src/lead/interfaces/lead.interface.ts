@@ -20,5 +20,6 @@ export interface Lead extends Document {
   nextAction?: string;
   contact?: { label: String; value: String; category: String }[];
   requestedInformation?: { [key: string]: string }[];
-  documentLinks?: string[]
+  documentLinks?: string[],
+  isPristine?: boolean
 }
