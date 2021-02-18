@@ -26,4 +26,5 @@ export interface Lead extends Document {
         [key: string]: string;
     }[];
     documentLinks?: string[];
+    isPristine?: boolean;
 }

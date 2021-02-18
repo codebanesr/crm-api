@@ -32,6 +32,7 @@ import { Queue } from "bull";
 import { createTransport, SendMailOptions } from "nodemailer";
 import config from '../config';
 import { RoleType } from "../shared/role-type.enum";
+import { FetchNextLeadDto, TypeOfLead } from "./dto/fetch-next-lead.dto";
 @Injectable()
 export class LeadService {
   constructor(
@@ -82,31 +83,27 @@ export class LeadService {
     newUserEmail: string,
     lead: Partial<Lead>
   ) {
-    try {
-      const assigned = oldUserEmail ? "reassigned" : "assigned";
-      let notes = "";
-      if (oldUserEmail) {
-        notes = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
-      } else {
-        notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
-      }
-      const history: Partial<LeadHistory> = {
-        oldUser: oldUserEmail,
-        newUser: newUserEmail,
-        notes,
-      };
-
-      const result = await this.leadModel
-        .updateOne(
-          { _id: lead._id },
-          { email: newUserEmail, $push: { history: history } }
-        )
-        .lean()
-        .exec();
-      return result;
-    } catch (e) {
-      return e.message;
+    const assigned = oldUserEmail ? "reassigned" : "assigned";
+    let notes = "";
+    if (oldUserEmail) {
+      notes = `Lead ${assigned} from ${oldUserEmail} to ${newUserEmail} by ${activeUserEmail}`;
+    } else {
+      notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
     }
+    const history: Partial<LeadHistory> = {
+      oldUser: oldUserEmail,
+      newUser: newUserEmail,
+      notes,
+    };
+
+    const result = await this.leadModel
+      .updateOne(
+        { _id: lead._id },
+        { email: newUserEmail, $push: { history: history } }
+      )
+      .lean()
+      .exec();
+    return result;
   }
 
 
@@ -648,12 +645,14 @@ export class LeadService {
 
 
     await this.ruleService.applyRules(campaignId, oldLead, lead, nextEntryInHistory);
+
+    filteredObj.isPristine = false;
     const result = await this.leadModel.findOneAndUpdate(
       { _id: leadId, organization },
       { $set: filteredObj }
     );
 
-    await this.leadHistoryModel.create({...nextEntryInHistory, ...callRecord});
+    await this.leadHistoryModel.create({...nextEntryInHistory, ...callRecord });
     if (!values(emailForm).every(isEmpty)) {
       const { subject, attachments, content } = emailForm;
       this.sendEmailToLead({
@@ -720,13 +719,12 @@ export class LeadService {
     email,
     organization,
     typeDict,
-    roleType
-  }: {
+    roleType,
+    nonKeyFilters
+  }: FetchNextLeadDto & {
     campaignId: string;
-    filters: Map<string, string>;
     email: string;
     organization: string;
-    typeDict: Map<string, any>;
     roleType: string
   }) {
     // Null value removal
@@ -763,6 +761,42 @@ export class LeadService {
         { email: { $exists: false } },
       ],
     })
+
+
+    if(nonKeyFilters) {
+      var todayStart = new Date();
+      todayStart.setHours(0);
+      todayStart.setMinutes(0);
+      todayStart.setSeconds(1);
+  
+      var todayEnd = new Date();
+      todayEnd.setHours(23);
+      todayEnd.setMinutes(59);
+      todayEnd.setSeconds(59);
+
+
+      switch(nonKeyFilters.typeOfLead) {
+        case TypeOfLead.followUp: {
+          singleLeadAgg.match({
+            followUp: {
+              $gte: new Date(todayStart),
+              $lte: new Date(todayEnd),
+            },
+          });
+          break;
+        }
+
+        case TypeOfLead.fresh: {
+          singleLeadAgg.match({isPristine: true})
+          break;
+        }
+
+        case TypeOfLead.freshAndFollowUp: {
+          // nothing required here
+          break;
+        }
+      }
+    }
 
     Object.keys(filters).forEach((key) => {
       switch (typeDict[key].type) {
@@ -910,7 +944,8 @@ export class LeadService {
     const response = await result.lean().exec();
     return { response, total: count };
   }
-  // date will always be greater than today
+  // date will always be greater than today, 
+  // problem is similar to get upcoming birthday from mongodb
   async getFollowUps({
     interval,
     organization,

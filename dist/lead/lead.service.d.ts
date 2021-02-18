@@ -20,6 +20,7 @@ import { GetTransactionDto } from "./dto/get-transaction.dto";
 import { RulesService } from "../rules/rules.service";
 import { UserService } from "../user/user.service";
 import { Queue } from "bull";
+import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -36,7 +37,7 @@ export declare class LeadService {
     constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, leadUploadQueue: Queue, ruleService: RulesService, userService: UserService, notificationService: NotificationService);
     logger: Logger;
     saveEmailAttachments(files: any): any;
-    reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<any>;
+    reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string, templateName: string): Promise<EmailTemplate>;
     getAllEmailTemplates(limit: any, skip: any, campaign: string, organization: string): Promise<Pick<EmailTemplate, "_id" | "content" | "email" | "organization" | "campaign" | "subject" | "attachments">[]>;
     getLeadHistoryById(externalId: string, organization: any): Promise<Lead>;
@@ -55,7 +56,7 @@ export declare class LeadService {
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
     findOneById(leadId: string, email: string, roleType: string): Promise<{
-        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation">;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine">;
         leadHistory: any[];
     }>;
     patch(productId: string, body: any[]): Promise<any>;
@@ -91,12 +92,10 @@ export declare class LeadService {
             $gt: Date;
         };
     }>;
-    fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType }: {
+    fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters }: FetchNextLeadDto & {
         campaignId: string;
-        filters: Map<string, string>;
         email: string;
         organization: string;
-        typeDict: Map<string, any>;
         roleType: string;
     }): Promise<{
         lead: any;
