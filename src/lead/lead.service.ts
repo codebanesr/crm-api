@@ -901,7 +901,7 @@ export class LeadService {
 
     // if the user only wants to see results for some subordinates this will filter it out
     if(payload.filters?.handler?.length > 0) {
-      subordinateEmails = intersection(payload.filters.handler, subordinateEmails, [email])
+      subordinateEmails = intersection(payload.filters?.handler, subordinateEmails)
     };
 
     if(payload.filters?.leadId) {
@@ -937,7 +937,7 @@ export class LeadService {
 
     let count = 0;
     if(!isStreamable) {
-      result.limit(payload.pagination.perPage).skip(payload.pagination.page * payload.pagination.perPage);
+      result.limit(payload.pagination.perPage).skip((payload.pagination.page-1) * payload.pagination.perPage);
       count = await this.leadHistoryModel.countDocuments(query);
     }
 

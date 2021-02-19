@@ -628,29 +628,29 @@ let LeadService = class LeadService {
         return qb.exec();
     }
     getTransactions(organization, email, roleType, payload, isStreamable) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         return __awaiter(this, void 0, void 0, function* () {
             let conditionalQueries = {};
             let subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
             if (((_b = (_a = payload.filters) === null || _a === void 0 ? void 0 : _a.handler) === null || _b === void 0 ? void 0 : _b.length) > 0) {
-                subordinateEmails = lodash_1.intersection(payload.filters.handler, subordinateEmails, [email]);
+                subordinateEmails = lodash_1.intersection((_c = payload.filters) === null || _c === void 0 ? void 0 : _c.handler, subordinateEmails);
             }
             ;
-            if ((_c = payload.filters) === null || _c === void 0 ? void 0 : _c.leadId) {
+            if ((_d = payload.filters) === null || _d === void 0 ? void 0 : _d.leadId) {
                 conditionalQueries['lead'] = payload.filters.leadId;
             }
-            if ((_d = payload.filters) === null || _d === void 0 ? void 0 : _d.prospectName) {
+            if ((_e = payload.filters) === null || _e === void 0 ? void 0 : _e.prospectName) {
                 const expr = new RegExp(payload.filters.prospectName);
                 conditionalQueries['prospectName'] = { $regex: expr, $options: "i" };
             }
-            if ((_e = payload.filters) === null || _e === void 0 ? void 0 : _e.campaign) {
+            if ((_f = payload.filters) === null || _f === void 0 ? void 0 : _f.campaign) {
                 conditionalQueries["campaign"] = payload.filters.campaign;
             }
-            if ((_f = payload.filters) === null || _f === void 0 ? void 0 : _f.startDate) {
+            if ((_g = payload.filters) === null || _g === void 0 ? void 0 : _g.startDate) {
                 conditionalQueries["createdAt"] = {};
                 conditionalQueries["createdAt"]["$gte"] = new Date(payload.filters.startDate);
             }
-            if ((_g = payload.filters) === null || _g === void 0 ? void 0 : _g.endDate) {
+            if ((_h = payload.filters) === null || _h === void 0 ? void 0 : _h.endDate) {
                 conditionalQueries["createdAt"]["$lte"] = new Date(payload.filters.endDate);
             }
             const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
@@ -660,7 +660,7 @@ let LeadService = class LeadService {
                 .sort({ [payload.pagination.sortBy]: sortOrder });
             let count = 0;
             if (!isStreamable) {
-                result.limit(payload.pagination.perPage).skip(payload.pagination.page * payload.pagination.perPage);
+                result.limit(payload.pagination.perPage).skip((payload.pagination.page - 1) * payload.pagination.perPage);
                 count = yield this.leadHistoryModel.countDocuments(query);
             }
             const response = yield result.lean().exec();

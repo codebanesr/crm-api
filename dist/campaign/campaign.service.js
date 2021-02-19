@@ -291,10 +291,18 @@ let CampaignService = class CampaignService {
         });
     }
     updateConfigs(config, organization, campaignId, campaignName) {
-        if (config._id)
-            return this.campaignConfigModel.findOneAndUpdate({ _id: config._id }, Object.assign(Object.assign({}, config), { name: campaignName, organization, campaignId }), { upsert: true }).lean().exec();
-        else
-            return this.campaignConfigModel.create(Object.assign(Object.assign({}, config), { name: campaignName, organization, campaignId, checked: true }));
+        return __awaiter(this, void 0, void 0, function* () {
+            if (config._id)
+                return this.campaignConfigModel.findOneAndUpdate({ _id: config._id }, Object.assign(Object.assign({}, config), { name: campaignName, organization, campaignId }), { upsert: true }).lean().exec();
+            else {
+                try {
+                    return this.campaignConfigModel.create(Object.assign(Object.assign({}, config), { name: campaignName, organization, campaignId, checked: true }));
+                }
+                catch (e) {
+                    throw new common_1.BadRequestException("possibly duplicate field for this campaign");
+                }
+            }
+        });
     }
     createCampaignConfigs() {
     }

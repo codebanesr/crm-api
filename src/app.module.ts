@@ -22,6 +22,7 @@ import { RulesModule } from './rules/rules.module';
   imports: [
     // LoggerModule.forRoot(),
     CacheModule.register(),
+    // { useNewUrlParser: true } -> for atlas connection
     MongooseModule.forRoot(Config.MONGODB_URI, { useNewUrlParser: true }),
     UserModule,
     AuthModule,
