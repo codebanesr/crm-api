@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Campaign } from "./interfaces/campaign.interface";
@@ -368,11 +368,16 @@ export class CampaignService {
   }
 
 
-  updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string) {
+  async updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string) {
     if(config._id)
       return this.campaignConfigModel.findOneAndUpdate({_id: config._id}, {...config, name: campaignName, organization, campaignId}, {upsert: true}).lean().exec();
-    else
-      return this.campaignConfigModel.create({...config, name: campaignName, organization, campaignId, checked: true});
+    else {
+      try {
+        return this.campaignConfigModel.create({...config, name: campaignName, organization, campaignId, checked: true});
+      }catch(e) {
+        throw new BadRequestException("possibly duplicate field for this campaign");
+      }
+    }
   }
 
   createCampaignConfigs() {

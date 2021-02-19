@@ -17,3 +17,6 @@ export const CampaignConfigSchema = new Schema({
     ref: "Campaign"
   }
 });
+
+
+CampaignConfigSchema.index({ campaignId: 1, internalField: 1 }, { unique: true });
