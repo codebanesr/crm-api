@@ -28,7 +28,7 @@ export declare class LeadController {
         data: any;
     }>;
     addGeoLocation(body: GeoLocationDto, user: any): Promise<import("./interfaces/geo-location.interface").GeoLocation>;
-    updateLead(user: User, updateLeadObj: UpdateLeadDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
+    updateLead(user: User, updateLeadObj: UpdateLeadDto, leadId: string): Promise<{}>;
     addContact(body: UpdateContactDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
     reassignLead(body: ReassignLeadDto, user: User): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
     getLeadHistoryById(user: User, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;

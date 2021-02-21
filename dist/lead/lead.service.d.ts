@@ -79,7 +79,7 @@ export declare class LeadService {
         organization: string;
         handlerEmail: string;
         handlerName: string;
-    }): Promise<Lead>;
+    }): Promise<{}>;
     sendEmailToLead({ content, subject, attachments, email }: {
         content: any;
         subject: any;

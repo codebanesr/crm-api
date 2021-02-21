@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   Logger,
   PreconditionFailedException,
@@ -647,10 +648,18 @@ export class LeadService {
     await this.ruleService.applyRules(campaignId, oldLead, lead, nextEntryInHistory);
 
     filteredObj.isPristine = false;
-    const result = await this.leadModel.findOneAndUpdate(
-      { _id: leadId, organization },
-      { $set: filteredObj }
-    );
+
+    let result = {};
+    try {
+      result = await this.leadModel.findOneAndUpdate(
+        { _id: leadId, organization },
+        { $set: filteredObj },
+        {new: true} //set it to false for performance boost
+      );
+    }catch(e) {
+      throw new ConflictException(e.message);
+    }
+
 
     await this.leadHistoryModel.create({...nextEntryInHistory, ...callRecord });
     if (!values(emailForm).every(isEmpty)) {
