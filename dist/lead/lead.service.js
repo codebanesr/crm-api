@@ -448,7 +448,13 @@ let LeadService = class LeadService {
             }
             yield this.ruleService.applyRules(campaignId, oldLead, lead, nextEntryInHistory);
             filteredObj.isPristine = false;
-            const result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj });
+            let result = {};
+            try {
+                result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj }, { new: true });
+            }
+            catch (e) {
+                throw new common_1.ConflictException(e.message);
+            }
             yield this.leadHistoryModel.create(Object.assign(Object.assign({}, nextEntryInHistory), callRecord));
             if (!lodash_1.values(emailForm).every(lodash_1.isEmpty)) {
                 const { subject, attachments, content } = emailForm;
