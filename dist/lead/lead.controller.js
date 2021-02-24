@@ -144,14 +144,15 @@ let LeadController = class LeadController {
     }
     fetchNextLead(user, campaignId, body) {
         const { organization, email, roleType } = user;
-        const { filters, typeDict } = body;
+        const { filters, typeDict, nonKeyFilters } = body;
         return this.leadService.fetchNextLead({
             campaignId,
             filters,
             email,
             organization,
             typeDict,
-            roleType
+            roleType,
+            nonKeyFilters
         });
     }
     getAllAlarms(user, body) {

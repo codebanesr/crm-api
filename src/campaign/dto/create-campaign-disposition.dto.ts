@@ -24,19 +24,19 @@ export class CreateCampaignAndDispositionDto {
     campaignInfo: any;
     
     @IsString({each: true})
-    editableCols: string;
+    editableCols: string[];
 
     @IsString({each: true})
-    browsableCols: string;
+    browsableCols: string[];
 
     @IsString({each: true})
-    uniqueCols: string;
+    uniqueCols: string[];
 
     // @IsJSON()
     formModel: JSON;
 
     @IsString({each: true})
-    assignTo: string;
+    assignTo: string[];
 
     // @IsJSON()
     advancedSettings: string;

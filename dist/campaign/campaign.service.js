@@ -160,6 +160,11 @@ let CampaignService = class CampaignService {
     }
     createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew, autodialSettings }) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (isNew) {
+                browsableCols = core_config_1.coreConfig.map(c => c.internalField);
+                editableCols = browsableCols;
+                uniqueCols = ['mobilePhone'];
+            }
             const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
                 browsableCols,
                 editableCols,

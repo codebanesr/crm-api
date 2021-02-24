@@ -405,14 +405,15 @@ export class LeadController {
     @Body() body: FetchNextLeadDto
   ) {
     const { organization, email, roleType } = user;
-    const { filters, typeDict } = body;
+    const { filters, typeDict, nonKeyFilters } = body;
     return this.leadService.fetchNextLead({
       campaignId,
       filters,
       email,
       organization,
       typeDict,
-      roleType
+      roleType,
+      nonKeyFilters
     });
   }
 
