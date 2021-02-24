@@ -372,7 +372,10 @@ let LeadService = class LeadService {
     }
     uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
+            common_1.Logger.debug("Sending file to worker for processing");
+            const result = yield this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
+            common_1.Logger.debug(result);
+            return result;
         });
     }
     addGeolocation(activeUserId, lat, lng, organization) {

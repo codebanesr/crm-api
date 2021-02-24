@@ -520,7 +520,11 @@ export class LeadService {
     pushtoken: any,
     campaignId: string
   ) {
-    return this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
+    Logger.debug("Sending file to worker for processing");
+    const result = await this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
+    Logger.debug(result);
+
+    return result;
   }
 
   
