@@ -25,7 +25,7 @@ services:
     tty: true
     command: "yarn start:debug"
     env_file:
-      - .env
+      - local.env
     networks:
       - webnet
     restart: always
@@ -66,10 +66,11 @@ services:
     tty: true
     command: "yarn start:prod"
     env_file:
-      - ~/Documents/personal/molecule_bull_microservice/.env
+      - '../molecule_bull_microservice/local.env'
     networks:
       - webnet
     restart: always
+    
   redis:
     image: 'bitnami/redis:latest'
     environment:
