@@ -15,19 +15,19 @@ class CreateCampaignAndDispositionDto {
 }
 __decorate([
     class_validator_1.IsString({ each: true }),
-    __metadata("design:type", String)
+    __metadata("design:type", Array)
 ], CreateCampaignAndDispositionDto.prototype, "editableCols", void 0);
 __decorate([
     class_validator_1.IsString({ each: true }),
-    __metadata("design:type", String)
+    __metadata("design:type", Array)
 ], CreateCampaignAndDispositionDto.prototype, "browsableCols", void 0);
 __decorate([
     class_validator_1.IsString({ each: true }),
-    __metadata("design:type", String)
+    __metadata("design:type", Array)
 ], CreateCampaignAndDispositionDto.prototype, "uniqueCols", void 0);
 __decorate([
     class_validator_1.IsString({ each: true }),
-    __metadata("design:type", String)
+    __metadata("design:type", Array)
 ], CreateCampaignAndDispositionDto.prototype, "assignTo", void 0);
 __decorate([
     class_validator_1.IsNotEmpty(),

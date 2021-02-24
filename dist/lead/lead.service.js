@@ -319,7 +319,7 @@ let LeadService = class LeadService {
                 lead.fullName = `${lead.firstName} ${lead.lastName}`;
             }
             return this.leadModel.create(Object.assign(Object.assign({}, lead), { campaignId, campaign: campaignName, organization,
-                contact }));
+                contact, isPristine: true }));
         });
     }
     deleteOne(leadId, activeUserEmail) {

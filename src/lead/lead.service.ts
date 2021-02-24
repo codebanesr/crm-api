@@ -425,6 +425,7 @@ export class LeadService {
       campaign: campaignName,
       organization,
       contact,
+      isPristine: true // setting pristine flag to true for newly created lead
     });
   }
 

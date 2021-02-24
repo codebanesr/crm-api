@@ -194,6 +194,11 @@ export class CampaignService {
     autodialSettings
   }: CreateCampaignAndDispositionDto & {activeUserId: string, organization: string}) {
 
+    if(isNew) {
+      browsableCols = coreConfig.map(c=>c.internalField);
+      editableCols = browsableCols;
+      uniqueCols = ['mobilePhone']
+    }
 
     const campaign = await this.campaignModel.findOneAndUpdate(
       { campaignName: campaignInfo.campaignName, organization },
