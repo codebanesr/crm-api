@@ -69,6 +69,8 @@ services:
       - '../molecule_bull_microservice/local.env'
     networks:
       - webnet
+    ports:
+      - 9999:3333
     restart: always
     
   redis:
