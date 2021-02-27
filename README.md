@@ -59,4 +59,42 @@ This example repo uses the NestJS swagger module for API documentation. [NestJS 
 
 ## Authors
 
- **Pejman Hadavi**
+### Aggregating results based on month, year and leadStatus
+```json
+db.getCollection('leadhistories').aggregate([
+    {
+        $project: { "year":{"$year":"$createdAt"}, "month":{"$month":"$createdAt"}, leadStatus: "$leadStatus"}
+    },
+    { $match: {"year": 2021} },
+    {
+         $group : { 
+             _id : { 
+                 month : "$month", 
+                 year : "$year",
+                 leadStatus: "$leadStatus"
+             },
+             total : {"$sum" : 1},
+         }
+     },
+     {
+         $addFields: {
+             month: {
+                 $let: {
+                     vars: {
+                         monthsInString: [, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'August', 'September', 'October', 'November', 'December']
+                     },
+                     in: {
+                         $arrayElemAt: ['$$monthsInString', '$_id.month']
+                     }
+                 }
+             }
+         }
+     }
+ ])
+```
+
+
+
+
+
+
