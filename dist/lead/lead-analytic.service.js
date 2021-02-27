@@ -42,6 +42,47 @@ let LeadAnalyticService = class LeadAnalyticService {
             return { pieData, barData, stackData };
         });
     }
+    getLeadStatusDataForLineGraph(email, organization, year) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.leadHistoryModel.aggregate([
+                { $match: { organization } },
+                {
+                    $project: { "year": { "$year": "$createdAt" }, "month": { "$month": "$createdAt" }, leadStatus: "$leadStatus" }
+                },
+                { $match: { "year": +year } },
+                {
+                    $group: {
+                        _id: {
+                            month: "$month",
+                            year: "$year",
+                            leadStatus: "$leadStatus"
+                        },
+                        total: { "$sum": 1 },
+                    }
+                },
+                {
+                    $addFields: {
+                        month: {
+                            $let: {
+                                vars: {
+                                    monthsInString: [, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'August', 'September', 'October', 'November', 'December']
+                                },
+                                in: {
+                                    $arrayElemAt: ['$$monthsInString', '$_id.month']
+                                }
+                            }
+                        }
+                    }
+                }, {
+                    $project: {
+                        total: "$total",
+                        month: "$month",
+                        leadStatus: "$_id.leadStatus"
+                    }
+                }
+            ]).exec();
+        });
+    }
 };
 __decorate([
     mongoose_1.InjectModel("Lead"),
