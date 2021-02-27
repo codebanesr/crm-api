@@ -7,4 +7,15 @@ export declare class LeadAnalyticService {
         stackData: any[];
     }>;
     getLeadStatusDataForLineGraph(email: string, organization: string, year: string): Promise<any>;
+    getLeadStatusCountForTelecallers(email: string, organization: string): Promise<{
+        items: any;
+        total_count: any;
+    }>;
+    getCampaignWiseLeadCount(email: string, organization: string): Promise<any>;
+    getCampaignWiseLeadCountPerLeadCategory(email: string, organization: string): Promise<{
+        XAxisLabel: string;
+        YAxisLabel: string;
+        stackBarData: any;
+        max: any;
+    }>;
 }

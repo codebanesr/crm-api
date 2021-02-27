@@ -26,11 +26,42 @@ export class LeadAnalyticController {
 
 
     @Get('leadStatusLineData')
-    @ApiOperation({summary: "Fetches lead status data for plotting a line graph"})
+    @ApiOperation({summary: "gets count of lead by leadstatus and email, this will be represent on a line graph"})
     @UseGuards(AuthGuard("jwt"))
     @Roles('admin', 'superAdmin')
     async getLeadStatusDataForLineGraph(@CurrentUser() user: User, @Query('year') year: string) {
         const {email, organization} = user;
         return this.analyticService.getLeadStatusDataForLineGraph(email, organization,  year);
+    }
+
+
+    @Get('openClosedLeadCount')
+    @ApiOperation({summary: "Fetches total lead count in terms of open and closed lead for every user, this will be shown on a table"})
+    @UseGuards(AuthGuard("jwt"))
+    @Roles('admin', 'superAdmin')
+    async getLeadStatusCountForTelecallers(@CurrentUser() user: User) {
+        const { email, organization } = user;
+        return this.analyticService.getLeadStatusCountForTelecallers(email, organization);
+    }
+
+
+    @Get('campaignWiseLeadCount')
+    @ApiOperation({summary: "Fetches total lead in each campaign and shows it on a bar chart"})
+    @UseGuards(AuthGuard("jwt"))
+    @Roles('admin', 'superAdmin')
+    async getCampaignWiseLeadCount(@CurrentUser() user: User) {
+        const { email, organization } = user;
+        return this.analyticService.getCampaignWiseLeadCount(email, organization);
+    }
+
+
+
+    @Get('campaignWiseLeadCountPerCategory')
+    @ApiOperation({summary: "Fetches total lead in each campaign by separated by category and shows it on a stack bar chart"})
+    @UseGuards(AuthGuard("jwt"))
+    @Roles('admin', 'superAdmin')
+    async getCampaignWiseLeadCountPerLeadCategory(@CurrentUser() user: User) {
+        const { email, organization } = user;
+        return this.analyticService.getCampaignWiseLeadCountPerLeadCategory(email, organization);
     }
 }
