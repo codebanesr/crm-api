@@ -21,6 +21,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadAnalyticService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const lodash_1 = require("lodash");
 const mongoose_2 = require("mongoose");
 let LeadAnalyticService = class LeadAnalyticService {
     getGraphData(organization, userList) {
@@ -35,52 +36,168 @@ let LeadAnalyticService = class LeadAnalyticService {
             pieAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
             const stackBarData = this.leadHistoryModel.aggregate();
             stackBarData.match({ organization, email: { $in: userList } });
-            stackBarData.project({ "month": { "$month": "$createdAt" }, "year": { "$year": "$createdAt" }, "callStatus": "$callStatus" });
-            stackBarData.group({ "_id": { "month": "$month", "year": "$year", "callStatus": "$callStatus" }, "NOC": { "$sum": 1 } });
-            stackBarData.project({ "month": { "$concat": ["$year", " - ", "$month"] }, "NOC": "$_id.NOC", "type": "$_id.callStatus", });
-            const [pieData, barData, stackData] = yield Promise.all([pieAgg, barAgg, stackBarData]);
+            stackBarData.project({
+                month: { $month: "$createdAt" },
+                year: { $year: "$createdAt" },
+                callStatus: "$callStatus",
+            });
+            stackBarData.group({
+                _id: { month: "$month", year: "$year", callStatus: "$callStatus" },
+                NOC: { $sum: 1 },
+            });
+            stackBarData.project({
+                month: { $concat: ["$year", " - ", "$month"] },
+                NOC: "$_id.NOC",
+                type: "$_id.callStatus",
+            });
+            const [pieData, barData, stackData] = yield Promise.all([
+                pieAgg,
+                barAgg,
+                stackBarData,
+            ]);
             return { pieData, barData, stackData };
         });
     }
     getLeadStatusDataForLineGraph(email, organization, year) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.leadHistoryModel.aggregate([
+            return this.leadHistoryModel
+                .aggregate([
                 { $match: { organization } },
                 {
-                    $project: { "year": { "$year": "$createdAt" }, "month": { "$month": "$createdAt" }, leadStatus: "$leadStatus" }
+                    $project: {
+                        year: { $year: "$createdAt" },
+                        month: { $month: "$createdAt" },
+                        leadStatus: "$leadStatus",
+                    },
                 },
-                { $match: { "year": +year } },
+                { $match: { year: +year } },
                 {
                     $group: {
                         _id: {
                             month: "$month",
                             year: "$year",
-                            leadStatus: "$leadStatus"
+                            leadStatus: "$leadStatus",
                         },
-                        total: { "$sum": 1 },
-                    }
+                        total: { $sum: 1 },
+                    },
                 },
                 {
                     $addFields: {
                         month: {
                             $let: {
                                 vars: {
-                                    monthsInString: [, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'August', 'September', 'October', 'November', 'December']
+                                    monthsInString: [
+                                        ,
+                                        "Jan",
+                                        "Feb",
+                                        "Mar",
+                                        "Apr",
+                                        "May",
+                                        "Jun",
+                                        "July",
+                                        "August",
+                                        "September",
+                                        "October",
+                                        "November",
+                                        "December",
+                                    ],
                                 },
                                 in: {
-                                    $arrayElemAt: ['$$monthsInString', '$_id.month']
-                                }
-                            }
-                        }
-                    }
-                }, {
+                                    $arrayElemAt: ["$$monthsInString", "$_id.month"],
+                                },
+                            },
+                        },
+                    },
+                },
+                {
                     $project: {
                         total: "$total",
                         month: "$month",
-                        leadStatus: "$_id.leadStatus"
-                    }
+                        leadStatus: "$_id.leadStatus",
+                    },
+                },
+            ])
+                .exec();
+        });
+    }
+    getLeadStatusCountForTelecallers(email, organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const pipeline = this.leadModel.aggregate();
+            pipeline.match({ organization });
+            pipeline.addFields({
+                nextActionExists: {
+                    $cond: [
+                        {
+                            $or: [{ isPristine: false }, { $ifNull: ["$nextAction", false] }],
+                        },
+                        true,
+                        false,
+                    ],
+                },
+            });
+            pipeline.addFields({
+                open: { $cond: [{ $eq: ["$nextActionExists", true] }, 1, 0] },
+                closed: { $cond: [{ $eq: ["$nextActionExists", false] }, 1, 0] },
+            });
+            pipeline.group({
+                _id: { email: "$email" },
+                totalOpen: { $sum: "$open" },
+                totalClosed: { $sum: "$closed" },
+            });
+            pipeline.project({
+                totalOpen: "$totalOpen",
+                totalClosed: "$totalClosed",
+                nextActionExists: "$_id.nextActionExists",
+                email: "$_id.email",
+                _id: 0,
+            });
+            const items = yield pipeline.exec();
+            return {
+                items,
+                total_count: items.length,
+            };
+        });
+    }
+    getCampaignWiseLeadCount(email, organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const pipeline = this.leadModel.aggregate([
+                {
+                    $group: {
+                        _id: "$campaign",
+                        total: { $sum: 1 },
+                    },
+                },
+                {
+                    "$project": { type: "$_id", "value": "$total", percentage: "1" }
                 }
-            ]).exec();
+            ]);
+            return pipeline.exec();
+        });
+    }
+    getCampaignWiseLeadCountPerLeadCategory(email, organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const XAxisLabel = 'Campaign Name';
+            const YAxisLabel = 'Total Leads';
+            const pipeline = this.leadModel.aggregate([
+                { $match: { organization } },
+                {
+                    $group: {
+                        _id: { campaign: "$campaign", leadStatus: "$leadStatus" },
+                        total: { $sum: 1 },
+                    },
+                },
+                {
+                    "$project": { _id: 0, type: "$_id.leadStatus", [YAxisLabel]: "$total", [XAxisLabel]: "$_id.campaign" }
+                }
+            ]);
+            const stackBarData = yield pipeline.exec();
+            const max = lodash_1.maxBy(stackBarData, (o) => o[YAxisLabel])[YAxisLabel];
+            return {
+                XAxisLabel,
+                YAxisLabel,
+                stackBarData,
+                max
+            };
         });
     }
 };

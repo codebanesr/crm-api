@@ -46,6 +46,24 @@ let LeadAnalyticController = class LeadAnalyticController {
             return this.analyticService.getLeadStatusDataForLineGraph(email, organization, year);
         });
     }
+    getLeadStatusCountForTelecallers(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, organization } = user;
+            return this.analyticService.getLeadStatusCountForTelecallers(email, organization);
+        });
+    }
+    getCampaignWiseLeadCount(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, organization } = user;
+            return this.analyticService.getCampaignWiseLeadCount(email, organization);
+        });
+    }
+    getCampaignWiseLeadCountPerLeadCategory(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, organization } = user;
+            return this.analyticService.getCampaignWiseLeadCountPerLeadCategory(email, organization);
+        });
+    }
 };
 __decorate([
     common_1.Post('graphData'),
@@ -58,7 +76,7 @@ __decorate([
 ], LeadAnalyticController.prototype, "getGraphData", null);
 __decorate([
     common_1.Get('leadStatusLineData'),
-    swagger_1.ApiOperation({ summary: "Fetches lead status data for plotting a line graph" }),
+    swagger_1.ApiOperation({ summary: "gets count of lead by leadstatus and email, this will be represent on a line graph" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     roles_decorator_1.Roles('admin', 'superAdmin'),
     __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Query('year')),
@@ -66,6 +84,36 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], LeadAnalyticController.prototype, "getLeadStatusDataForLineGraph", null);
+__decorate([
+    common_1.Get('openClosedLeadCount'),
+    swagger_1.ApiOperation({ summary: "Fetches total lead count in terms of open and closed lead for every user, this will be shown on a table" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles('admin', 'superAdmin'),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], LeadAnalyticController.prototype, "getLeadStatusCountForTelecallers", null);
+__decorate([
+    common_1.Get('campaignWiseLeadCount'),
+    swagger_1.ApiOperation({ summary: "Fetches total lead in each campaign and shows it on a bar chart" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles('admin', 'superAdmin'),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], LeadAnalyticController.prototype, "getCampaignWiseLeadCount", null);
+__decorate([
+    common_1.Get('campaignWiseLeadCountPerCategory'),
+    swagger_1.ApiOperation({ summary: "Fetches total lead in each campaign by separated by category and shows it on a stack bar chart" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles('admin', 'superAdmin'),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], LeadAnalyticController.prototype, "getCampaignWiseLeadCountPerLeadCategory", null);
 LeadAnalyticController = __decorate([
     swagger_1.ApiTags("Lead Analytic"),
     common_1.Controller("lead-analytic"),
