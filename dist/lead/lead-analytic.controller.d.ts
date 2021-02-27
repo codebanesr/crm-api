@@ -9,4 +9,5 @@ export declare class LeadAnalyticController {
         barData: any[];
         stackData: any[];
     }>;
+    getLeadStatusDataForLineGraph(user: User, year: string): Promise<any>;
 }

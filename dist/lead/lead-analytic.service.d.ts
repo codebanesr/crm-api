@@ -6,4 +6,5 @@ export declare class LeadAnalyticService {
         barData: any[];
         stackData: any[];
     }>;
+    getLeadStatusDataForLineGraph(email: string, organization: string, year: string): Promise<any>;
 }
