@@ -29,6 +29,7 @@ const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const get_graph_data_dto_1 = require("./dto/get-graph-data.dto");
 const lead_analytic_service_1 = require("./lead-analytic.service");
+const moment = require("moment");
 let LeadAnalyticController = class LeadAnalyticController {
     constructor(analyticService) {
         this.analyticService = analyticService;
@@ -62,6 +63,14 @@ let LeadAnalyticController = class LeadAnalyticController {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, organization } = user;
             return this.analyticService.getCampaignWiseLeadCountPerLeadCategory(email, organization);
+        });
+    }
+    getUserTalktime(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, organization } = user;
+            const startDate = moment().startOf('month').subtract(2, 'month').toDate();
+            const endDate = moment().endOf('month').toDate();
+            return this.analyticService.getUserTalktime(email, organization, startDate, endDate);
         });
     }
 };
@@ -114,6 +123,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], LeadAnalyticController.prototype, "getCampaignWiseLeadCountPerLeadCategory", null);
+__decorate([
+    common_1.Get('userTalktime'),
+    swagger_1.ApiOperation({ summary: "Fetches individual users talktime and represents it in a bar graph" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles('admin', 'superAdmin'),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], LeadAnalyticController.prototype, "getUserTalktime", null);
 LeadAnalyticController = __decorate([
     swagger_1.ApiTags("Lead Analytic"),
     common_1.Controller("lead-analytic"),

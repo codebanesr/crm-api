@@ -16,6 +16,7 @@ export declare class LeadAnalyticService {
         XAxisLabel: string;
         YAxisLabel: string;
         stackBarData: any;
-        max: any;
+        max: number;
     }>;
+    getUserTalktime(email: string, organization: string, startDate: Date, endDate: Date): Promise<any>;
 }
