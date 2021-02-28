@@ -196,8 +196,27 @@ let LeadAnalyticService = class LeadAnalyticService {
                 XAxisLabel,
                 YAxisLabel,
                 stackBarData,
-                max
+                max: max * 2
             };
+        });
+    }
+    getUserTalktime(email, organization, startDate, endDate) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const pipeline = this.leadHistoryModel.aggregate();
+            pipeline.match({
+                organization,
+                createdAt: { $gte: startDate, $lt: endDate }
+            });
+            pipeline.group({
+                _id: { "email": "$newUser" },
+                talktime: { $sum: "$duration" }
+            });
+            pipeline.project({
+                value: "$talktime",
+                type: "$_id.email",
+                _id: 0
+            });
+            return pipeline.exec();
         });
     }
 };

@@ -421,7 +421,7 @@ let LeadService = class LeadService {
                 .sort({ $natural: -1 })
                 .limit(1);
             if (!reassignmentInfo) {
-                nextEntryInHistory.notes = `Lead has been assigned to ${handlerName}`;
+                nextEntryInHistory.oldUser = handlerEmail;
                 nextEntryInHistory.newUser = handlerEmail;
             }
             if (((_a = lead.documentLinks) === null || _a === void 0 ? void 0 : _a.length) > 0) {

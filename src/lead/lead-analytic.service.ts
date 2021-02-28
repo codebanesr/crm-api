@@ -202,7 +202,33 @@ export class LeadAnalyticService {
       XAxisLabel,
       YAxisLabel,
       stackBarData,
-      max
+      max: max*2 // this is just a quick fix, we need to find the max height of the bar, not max of entries individually
     }
+  }
+
+
+
+  async getUserTalktime(email: string, organization: string, startDate: Date, endDate: Date) {
+    const pipeline = this.leadHistoryModel.aggregate();
+    pipeline.match({
+      organization,
+      createdAt: {$gte: startDate, $lt: endDate}
+    });
+
+
+    // this is wrong and was done willfully so, change this to old user, because if reassignment was done, talktime should go to the 
+    // previous user
+    pipeline.group({
+      _id: {"email": "$newUser"},
+      talktime: {$sum: "$duration"}
+    });
+
+    pipeline.project({
+      value: "$talktime",
+      type: "$_id.email",
+      _id: 0
+    })
+
+    return pipeline.exec();
   }
 }

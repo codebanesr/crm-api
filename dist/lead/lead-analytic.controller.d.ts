@@ -19,6 +19,7 @@ export declare class LeadAnalyticController {
         XAxisLabel: string;
         YAxisLabel: string;
         stackBarData: any;
-        max: any;
+        max: number;
     }>;
+    getUserTalktime(user: User): Promise<any>;
 }

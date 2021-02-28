@@ -607,7 +607,9 @@ export class LeadService {
 
     if (!reassignmentInfo) {
       // assign to logged in user and notes will be lead was created by
-      nextEntryInHistory.notes = `Lead has been assigned to ${handlerName}`;
+      // we are not changing old user and new user, call duration calculation will always be done on 
+      // old user, agar agent call karke reassign kiya to bhi call duration uske me hi count hoga.
+      nextEntryInHistory.oldUser = handlerEmail;
       nextEntryInHistory.newUser = handlerEmail;
     }
 

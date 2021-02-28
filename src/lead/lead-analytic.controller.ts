@@ -6,7 +6,7 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../user/interfaces/user.interface";
 import { GetGraphDataDto } from "./dto/get-graph-data.dto";
 import { LeadAnalyticService } from "./lead-analytic.service";
-
+import * as moment from "moment";
 @ApiTags("Lead Analytic")
 @Controller("lead-analytic")
 export class LeadAnalyticController { 
@@ -63,5 +63,17 @@ export class LeadAnalyticController {
     async getCampaignWiseLeadCountPerLeadCategory(@CurrentUser() user: User) {
         const { email, organization } = user;
         return this.analyticService.getCampaignWiseLeadCountPerLeadCategory(email, organization);
+    }
+
+
+    @Get('userTalktime')
+    @ApiOperation({summary: "Fetches individual users talktime and represents it in a bar graph"})
+    @UseGuards(AuthGuard("jwt"))
+    @Roles('admin', 'superAdmin')
+    async getUserTalktime(@CurrentUser() user: User) {
+        const { email, organization } = user;
+        const startDate = moment().startOf('month').subtract(2,'month').toDate();
+        const endDate = moment().endOf('month').toDate();
+        return this.analyticService.getUserTalktime(email, organization, startDate, endDate);
     }
 }
