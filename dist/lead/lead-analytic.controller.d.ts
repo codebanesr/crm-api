@@ -9,17 +9,17 @@ export declare class LeadAnalyticController {
         barData: any[];
         stackData: any[];
     }>;
-    getLeadStatusDataForLineGraph(user: User, year: string): Promise<any>;
+    getLeadStatusDataForLineGraph(user: User, graphFilter: GetGraphDataDto, year: string): Promise<any>;
     getLeadStatusCountForTelecallers(user: User): Promise<{
         items: any;
         total_count: any;
     }>;
-    getCampaignWiseLeadCount(user: User): Promise<any>;
-    getCampaignWiseLeadCountPerLeadCategory(user: User): Promise<{
+    getCampaignWiseLeadCount(user: User, graphFilter: GetGraphDataDto): Promise<any>;
+    getCampaignWiseLeadCountPerLeadCategory(user: User, graphFilter: GetGraphDataDto): Promise<{
         XAxisLabel: string;
         YAxisLabel: string;
         stackBarData: any;
         max: number;
     }>;
-    getUserTalktime(user: User): Promise<any>;
+    getUserTalktime(user: User, graphFilter: GetGraphDataDto): Promise<any>;
 }

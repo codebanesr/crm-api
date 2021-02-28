@@ -29,7 +29,6 @@ const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const get_graph_data_dto_1 = require("./dto/get-graph-data.dto");
 const lead_analytic_service_1 = require("./lead-analytic.service");
-const moment = require("moment");
 let LeadAnalyticController = class LeadAnalyticController {
     constructor(analyticService) {
         this.analyticService = analyticService;
@@ -41,7 +40,7 @@ let LeadAnalyticController = class LeadAnalyticController {
             return this.analyticService.getGraphData(organization, handler);
         });
     }
-    getLeadStatusDataForLineGraph(user, year) {
+    getLeadStatusDataForLineGraph(user, graphFilter, year) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, organization } = user;
             return this.analyticService.getLeadStatusDataForLineGraph(email, organization, year);
@@ -53,24 +52,22 @@ let LeadAnalyticController = class LeadAnalyticController {
             return this.analyticService.getLeadStatusCountForTelecallers(email, organization);
         });
     }
-    getCampaignWiseLeadCount(user) {
+    getCampaignWiseLeadCount(user, graphFilter) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, organization } = user;
-            return this.analyticService.getCampaignWiseLeadCount(email, organization);
+            return this.analyticService.getCampaignWiseLeadCount(email, organization, graphFilter);
         });
     }
-    getCampaignWiseLeadCountPerLeadCategory(user) {
+    getCampaignWiseLeadCountPerLeadCategory(user, graphFilter) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, organization } = user;
-            return this.analyticService.getCampaignWiseLeadCountPerLeadCategory(email, organization);
+            return this.analyticService.getCampaignWiseLeadCountPerLeadCategory(email, organization, graphFilter);
         });
     }
-    getUserTalktime(user) {
+    getUserTalktime(user, graphFilter) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, organization } = user;
-            const startDate = moment().startOf('month').subtract(2, 'month').toDate();
-            const endDate = moment().endOf('month').toDate();
-            return this.analyticService.getUserTalktime(email, organization, startDate, endDate);
+            return this.analyticService.getUserTalktime(email, organization, graphFilter);
         });
     }
 };
@@ -84,13 +81,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], LeadAnalyticController.prototype, "getGraphData", null);
 __decorate([
-    common_1.Get('leadStatusLineData'),
+    common_1.Post('leadStatusLineData'),
     swagger_1.ApiOperation({ summary: "gets count of lead by leadstatus and email, this will be represent on a line graph" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     roles_decorator_1.Roles('admin', 'superAdmin'),
-    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Query('year')),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()), __param(2, common_1.Query('year')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object, get_graph_data_dto_1.GetGraphDataDto, String]),
     __metadata("design:returntype", Promise)
 ], LeadAnalyticController.prototype, "getLeadStatusDataForLineGraph", null);
 __decorate([
@@ -104,33 +101,33 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], LeadAnalyticController.prototype, "getLeadStatusCountForTelecallers", null);
 __decorate([
-    common_1.Get('campaignWiseLeadCount'),
+    common_1.Post('campaignWiseLeadCount'),
     swagger_1.ApiOperation({ summary: "Fetches total lead in each campaign and shows it on a bar chart" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     roles_decorator_1.Roles('admin', 'superAdmin'),
-    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, get_graph_data_dto_1.GetGraphDataDto]),
     __metadata("design:returntype", Promise)
 ], LeadAnalyticController.prototype, "getCampaignWiseLeadCount", null);
 __decorate([
-    common_1.Get('campaignWiseLeadCountPerCategory'),
+    common_1.Post('campaignWiseLeadCountPerCategory'),
     swagger_1.ApiOperation({ summary: "Fetches total lead in each campaign by separated by category and shows it on a stack bar chart" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     roles_decorator_1.Roles('admin', 'superAdmin'),
-    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, get_graph_data_dto_1.GetGraphDataDto]),
     __metadata("design:returntype", Promise)
 ], LeadAnalyticController.prototype, "getCampaignWiseLeadCountPerLeadCategory", null);
 __decorate([
-    common_1.Get('userTalktime'),
+    common_1.Post('userTalktime'),
     swagger_1.ApiOperation({ summary: "Fetches individual users talktime and represents it in a bar graph" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     roles_decorator_1.Roles('admin', 'superAdmin'),
-    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, get_graph_data_dto_1.GetGraphDataDto]),
     __metadata("design:returntype", Promise)
 ], LeadAnalyticController.prototype, "getUserTalktime", null);
 LeadAnalyticController = __decorate([

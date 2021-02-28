@@ -23,7 +23,25 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const lodash_1 = require("lodash");
 const mongoose_2 = require("mongoose");
+const moment = require("moment");
 let LeadAnalyticService = class LeadAnalyticService {
+    constructor() {
+        this.startDate = moment().startOf('month').subtract(2, 'month').toDate();
+        this.endDate = moment().endOf('month').toDate();
+    }
+    attachCommonGraphFilters(pipeline, organization, filter) {
+        var _a;
+        pipeline.match({
+            organization,
+            createdAt: { $gte: filter.startDate || this.startDate, $lt: filter.endDate || this.endDate }
+        });
+        if (((_a = filter.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+            pipeline.match({ email: { $in: filter.handler } });
+        }
+        if (filter.campaign) {
+            pipeline.match({ campaign: filter.campaign });
+        }
+    }
     getGraphData(organization, userList) {
         return __awaiter(this, void 0, void 0, function* () {
             const barAgg = this.leadModel.aggregate();
@@ -158,40 +176,36 @@ let LeadAnalyticService = class LeadAnalyticService {
             };
         });
     }
-    getCampaignWiseLeadCount(email, organization) {
+    getCampaignWiseLeadCount(email, organization, filters) {
         return __awaiter(this, void 0, void 0, function* () {
-            const pipeline = this.leadModel.aggregate([
-                {
-                    $group: {
-                        _id: "$campaign",
-                        total: { $sum: 1 },
-                    },
-                },
-                {
-                    "$project": { type: "$_id", "value": "$total", percentage: "1" }
-                }
-            ]);
+            const pipeline = this.leadModel.aggregate();
+            this.attachCommonGraphFilters(pipeline, organization, filters);
+            pipeline.group({
+                _id: "$campaign",
+                total: { $sum: 1 },
+            });
+            pipeline.project({ type: "$_id", "value": "$total", percentage: "1" });
             return pipeline.exec();
         });
     }
-    getCampaignWiseLeadCountPerLeadCategory(email, organization) {
+    getCampaignWiseLeadCountPerLeadCategory(email, organization, filter) {
         return __awaiter(this, void 0, void 0, function* () {
             const XAxisLabel = 'Campaign Name';
             const YAxisLabel = 'Total Leads';
-            const pipeline = this.leadModel.aggregate([
-                { $match: { organization } },
-                {
-                    $group: {
-                        _id: { campaign: "$campaign", leadStatus: "$leadStatus" },
-                        total: { $sum: 1 },
-                    },
-                },
-                {
-                    "$project": { _id: 0, type: "$_id.leadStatus", [YAxisLabel]: "$total", [XAxisLabel]: "$_id.campaign" }
-                }
-            ]);
+            const pipeline = this.leadModel.aggregate();
+            this.attachCommonGraphFilters(pipeline, organization, filter);
+            pipeline.group({
+                _id: { campaign: "$campaign", leadStatus: "$leadStatus" },
+                total: { $sum: 1 },
+            });
+            pipeline.project({
+                _id: 0, type: "$_id.leadStatus", [YAxisLabel]: "$total", [XAxisLabel]: "$_id.campaign"
+            });
             const stackBarData = yield pipeline.exec();
-            const max = lodash_1.maxBy(stackBarData, (o) => o[YAxisLabel])[YAxisLabel];
+            let max = 10;
+            if (stackBarData.length > 0) {
+                max = lodash_1.maxBy(stackBarData, (o) => o[YAxisLabel])[YAxisLabel];
+            }
             return {
                 XAxisLabel,
                 YAxisLabel,
@@ -200,13 +214,10 @@ let LeadAnalyticService = class LeadAnalyticService {
             };
         });
     }
-    getUserTalktime(email, organization, startDate, endDate) {
+    getUserTalktime(email, organization, filter) {
         return __awaiter(this, void 0, void 0, function* () {
             const pipeline = this.leadHistoryModel.aggregate();
-            pipeline.match({
-                organization,
-                createdAt: { $gte: startDate, $lt: endDate }
-            });
+            this.attachCommonGraphFilters(pipeline, organization, filter);
             pipeline.group({
                 _id: { "email": "$newUser" },
                 talktime: { $sum: "$duration" }

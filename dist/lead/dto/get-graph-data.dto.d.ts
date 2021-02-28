@@ -1,7 +1,7 @@
 export declare class GetGraphDataDto {
-    campaign: string;
-    endDate: Date;
-    handler: [];
+    campaign?: string;
+    endDate?: string;
+    handler?: string[];
     prospectName: null;
-    startDate: Date;
+    startDate?: string;
 }
