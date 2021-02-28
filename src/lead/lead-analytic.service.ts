@@ -1,9 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { maxBy } from "lodash";
-import { Model } from "mongoose";
+import { Aggregate, Model } from "mongoose";
+import { GetGraphDataDto } from "./dto/get-graph-data.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { Lead } from "./interfaces/lead.interface";
+import * as moment from "moment";
 
 @Injectable()
 export class LeadAnalyticService {
@@ -12,6 +14,27 @@ export class LeadAnalyticService {
 
   @InjectModel("LeadHistory")
   private readonly leadHistoryModel: Model<LeadHistory>;
+
+  private startDate = moment().startOf('month').subtract(2,'month').toDate();
+  private endDate = moment().endOf('month').toDate();
+
+
+  attachCommonGraphFilters(pipeline: Aggregate<any[]>, organization: string, filter: GetGraphDataDto) {
+    pipeline.match({
+      organization,
+      createdAt: {$gte: filter.startDate || this.startDate, $lt: filter.endDate|| this.endDate}
+    });
+
+    if(filter.handler?.length > 0) {
+      pipeline.match({email: {$in: filter.handler}});
+    }
+
+    if(filter.campaign) {
+      pipeline.match({campaign: filter.campaign})
+    }
+  }
+  
+
 
   async getGraphData(organization: string, userList: string[]) {
     const barAgg = this.leadModel.aggregate();
@@ -118,8 +141,7 @@ export class LeadAnalyticService {
 
   async getLeadStatusCountForTelecallers(email: string, organization: string) {
     const pipeline = this.leadModel.aggregate();
-
-    pipeline.match({ organization });
+    pipeline.match({organization});
 
     // adds another field called nextActionExists, every record will now have this field based on which we can calculate
     // leads for every user
@@ -163,40 +185,41 @@ export class LeadAnalyticService {
     };
   }
 
-  async getCampaignWiseLeadCount(email: string, organization: string) {
-    const pipeline = this.leadModel.aggregate([
-      {
-        $group: {
-          _id: "$campaign",
-          total: { $sum: 1 },
-        },
-      },
-      {
-        "$project": { type: "$_id", "value": "$total", percentage: "1" }
-      }
-    ]);
+  async getCampaignWiseLeadCount(email: string, organization: string, filters: GetGraphDataDto) {
+    const pipeline = this.leadModel.aggregate()
+    this.attachCommonGraphFilters(pipeline, organization, filters);
+    pipeline.group({
+      _id: "$campaign",
+      total: { $sum: 1 },
+    });
+    pipeline.project({type: "$_id", "value": "$total", percentage: "1" });
     return pipeline.exec();
   }
 
 
-  async getCampaignWiseLeadCountPerLeadCategory(email: string, organization: string) {
+  async getCampaignWiseLeadCountPerLeadCategory(email: string, organization: string, filter: GetGraphDataDto) {
     const XAxisLabel = 'Campaign Name';
     const YAxisLabel = 'Total Leads';
 
-    const pipeline = this.leadModel.aggregate([
-      {$match: {organization}},
-      {
-        $group: {
-          _id: { campaign: "$campaign", leadStatus: "$leadStatus"},
-          total: { $sum: 1 },
-        },
-      },
-      {
-        "$project": { _id:0, type: "$_id.leadStatus", [YAxisLabel]: "$total", [XAxisLabel]: "$_id.campaign" }
-      }
-    ]);
+    const pipeline = this.leadModel.aggregate();
+
+    this.attachCommonGraphFilters(pipeline, organization, filter);
+
+    pipeline.group({
+        _id: { campaign: "$campaign", leadStatus: "$leadStatus"},
+        total: { $sum: 1 },
+    });
+
+    pipeline.project({
+      _id:0, type: "$_id.leadStatus", [YAxisLabel]: "$total", [XAxisLabel]: "$_id.campaign"
+    })
+    
     const stackBarData = await pipeline.exec();
-    const max = maxBy(stackBarData, (o) => o[YAxisLabel])[YAxisLabel];
+    let max = 10;
+
+    if(stackBarData.length > 0) {
+      max = maxBy(stackBarData, (o) => o[YAxisLabel])[YAxisLabel];
+    }
 
     return {
       XAxisLabel,
@@ -206,15 +229,10 @@ export class LeadAnalyticService {
     }
   }
 
-
-
-  async getUserTalktime(email: string, organization: string, startDate: Date, endDate: Date) {
+  async getUserTalktime(email: string, organization: string, filter: GetGraphDataDto) {
     const pipeline = this.leadHistoryModel.aggregate();
-    pipeline.match({
-      organization,
-      createdAt: {$gte: startDate, $lt: endDate}
-    });
-
+    
+    this.attachCommonGraphFilters(pipeline, organization, filter);
 
     // this is wrong and was done willfully so, change this to old user, because if reassignment was done, talktime should go to the 
     // previous user

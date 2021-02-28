@@ -6,7 +6,6 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../user/interfaces/user.interface";
 import { GetGraphDataDto } from "./dto/get-graph-data.dto";
 import { LeadAnalyticService } from "./lead-analytic.service";
-import * as moment from "moment";
 @ApiTags("Lead Analytic")
 @Controller("lead-analytic")
 export class LeadAnalyticController { 
@@ -25,11 +24,11 @@ export class LeadAnalyticController {
     }
 
 
-    @Get('leadStatusLineData')
+    @Post('leadStatusLineData')
     @ApiOperation({summary: "gets count of lead by leadstatus and email, this will be represent on a line graph"})
     @UseGuards(AuthGuard("jwt"))
     @Roles('admin', 'superAdmin')
-    async getLeadStatusDataForLineGraph(@CurrentUser() user: User, @Query('year') year: string) {
+    async getLeadStatusDataForLineGraph(@CurrentUser() user: User, @Body() graphFilter: GetGraphDataDto, @Query('year') year: string) {
         const {email, organization} = user;
         return this.analyticService.getLeadStatusDataForLineGraph(email, organization,  year);
     }
@@ -45,35 +44,33 @@ export class LeadAnalyticController {
     }
 
 
-    @Get('campaignWiseLeadCount')
+    @Post('campaignWiseLeadCount')
     @ApiOperation({summary: "Fetches total lead in each campaign and shows it on a bar chart"})
     @UseGuards(AuthGuard("jwt"))
     @Roles('admin', 'superAdmin')
-    async getCampaignWiseLeadCount(@CurrentUser() user: User) {
+    async getCampaignWiseLeadCount(@CurrentUser() user: User, @Body() graphFilter: GetGraphDataDto) {
         const { email, organization } = user;
-        return this.analyticService.getCampaignWiseLeadCount(email, organization);
+        return this.analyticService.getCampaignWiseLeadCount(email, organization, graphFilter);
     }
 
 
 
-    @Get('campaignWiseLeadCountPerCategory')
+    @Post('campaignWiseLeadCountPerCategory')
     @ApiOperation({summary: "Fetches total lead in each campaign by separated by category and shows it on a stack bar chart"})
     @UseGuards(AuthGuard("jwt"))
     @Roles('admin', 'superAdmin')
-    async getCampaignWiseLeadCountPerLeadCategory(@CurrentUser() user: User) {
+    async getCampaignWiseLeadCountPerLeadCategory(@CurrentUser() user: User, @Body() graphFilter: GetGraphDataDto) {
         const { email, organization } = user;
-        return this.analyticService.getCampaignWiseLeadCountPerLeadCategory(email, organization);
+        return this.analyticService.getCampaignWiseLeadCountPerLeadCategory(email, organization, graphFilter);
     }
 
 
-    @Get('userTalktime')
+    @Post('userTalktime')
     @ApiOperation({summary: "Fetches individual users talktime and represents it in a bar graph"})
     @UseGuards(AuthGuard("jwt"))
     @Roles('admin', 'superAdmin')
-    async getUserTalktime(@CurrentUser() user: User) {
+    async getUserTalktime(@CurrentUser() user: User, @Body() graphFilter: GetGraphDataDto) {
         const { email, organization } = user;
-        const startDate = moment().startOf('month').subtract(2,'month').toDate();
-        const endDate = moment().endOf('month').toDate();
-        return this.analyticService.getUserTalktime(email, organization, startDate, endDate);
+        return this.analyticService.getUserTalktime(email, organization, graphFilter);
     }
 }

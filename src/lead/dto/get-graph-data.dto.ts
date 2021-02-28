@@ -1,24 +1,25 @@
 import { Transform } from "class-transformer";
-import { IsDate, IsEmail, IsMongoId, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsDate, IsDateString, IsEmail, IsMongoId, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class GetGraphDataDto {
-    @IsMongoId()
     @IsOptional()
-    campaign: string;
+    @IsMongoId()
+    campaign?: string;
 
-    @Transform((o)=>new Date(o))
-    @IsDate()
-    endDate: Date;
+    @IsOptional()
+    @IsDateString()
+    endDate?: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsEmail({}, {each: true})
-    handler: [];
+    handler?: string[];
 
     @IsOptional()
     @IsString()
     prospectName: null;
 
-    @Transform((o)=>new Date(o))
+    @IsOptional()
+    @IsDateString()
     @IsDate()
-    startDate: Date;
+    startDate?: string;
 }
