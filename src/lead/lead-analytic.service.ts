@@ -238,11 +238,13 @@ export class LeadAnalyticService {
     // previous user
     pipeline.group({
       _id: {"email": "$newUser"},
-      talktime: {$sum: "$duration"}
+      talktime: {$sum: "$duration"},
+      totalCalls: {$sum: 1}
     });
 
     pipeline.project({
       value: "$talktime",
+      averageValue: {$divide: ["$talktime", "$totalCalls"]},
       type: "$_id.email",
       _id: 0
     })
