@@ -20,7 +20,7 @@ export declare class LeadController {
     getAllLeadColumns(campaignId: string, remove: string[], user: any): Promise<{
         paths: import("./interfaces/campaign-config.interface").CampaignConfig[];
     }>;
-    insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<import("./interfaces/lead.interface").Lead>;
+    insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<void | import("./interfaces/lead.interface").Lead>;
     getTransactions(user: User, body: GetTransactionDto, isStreamable: boolean, res: Response): Promise<Response<any>>;
     findAll(body: FindAllDto, user: any): Promise<{
         total: any;

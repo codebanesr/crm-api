@@ -426,6 +426,10 @@ export class LeadService {
       organization,
       contact,
       isPristine: true // setting pristine flag to true for newly created lead
+    }).catch((e)=>{
+        if(e.code === 11000) {
+          throw new ConflictException("Mobile number must be unique");
+        }
     });
   }
 
