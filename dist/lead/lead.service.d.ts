@@ -60,7 +60,7 @@ export declare class LeadService {
         leadHistory: any[];
     }>;
     patch(productId: string, body: any[]): Promise<any>;
-    createLead(body: CreateLeadDto, email: string, organization: string, campaignId: string, campaignName: string): Promise<Lead>;
+    createLead(body: CreateLeadDto, email: string, organization: string, campaignId: string, campaignName: string): Promise<void | Lead>;
     deleteOne(leadId: string, activeUserEmail: string): Promise<Pick<any, string | number | symbol>>;
     createAlarm(alarmObj: Partial<Alarm>): Promise<Alarm>;
     sendBulkEmails(emails: string[], subject: string, text: string, attachments: any, organization: string): Promise<{

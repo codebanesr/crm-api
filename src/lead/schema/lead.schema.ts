@@ -16,7 +16,12 @@ export const LeadSchema = new Schema(
     /** @Todo set this to required type after upload and addLead are fixed to store campaignIds as well, all campaignName code should
      * be replaced to use this
      */
-    campaignId: {type: Schema.Types.ObjectId, ref: "Campaign"},
+    campaignId: {
+      type: Schema.Types.ObjectId, 
+      ref: "Campaign",
+      required: true
+    },
+
     firstName: String,
     lastName: String,
     fullName: String,
@@ -49,4 +54,13 @@ export const LeadSchema = new Schema(
 );
 
 /** @Todo Remove the text indexing from here */
-LeadSchema.index({ "$**": "text" });
+LeadSchema.index({ 
+  firstName: "text", 
+  lastName: "text", 
+  address: "text", 
+  fullName: "text", 
+  email: "text", 
+  companyName: "text" 
+});
+
+LeadSchema.index({campaignId: 1, mobilePhone: 1}, {unique: true});

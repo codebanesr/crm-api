@@ -319,7 +319,11 @@ let LeadService = class LeadService {
                 lead.fullName = `${lead.firstName} ${lead.lastName}`;
             }
             return this.leadModel.create(Object.assign(Object.assign({}, lead), { campaignId, campaign: campaignName, organization,
-                contact, isPristine: true }));
+                contact, isPristine: true })).catch((e) => {
+                if (e.code === 11000) {
+                    throw new common_1.ConflictException("Mobile number must be unique");
+                }
+            });
         });
     }
     deleteOne(leadId, activeUserEmail) {
