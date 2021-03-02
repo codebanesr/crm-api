@@ -12,7 +12,7 @@ declare class CallRecord {
     callStatus: string;
 }
 export declare class UpdateLead extends Lead {
-    leadStatus: string;
+    mobilePhone: string;
 }
 export declare class UpdateLeadDto {
     lead: UpdateLead;

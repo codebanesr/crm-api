@@ -32,7 +32,7 @@ exports.LeadSchema = new mongoose_1.Schema({
     mobilePhone: {
         type: String,
         unique: true,
-        validate: validator_1.default.isMobilePhone
+        validate: validator_1.default.isMobilePhone,
     },
     isPristine: {
         type: Boolean,

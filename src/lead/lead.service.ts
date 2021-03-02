@@ -664,7 +664,9 @@ export class LeadService {
         {new: true} //set it to false for performance boost
       );
     }catch(e) {
-      throw new ConflictException(e.message);
+      if(e.code === 11000) {
+        throw new ConflictException("Mobile number must be unique");
+      }
     }
 
 

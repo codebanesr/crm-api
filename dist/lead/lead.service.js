@@ -456,7 +456,9 @@ let LeadService = class LeadService {
                 result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj }, { new: true });
             }
             catch (e) {
-                throw new common_1.ConflictException(e.message);
+                if (e.code === 11000) {
+                    throw new common_1.ConflictException("Mobile number must be unique");
+                }
             }
             yield this.leadHistoryModel.create(Object.assign(Object.assign({}, nextEntryInHistory), callRecord));
             if (!lodash_1.values(emailForm).every(lodash_1.isEmpty)) {
