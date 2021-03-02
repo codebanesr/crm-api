@@ -36,10 +36,9 @@ __decorate([
 class UpdateLead extends lead_model_dto_1.Lead {
 }
 __decorate([
-    class_validator_1.IsNotEmpty(),
-    class_validator_1.IsString(),
+    class_validator_1.IsMobilePhone('en-IN', {}),
     __metadata("design:type", String)
-], UpdateLead.prototype, "leadStatus", void 0);
+], UpdateLead.prototype, "mobilePhone", void 0);
 exports.UpdateLead = UpdateLead;
 class UpdateLeadDto {
 }

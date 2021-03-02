@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsEnum,
   IsString,
+  IsMobilePhone,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ECallStatus } from "../enum/call-status.enum";
@@ -33,9 +34,8 @@ class CallRecord {
 }
 
 export class UpdateLead extends Lead {
-  @IsNotEmpty()
-  @IsString()
-  leadStatus: string;
+  @IsMobilePhone('en-IN', {})
+  mobilePhone: string;
 }
 
 export class UpdateLeadDto {
