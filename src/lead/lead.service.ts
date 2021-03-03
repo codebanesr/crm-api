@@ -366,6 +366,8 @@ export class LeadService {
     return result;
   }
 
+
+  /** next action should never be fetched, it should not be carried forward to the next transaction */
   async findOneById(leadId: string, email: string, roleType: string) {
     /**  */
     const lead = await this.leadModel
@@ -383,7 +385,7 @@ export class LeadService {
     let leadHistory = []
     if(lead) {
       leadHistory = await this.leadHistoryModel
-      .find({ lead: lead._id })
+      .find({ lead: lead._id}, { nextAction: 0 })
       .limit(5)
       .lean()
       .exec();
@@ -645,7 +647,8 @@ export class LeadService {
     nextEntryInHistory.followUp = lead.followUp?.toString();
     nextEntryInHistory.organization = organization;
     nextEntryInHistory.campaign = campaignId;
-    lead.nextAction && (nextEntryInHistory.nextAction = lead.nextAction);
+    
+    nextEntryInHistory.nextAction = lead.nextAction;
 
     /** Do not update contact, there will be a separate api for adding contact information */
     let { contact, ...filteredObj } = obj;
@@ -661,7 +664,12 @@ export class LeadService {
     filteredObj.isPristine = false;
 
     let result = {};
+
     try {
+      if(!lead.nextAction) {
+        filteredObj.nextAction = '__closed__';
+      }
+
       result = await this.leadModel.findOneAndUpdate(
         { _id: leadId, organization },
         { $set: filteredObj },
@@ -735,6 +743,10 @@ export class LeadService {
     return uq;
   }
 
+
+  /** @Todo here we are setting nextAction to null before sending it to the frontend, but this happens also in getLead api
+   * this should be remembered and fetching the lead should be done in the same function to prevent this in the future
+   */
   async fetchNextLead({
     campaignId,
     filters,
@@ -867,7 +879,8 @@ export class LeadService {
 
     /** @Todo Quick fix for sending contact ionformation to frontend, to put some effort into this if required */
     projection["contact"] = 1;
-    projection["nextAction"] = 1;
+    // next action should not be carried forward
+    // projection["nextAction"] = 1;
     projection["email"] = 1;
 
     // other information that should always show up, one is history
@@ -893,6 +906,9 @@ export class LeadService {
       await this.leadModel.findOneAndUpdate({_id: lead._id}, {email}, {timestamps: false});
       this.logger.debug(`Assigned lead ${lead._id} to ${email}`);
     }
+
+
+    lead.nextAction = null;
     return { lead, leadHistory };
   }
 

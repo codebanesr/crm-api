@@ -388,4 +388,9 @@ export class CampaignService {
   createCampaignConfigs() {
     
   }
+
+
+  deleteConfig(_id: string) {
+    return this.campaignConfigModel.deleteOne({_id});
+  }
 }

@@ -11,6 +11,7 @@ import {
   Query,
   UseGuards,
   Patch,
+  Delete,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiConsumes } from "@nestjs/swagger";
 import { CampaignService } from "./campaign.service";
@@ -22,6 +23,7 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../user/interfaces/user.interface";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
 import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
+import { Roles } from "../auth/decorators/roles.decorator";
 
 @ApiTags("Campaign")
 @Controller("campaign")
@@ -158,5 +160,15 @@ export class CampaignController {
     const { organization } = user;
     return this.campaignService.updateConfigs(configs, organization, campaignId, campaignName);
   }
+
+  @Delete(":configId")
+  @ApiOperation({ summary: "Deletes single config from campaign configs schema" })
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @HttpCode(HttpStatus.ACCEPTED)
+  deleteConfig(@Param('configId') configId: string) {
+    return this.campaignService.deleteConfig(configId);
+  }
+
 }
 // PATCH /campaign/addConfigs/5f49637c37c8e231c6711b36/spec-v4

@@ -128,11 +128,13 @@ export class LeadAnalyticService {
             },
           },
         },
+        { $sort : { "_id.month" : 1 } },
         {
           $project: {
             total: "$total",
             month: "$month",
             leadStatus: "$_id.leadStatus",
+            _id: 0,
           },
         },
       ])
@@ -145,11 +147,12 @@ export class LeadAnalyticService {
 
     // adds another field called nextActionExists, every record will now have this field based on which we can calculate
     // leads for every user
+    /** @Todo isPristine flag can also be used to check if the lead is untouched after its creation */
     pipeline.addFields({
       nextActionExists: {
         $cond: [
           {
-            $or: [{ isPristine: false }, { $ifNull: ["$nextAction", false] }],
+            $ne: ["$nextAction", "__closed__"],
           },
           true,
           false,

@@ -73,4 +73,10 @@ export declare class CampaignService {
     getQuickStatsForCampaigns(campaignNames: string[], organization: string): Promise<import("lodash").Dictionary<any>>;
     updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string): Promise<Pick<CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "campaignId" | "internalField" | "checked">>;
     createCampaignConfigs(): void;
+    deleteConfig(_id: string): import("mongoose").Query<{
+        ok?: number;
+        n?: number;
+    } & {
+        deletedCount?: number;
+    }>;
 }

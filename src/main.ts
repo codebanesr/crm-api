@@ -17,9 +17,7 @@ async function bootstrap() {
   // app.useLogger(app.get(Logger));
 
   app.enableCors();
-  // ╦ ╦╔═╗╔═╗  ╔═╗╦  ╔═╗╔╗ ╔═╗╦    ╔═╗╦╔═╗╔═╗╔═╗
-  // ║ ║╚═╗║╣   ║ ╦║  ║ ║╠╩╗╠═╣║    ╠═╝║╠═╝║╣ ╚═╗
-  // ╚═╝╚═╝╚═╝  ╚═╝╩═╝╚═╝╚═╝╩ ╩╩═╝  ╩  ╩╩  ╚═╝╚═╝
+
   app.useGlobalPipes(
     new ValidationPipe({
       // disableErrorMessages: true,
@@ -27,9 +25,6 @@ async function bootstrap() {
     })
   );
 
-  // ╔═╗╦ ╦╔═╗╔═╗╔═╗╔═╗╦═╗
-  // ╚═╗║║║╠═╣║ ╦║ ╦║╣ ╠╦╝
-  // ╚═╝╚╩╝╩ ╩╚═╝╚═╝╚═╝╩╚═
   app.setGlobalPrefix('api');
 
   const options = new DocumentBuilder()
@@ -50,9 +45,6 @@ async function bootstrap() {
   });
   SwaggerModule.setup("api/swagger", app, document);
 
-  // ╔╦╗╔═╗╔═╗╦╔╗╔╔═╗  ╔═╗╔╗╔╔╦╗  ╦  ╦╔═╗╔╦╗╔═╗╔╗╔  ╔╦╗╔═╗  ╔═╗╔═╗╦═╗╔╦╗
-  // ║║║╣ ╠╣ ║║║║║╣    ╠═╣║║║ ║║  ║  ║╚═╗ ║ ║╣ ║║║   ║ ║ ║  ╠═╝║ ║╠╦╝ ║
-  // ═╩╝╚═╝╚  ╩╝╚╝╚═╝  ╩ ╩╝╚╝═╩╝  ╩═╝╩╚═╝ ╩ ╚═╝╝╚╝   ╩ ╚═╝  ╩  ╚═╝╩╚═ ╩
   const PORT = process.env.PORT || 3000;
   await app.listen(PORT);
   warn(`APP IS LISTENING TO PORT ${PORT}`);

@@ -127,11 +127,13 @@ let LeadAnalyticService = class LeadAnalyticService {
                         },
                     },
                 },
+                { $sort: { "_id.month": 1 } },
                 {
                     $project: {
                         total: "$total",
                         month: "$month",
                         leadStatus: "$_id.leadStatus",
+                        _id: 0,
                     },
                 },
             ])
@@ -146,7 +148,7 @@ let LeadAnalyticService = class LeadAnalyticService {
                 nextActionExists: {
                     $cond: [
                         {
-                            $or: [{ isPristine: false }, { $ifNull: ["$nextAction", false] }],
+                            $ne: ["$nextAction", "__closed__"],
                         },
                         true,
                         false,

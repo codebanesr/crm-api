@@ -392,7 +392,7 @@ __decorate([
 __decorate([
     common_1.Get(":leadId"),
     swagger_1.ApiOperation({
-        summary: "Get lead by id",
+        summary: "Get lead by id, next action should be set to null before fetching the lead",
     }),
     common_1.HttpCode(common_1.HttpStatus.OK),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),

@@ -367,9 +367,11 @@ export class LeadController {
     return this.leadService.saveEmailAttachments(files);
   }
 
+
+  /** @Todo nextAction ko currently we are setting to null, but this operation is also done in fetchNextLead */
   @Get(":leadId")
   @ApiOperation({
-    summary: "Get lead by id",
+    summary: "Get lead by id, next action should be set to null before fetching the lead",
   })
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard("jwt"))

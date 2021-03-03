@@ -1,4 +1,5 @@
 /// <reference types="lodash" />
+/// <reference types="mongoose" />
 import { CampaignService } from "./campaign.service";
 import { FindCampaignsDto } from "./dto/find-campaigns.dto";
 import { User } from "../user/interfaces/user.interface";
@@ -31,4 +32,10 @@ export declare class CampaignController {
     getDispositionByCampaignName(campaignName: string, user: User): Promise<any>;
     archiveCampaign(user: User, body: any): Promise<import("./interfaces/campaign.interface").Campaign>;
     updateConfigs(user: User, configs: UpdateConfigsDto, campaignId: string, campaignName: string): Promise<Pick<import("../lead/interfaces/campaign-config.interface").CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "campaignId" | "internalField" | "checked">>;
+    deleteConfig(configId: string): import("mongoose").Query<{
+        ok?: number;
+        n?: number;
+    } & {
+        deletedCount?: number;
+    }>;
 }
