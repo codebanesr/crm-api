@@ -30,7 +30,7 @@ exports.LeadSchema = new mongoose_1.Schema({
     companyName: String,
     state: String,
     pincode: Number,
-    nextAction: String,
+    nextAction: { type: String, default: null },
     organization: { type: mongoose_1.Schema.Types.ObjectId, ref: "Organization" },
     documentLinks: [String],
     mobilePhone: {

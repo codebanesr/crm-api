@@ -311,6 +311,9 @@ let CampaignService = class CampaignService {
     }
     createCampaignConfigs() {
     }
+    deleteConfig(_id) {
+        return this.campaignConfigModel.deleteOne({ _id });
+    }
 };
 CampaignService = __decorate([
     common_1.Injectable(),

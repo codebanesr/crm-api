@@ -290,7 +290,7 @@ let LeadService = class LeadService {
             let leadHistory = [];
             if (lead) {
                 leadHistory = yield this.leadHistoryModel
-                    .find({ lead: lead._id })
+                    .find({ lead: lead._id }, { nextAction: 0 })
                     .limit(5)
                     .lean()
                     .exec();
@@ -448,7 +448,7 @@ let LeadService = class LeadService {
             nextEntryInHistory.followUp = (_b = lead.followUp) === null || _b === void 0 ? void 0 : _b.toString();
             nextEntryInHistory.organization = organization;
             nextEntryInHistory.campaign = campaignId;
-            lead.nextAction && (nextEntryInHistory.nextAction = lead.nextAction);
+            nextEntryInHistory.nextAction = lead.nextAction;
             let { contact } = obj, filteredObj = __rest(obj, ["contact"]);
             if (lodash_1.get(reassignmentInfo, "newUser")) {
                 obj.email = reassignmentInfo.newUser;
@@ -457,6 +457,9 @@ let LeadService = class LeadService {
             filteredObj.isPristine = false;
             let result = {};
             try {
+                if (!lead.nextAction) {
+                    filteredObj.nextAction = '__closed__';
+                }
                 result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj }, { new: true });
             }
             catch (e) {
@@ -611,7 +614,6 @@ let LeadService = class LeadService {
                 projection[c] = 1;
             });
             projection["contact"] = 1;
-            projection["nextAction"] = 1;
             projection["email"] = 1;
             singleLeadAgg.project(projection);
             const lead = (yield singleLeadAgg.exec())[0];
@@ -626,6 +628,7 @@ let LeadService = class LeadService {
                 yield this.leadModel.findOneAndUpdate({ _id: lead._id }, { email }, { timestamps: false });
                 this.logger.debug(`Assigned lead ${lead._id} to ${email}`);
             }
+            lead.nextAction = null;
             return { lead, leadHistory };
         });
     }

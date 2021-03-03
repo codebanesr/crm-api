@@ -22,6 +22,7 @@ const passport_1 = require("@nestjs/passport");
 const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
 const update_configs_dto_1 = require("./dto/update-configs.dto");
 const create_campaign_disposition_dto_1 = require("./dto/create-campaign-disposition.dto");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 let CampaignController = class CampaignController {
     constructor(campaignService) {
         this.campaignService = campaignService;
@@ -78,6 +79,9 @@ let CampaignController = class CampaignController {
     updateConfigs(user, configs, campaignId, campaignName) {
         const { organization } = user;
         return this.campaignService.updateConfigs(configs, organization, campaignId, campaignName);
+    }
+    deleteConfig(configId) {
+        return this.campaignService.deleteConfig(configId);
     }
 };
 __decorate([
@@ -199,6 +203,17 @@ __decorate([
     __metadata("design:paramtypes", [Object, update_configs_dto_1.UpdateConfigsDto, String, String]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "updateConfigs", null);
+__decorate([
+    common_1.Delete(":configId"),
+    swagger_1.ApiOperation({ summary: "Deletes single config from campaign configs schema" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("admin"),
+    common_1.HttpCode(common_1.HttpStatus.ACCEPTED),
+    __param(0, common_1.Param('configId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CampaignController.prototype, "deleteConfig", null);
 CampaignController = __decorate([
     swagger_1.ApiTags("Campaign"),
     common_1.Controller("campaign"),
