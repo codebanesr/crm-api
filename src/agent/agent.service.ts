@@ -1,9 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model, Types } from "mongoose";
+import { Model, Mongoose, Schema, Types } from "mongoose";
 import { createReadStream } from "fs";
 import { Response } from "express";
-import { AdminAction } from "../user/interfaces/admin-actions.interface";
+import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { User } from "../user/interfaces/user.interface";
 import { BatteryStatusDto } from "./schemas/battery-status.dto";
 import { VisitTrack } from "./interface/visit-track.interface";
@@ -25,6 +25,8 @@ export class AgentService {
     private readonly userModel: Model<User>
   ) {}
 
+
+  // schema filter not working in this service call
   async listActions(
     activeUserId: string,
     organization: string,
@@ -34,44 +36,41 @@ export class AgentService {
     me,
     campaign: string
   ) {
+    const fq = this.adminActionModel.aggregate();
+    /** @Todo check why automatic objectid type conversion is failing in this case */
+    fq.match({ campaign: Types.ObjectId(campaign) });
 
-    return this.adminActionModel.find({
-      campaign,
-      organization
-    }).sort({createdAt: -1}).limit(20).lean().exec();
-    // const fq = this.adminActionModel.aggregate();
-    // fq.match({ organization, campaign });
+    if (me) {
+      fq.match({ userid: activeUserId });
+    }
 
-    // if (me) {
-    //   fq.match({ userid: activeUserId });
-    // }
+    if (fileType) {
+      // fq.match({ fileType });
+    }
 
-    // // if (fileType) {
-    // //   fq.match({ fileType });
-    // // }
+    fq.lookup({
+      from: "users",
+      localField: "userid",
+      foreignField: "_id",
+      as: "userdetails",
+    });
 
-    // fq.lookup({
-    //   from: "users",
-    //   localField: "userid",
-    //   foreignField: "_id",
-    //   as: "userdetails",
-    // });
+    fq.unwind({ path: "$userdetails" });
 
-    // fq.unwind({ path: "$userdetails" });
+    fq.project({
+      email: "$userdetails.email",
+      savedOn: "$userdetails.savedOn",
+      filePath: "$filePath",
+      actionType: "$actionType",
+      createdAt: "$createdAt",
+      label: "$label",
+    });
 
-    // fq.project({
-    //   email: "$userdetails.email",
-    //   savedOn: "$userdetails.savedOn",
-    //   filePath: "$filePath",
-    //   actionType: "$actionType",
-    //   createdAt: "$createdAt",
-    //   label: "$label",
-    // });
-
-    // fq.sort({ createdAt: -1 });
-    // fq.skip(Number(skip));
-    // fq.limit(20);
-    // return fq.exec();
+    fq.sort({ createdAt: -1 });
+    fq.skip(Number(skip));
+    fq.limit(20);
+    const result = await fq.exec();
+    return result;
   }
 
   async downloadFile(location: string, res: Response) {

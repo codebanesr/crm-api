@@ -36,10 +36,33 @@ let AgentService = class AgentService {
     }
     listActions(activeUserId, organization, skip, fileType, sortBy = "handler", me, campaign) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.adminActionModel.find({
-                campaign,
-                organization
-            }).sort({ createdAt: -1 }).limit(20).lean().exec();
+            const fq = this.adminActionModel.aggregate();
+            fq.match({ campaign: mongoose_2.Types.ObjectId(campaign) });
+            if (me) {
+                fq.match({ userid: activeUserId });
+            }
+            if (fileType) {
+            }
+            fq.lookup({
+                from: "users",
+                localField: "userid",
+                foreignField: "_id",
+                as: "userdetails",
+            });
+            fq.unwind({ path: "$userdetails" });
+            fq.project({
+                email: "$userdetails.email",
+                savedOn: "$userdetails.savedOn",
+                filePath: "$filePath",
+                actionType: "$actionType",
+                createdAt: "$createdAt",
+                label: "$label",
+            });
+            fq.sort({ createdAt: -1 });
+            fq.skip(Number(skip));
+            fq.limit(20);
+            const result = yield fq.exec();
+            return result;
         });
     }
     downloadFile(location, res) {

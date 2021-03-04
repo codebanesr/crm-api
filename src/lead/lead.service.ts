@@ -21,7 +21,6 @@ import { Campaign } from "../campaign/interfaces/campaign.interface";
 import { FiltersDto } from "./dto/find-all.dto";
 import { AttachmentDto } from "./dto/create-email-template.dto";
 import { S3UploadedFiles } from "./dto/generic.dto";
-import { AdminAction } from "../user/interfaces/admin-actions.interface";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
@@ -34,6 +33,7 @@ import { createTransport, SendMailOptions } from "nodemailer";
 import config from '../config';
 import { RoleType } from "../shared/role-type.enum";
 import { FetchNextLeadDto, TypeOfLead } from "./dto/fetch-next-lead.dto";
+import { AdminAction } from "../agent/interface/admin-actions.interface";
 @Injectable()
 export class LeadService {
   constructor(

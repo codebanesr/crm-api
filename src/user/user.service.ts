@@ -26,7 +26,7 @@ import { User } from "./interfaces/user.interface";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { Request } from "express";
 import parseExcel from "../utils/parseExcel";
-import { AdminAction } from "./interfaces/admin-actions.interface";
+import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { writeFile, utils } from "xlsx";
 import { join } from "path";
