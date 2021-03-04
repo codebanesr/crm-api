@@ -9,7 +9,7 @@ import { ForgotPassword } from "./interfaces/forgot-password.interface";
 import { User } from "./interfaces/user.interface";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { Request } from "express";
-import { AdminAction } from "./interfaces/admin-actions.interface";
+import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";

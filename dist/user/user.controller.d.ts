@@ -49,7 +49,7 @@ export declare class UserController {
     findAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any>;
     getAllManagers(user: User, userEmail: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     managersForReassignment(user: User, assigned: string): Promise<string[]>;
-    add(req: any, assigned: string, file: any, user: User): Promise<import("./interfaces/admin-actions.interface").AdminAction>;
+    add(req: any, assigned: string, file: any, user: User): Promise<import("../agent/interface/admin-actions.interface").AdminAction>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
     subscribeToPush(user: User, body: PushNotificationDto): Promise<{
         message: string;
