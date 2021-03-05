@@ -70,7 +70,7 @@ export declare class CampaignService {
         campaign: any;
     }): Promise<any>;
     archiveCampaign(campaign: any): Promise<Campaign>;
-    getQuickStatsForCampaigns(campaignNames: string[], organization: string): Promise<import("lodash").Dictionary<any>>;
+    getQuickStatsForCampaigns(campaignIds: string[], organization: string): Promise<import("lodash").Dictionary<any>>;
     updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string): Promise<Pick<CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "campaignId" | "internalField" | "checked">>;
     createCampaignConfigs(): void;
     deleteConfig(_id: string): import("mongoose").Query<{

@@ -14,6 +14,7 @@ import { keyBy } from "lodash";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
 import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
 import { coreConfig } from "./core-config";
+import * as moment from "moment";
 
 @Injectable()
 export class CampaignService {
@@ -80,9 +81,9 @@ export class CampaignService {
     const result = await campaignAgg.exec();
 
     // finding quick stats
-    const campaignNames = result[0].data.map((d) => d.campaignName);
+    const campaignIds = result[0].data.map((d) => d._id);
     const quickStatsAgg = await this.getQuickStatsForCampaigns(
-      campaignNames,
+      campaignIds,
       organization
     );
 
@@ -330,21 +331,22 @@ export class CampaignService {
   }
 
   async getQuickStatsForCampaigns(
-    campaignNames: string[],
+    campaignIds: string[],
     organization: string
   ) {
+    const currentDate = moment().toDate();
     /** also add organization because two campaigns can have same names between different organization */
     const quickStatsAgg = this.leadModel.aggregate();
     quickStatsAgg.match({
       organization,
-      campaign: { $in: campaignNames },
+      campaignId: { $in: campaignIds },
     });
     quickStatsAgg.group({
       _id: { campaign: "$campaign" },
       followUp: {
         $sum: {
           $cond: [
-            { $gt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+            { $gt: ["$followUp", currentDate] },
             1,
             0,
           ],
@@ -353,7 +355,7 @@ export class CampaignService {
       overdue: {
         $sum: {
           $cond: [
-            { $lt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+            { $lt: ["$followUp", currentDate] },
             1,
             0,
           ],

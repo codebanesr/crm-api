@@ -30,6 +30,7 @@ const xlsx_1 = require("xlsx");
 const path_1 = require("path");
 const lodash_1 = require("lodash");
 const core_config_1 = require("./core-config");
+const moment = require("moment");
 let CampaignService = class CampaignService {
     constructor(campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel, leadModel) {
         this.campaignModel = campaignModel;
@@ -63,8 +64,8 @@ let CampaignService = class CampaignService {
                 data: [{ $skip: skip }, { $limit: limit }],
             });
             const result = yield campaignAgg.exec();
-            const campaignNames = result[0].data.map((d) => d.campaignName);
-            const quickStatsAgg = yield this.getQuickStatsForCampaigns(campaignNames, organization);
+            const campaignIds = result[0].data.map((d) => d._id);
+            const quickStatsAgg = yield this.getQuickStatsForCampaigns(campaignIds, organization);
             return {
                 data: result[0].data,
                 metadata: result[0].metadata[0],
@@ -257,19 +258,20 @@ let CampaignService = class CampaignService {
             }, { new: true });
         });
     }
-    getQuickStatsForCampaigns(campaignNames, organization) {
+    getQuickStatsForCampaigns(campaignIds, organization) {
         return __awaiter(this, void 0, void 0, function* () {
+            const currentDate = moment().toDate();
             const quickStatsAgg = this.leadModel.aggregate();
             quickStatsAgg.match({
                 organization,
-                campaign: { $in: campaignNames },
+                campaignId: { $in: campaignIds },
             });
             quickStatsAgg.group({
                 _id: { campaign: "$campaign" },
                 followUp: {
                     $sum: {
                         $cond: [
-                            { $gt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+                            { $gt: ["$followUp", currentDate] },
                             1,
                             0,
                         ],
@@ -278,7 +280,7 @@ let CampaignService = class CampaignService {
                 overdue: {
                     $sum: {
                         $cond: [
-                            { $lt: ["$followUp", new Date("2020-12-17T17:26:57.701Z")] },
+                            { $lt: ["$followUp", currentDate] },
                             1,
                             0,
                         ],
