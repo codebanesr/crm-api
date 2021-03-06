@@ -964,11 +964,6 @@ acorn@^7.1.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.4.0.tgz#e1ad486e6c54501634c6c397c5c121daa383607c"
   integrity sha512-+G7P8jJmCHr+S+cLfQxygbWhXy+8YTVGzAkpEbcLo2mLoL7tij/VG41QSHACSf5QgYRhMZYHuNc6drJaO0Da+w==
 
-addressparser@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/addressparser/-/addressparser-1.0.1.tgz#47afbe1a2a9262191db6838e4fd1d39b40821746"
-  integrity sha1-R6++GiqSYhkdtoOOT9HTm0CCF0Y=
-
 adler-32@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/adler-32/-/adler-32-1.2.0.tgz#6a3e6bf0a63900ba15652808cb15c6813d1a5f25"
@@ -4062,11 +4057,6 @@ makeerror@1.0.x:
   dependencies:
     tmpl "1.0.x"
 
-mandrill-api@^1.0.45:
-  version "1.0.45"
-  resolved "https://registry.yarnpkg.com/mandrill-api/-/mandrill-api-1.0.45.tgz#163939cf486bd18277b0f3baf412c3e65d84a72d"
-  integrity sha1-Fjk5z0hr0YJ3sPO69BLD5l2Epy0=
-
 map-cache@^0.2.2:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/map-cache/-/map-cache-0.2.2.tgz#c32abd0bd6525d9b051645bb4f26ac5dc98a0dbf"
@@ -4112,14 +4102,6 @@ merge-stream@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/merge-stream/-/merge-stream-2.0.0.tgz#52823629a14dd00c9770fb6ad47dc6310f2c1f60"
   integrity sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==
-
-messagebird@^3.5.0:
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/messagebird/-/messagebird-3.5.0.tgz#d4daf7a4f602698600603e53b500bb01c2ae8fe6"
-  integrity sha512-LNzMPr6PuZBHFjDdrAQR5aRad2QHv4C4BcumySyE3DKvsd0k2p8oYX2mFHzk8uMO5KstDJVe6Yz2/bNDADo4SQ==
-  dependencies:
-    safe-buffer "^5.1.2"
-    scmp "^2.0.0"
 
 methods@^1.1.1, methods@^1.1.2, methods@~1.1.2:
   version "1.1.2"
@@ -4400,15 +4382,6 @@ node-notifier@^8.0.0:
     shellwords "^0.1.1"
     uuid "^8.3.0"
     which "^2.0.2"
-
-nodemailer-mandrill-transport@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/nodemailer-mandrill-transport/-/nodemailer-mandrill-transport-1.2.0.tgz#69969029d259b46921cc12db70ca1551bf394b04"
-  integrity sha1-aZaQKdJZtGkhzBLbcMoVUb85SwQ=
-  dependencies:
-    addressparser "^1.0.1"
-    extend "^3.0.0"
-    mandrill-api "^1.0.45"
 
 nodemailer@^6.4.11:
   version "6.4.11"
@@ -5286,7 +5259,7 @@ saxes@^5.0.0:
   dependencies:
     xmlchars "^2.2.0"
 
-scmp@^2.0.0, scmp@^2.1.0:
+scmp@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/scmp/-/scmp-2.1.0.tgz#37b8e197c425bdeb570ab91cc356b311a11f9c9a"
   integrity sha512-o/mRQGk9Rcer/jEEw/yw4mwo3EU/NvYvp577/Btqrym9Qy5/MdWGBqipbALgd2lrdWTJ5/gqDusxfnQBxOxT2Q==
