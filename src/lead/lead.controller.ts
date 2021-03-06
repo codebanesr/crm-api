@@ -43,7 +43,7 @@ import { utils, writeFile, WritingOptions } from "xlsx";
 import { createReadStream } from "fs";
 import { Response } from "express";
 import { BulkReassignDto } from "./dto/bulk-reassign.dto";
-import { RoleType } from "src/shared/role-type.enum";
+import { RoleType } from "../shared/role-type.enum";
 
 @ApiTags("Lead")
 @Controller("lead")

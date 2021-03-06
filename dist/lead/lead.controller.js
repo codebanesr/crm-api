@@ -44,7 +44,7 @@ const get_transaction_dto_1 = require("./dto/get-transaction.dto");
 const xlsx_1 = require("xlsx");
 const fs_1 = require("fs");
 const bulk_reassign_dto_1 = require("./dto/bulk-reassign.dto");
-const role_type_enum_1 = require("src/shared/role-type.enum");
+const role_type_enum_1 = require("../shared/role-type.enum");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
