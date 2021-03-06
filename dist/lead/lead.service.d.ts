@@ -37,6 +37,7 @@ export declare class LeadService {
     constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, leadUploadQueue: Queue, ruleService: RulesService, userService: UserService, notificationService: NotificationService);
     logger: Logger;
     saveEmailAttachments(files: any): any;
+    reassignBulkLead(user: User, newUserEmail: string, leadIds: string[]): Promise<any>;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string, templateName: string): Promise<EmailTemplate>;
     getAllEmailTemplates(limit: any, skip: any, campaign: string, organization: string): Promise<Pick<EmailTemplate, "_id" | "content" | "email" | "organization" | "campaign" | "subject" | "attachments">[]>;

@@ -16,13 +16,14 @@ export declare class CampaignService {
     private readonly campaignFormModel;
     private readonly leadModel;
     constructor(campaignModel: Model<Campaign>, campaignConfigModel: Model<CampaignConfig>, dispositionModel: Model<Disposition>, adminActionModel: Model<AdminAction>, campaignFormModel: Model<CampaignForm>, leadModel: Model<Lead>);
-    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, }: {
+    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, roles }: {
         page: any;
         perPage: any;
         filters: any;
         sortBy: any;
         loggedInUserId: any;
         organization: any;
+        roles: any;
     }): Promise<{
         data: any;
         metadata: any;

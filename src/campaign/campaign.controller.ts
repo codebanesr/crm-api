@@ -36,7 +36,7 @@ export class CampaignController {
   @UseGuards(AuthGuard("jwt"))
   // @UsePipes(new ValidationPipe({transform: true}))
   findAll(@Body() body: FindCampaignsDto, @CurrentUser() user: User) {
-    const { _id: loggedInUserId, organization } = user;
+    const { _id: loggedInUserId, organization, roles } = user;
     const { filters, page, perPage, sortBy } = body;
     return this.campaignService.findAll({
       page,
@@ -45,6 +45,7 @@ export class CampaignController {
       sortBy,
       loggedInUserId,
       organization,
+      roles
     });
   }
 

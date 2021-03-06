@@ -660,7 +660,7 @@ export class UserService {
 
   async updateUser(userid: string, user: CreateUserDto) {
     user.password = await hashPassword(user.password);
-    return this.userModel.updateOne({ _id: userid }, user);
+    return this.userModel.updateOne({ _id: userid }, {...user, roles: [user.roleType]});
   }
 
   async subscribeToPushNotification(

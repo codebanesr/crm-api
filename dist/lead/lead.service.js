@@ -64,6 +64,11 @@ let LeadService = class LeadService {
     saveEmailAttachments(files) {
         return files;
     }
+    reassignBulkLead(user, newUserEmail, leadIds) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.leadModel.updateMany({ _id: { $in: leadIds } }, { email: newUserEmail });
+        });
+    }
     reassignLead(activeUserEmail, oldUserEmail, newUserEmail, lead) {
         return __awaiter(this, void 0, void 0, function* () {
             const assigned = oldUserEmail ? "reassigned" : "assigned";
