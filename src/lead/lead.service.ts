@@ -34,6 +34,7 @@ import config from '../config';
 import { RoleType } from "../shared/role-type.enum";
 import { FetchNextLeadDto, TypeOfLead } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
+import { BulkReassignDto } from "./dto/bulk-reassign.dto";
 @Injectable()
 export class LeadService {
   constructor(
@@ -77,6 +78,13 @@ export class LeadService {
   saveEmailAttachments(files) {
     return files;
   }
+
+
+  /** @Todo these logs should also be recorded */
+  async reassignBulkLead(user: User, newUserEmail: string, leadIds: string[]) {
+    return this.leadModel.updateMany({_id: {$in: leadIds}}, {email: newUserEmail});
+  }
+
 
   async reassignLead(
     activeUserEmail: string,

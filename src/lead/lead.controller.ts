@@ -42,6 +42,8 @@ import { GetTransactionDto } from "./dto/get-transaction.dto";
 import { utils, writeFile, WritingOptions } from "xlsx";
 import { createReadStream } from "fs";
 import { Response } from "express";
+import { BulkReassignDto } from "./dto/bulk-reassign.dto";
+import { RoleType } from "src/shared/role-type.enum";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -210,6 +212,20 @@ export class LeadController {
       body.newUserEmail,
       body.lead
     );
+  }
+
+
+  @Post("bulkReassign")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({summary: "Assign multiple leads to a user"})
+  @HttpCode(HttpStatus.ACCEPTED)
+  @Roles(RoleType.admin, RoleType.manager, RoleType.seniorManager)
+  reassignBulkLead(
+    @CurrentUser() user: User,
+    @Body() bulkReassignDto: BulkReassignDto
+  ) {
+    const {userEmail: newUserEmail, leadIds} = bulkReassignDto;
+    return this.leadService.reassignBulkLead(user, newUserEmail, leadIds);
   }
 
   // @Post("syncPhoneCalls/:leadId")
