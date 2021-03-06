@@ -31,6 +31,7 @@ const path_1 = require("path");
 const lodash_1 = require("lodash");
 const core_config_1 = require("./core-config");
 const moment = require("moment");
+const role_type_enum_1 = require("../shared/role-type.enum");
 let CampaignService = class CampaignService {
     constructor(campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel, leadModel) {
         this.campaignModel = campaignModel;
@@ -40,15 +41,25 @@ let CampaignService = class CampaignService {
         this.campaignFormModel = campaignFormModel;
         this.leadModel = leadModel;
     }
-    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, }) {
+    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, roles }) {
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((page - 1) * limit);
             const campaignAgg = this.campaignModel.aggregate();
             const { campaigns = [], select = [] } = filters;
-            campaignAgg.match({
-                $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }],
-            });
+            if (!roles.includes(role_type_enum_1.RoleType.admin)) {
+                campaignAgg.match({
+                    $and: [
+                        { organization },
+                        { $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }] },
+                    ],
+                });
+            }
+            else {
+                campaignAgg.match({
+                    organization
+                });
+            }
             if (campaigns && campaigns.length > 0) {
                 campaignAgg.match({ type: { $in: campaigns } });
             }

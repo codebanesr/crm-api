@@ -7,7 +7,7 @@ export const CampaignConfigSchema = new Schema({
   type: String,
   options: [String],
   checked: Boolean,
-  group: String,
+  // group: String,
   organization: {
     type: Schema.Types.ObjectId,
     ref: "Organization",

@@ -43,6 +43,8 @@ const create_lead_dto_1 = require("./dto/create-lead.dto");
 const get_transaction_dto_1 = require("./dto/get-transaction.dto");
 const xlsx_1 = require("xlsx");
 const fs_1 = require("fs");
+const bulk_reassign_dto_1 = require("./dto/bulk-reassign.dto");
+const role_type_enum_1 = require("src/shared/role-type.enum");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
@@ -98,6 +100,10 @@ let LeadController = class LeadController {
     }
     reassignLead(body, user) {
         return this.leadService.reassignLead(user.email, body.oldUserEmail, body.newUserEmail, body.lead);
+    }
+    reassignBulkLead(user, bulkReassignDto) {
+        const { userEmail: newUserEmail, leadIds } = bulkReassignDto;
+        return this.leadService.reassignBulkLead(user, newUserEmail, leadIds);
     }
     getLeadHistoryById(user, externalId) {
         const { organization } = user;
@@ -277,6 +283,18 @@ __decorate([
     __metadata("design:paramtypes", [reassign_lead_dto_1.ReassignLeadDto, Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "reassignLead", null);
+__decorate([
+    common_1.Post("bulkReassign"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOperation({ summary: "Assign multiple leads to a user" }),
+    common_1.HttpCode(common_1.HttpStatus.ACCEPTED),
+    roles_decorator_1.Roles(role_type_enum_1.RoleType.admin, role_type_enum_1.RoleType.manager, role_type_enum_1.RoleType.seniorManager),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, bulk_reassign_dto_1.BulkReassignDto]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "reassignBulkLead", null);
 __decorate([
     common_1.Get("getLeadHistoryById/:externalId"),
     swagger_1.ApiOperation({

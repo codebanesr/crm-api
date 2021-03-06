@@ -15,6 +15,7 @@ import { UpdateConfigsDto } from "./dto/update-configs.dto";
 import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
 import { coreConfig } from "./core-config";
 import * as moment from "moment";
+import { RoleType } from "../shared/role-type.enum";
 
 @Injectable()
 export class CampaignService {
@@ -44,6 +45,7 @@ export class CampaignService {
     sortBy,
     loggedInUserId,
     organization,
+    roles
   }) {
     const limit = Number(perPage);
     const skip = Number((page - 1) * limit);
@@ -52,11 +54,22 @@ export class CampaignService {
 
     const { campaigns = [], select = [] } = filters;
 
-    // mongodb understands that assigness is an array so it will go and check every single value
-    // in the array and if any one of that is a match, it will keep that record
-    campaignAgg.match({
-      $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }],
-    });
+    // if the admin wants to see the campaign list we dont 
+    if(!roles.includes(RoleType.admin)) {
+      // mongodb understands that assigness is an array so it will go and check every single value
+      // in the array and if any one of that is a match, it will keep that record
+      campaignAgg.match({
+        $and: [
+          { organization },
+          { $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }] },
+        ],
+      }); 
+    } else {
+      // if he is an admin just check if he belongs to this organization
+      campaignAgg.match({
+        organization
+      })
+    }
 
     // if campaign filter is applied, @Todo verify if this is still required, i believe that this schema was changed
     if (campaigns && campaigns.length > 0) {

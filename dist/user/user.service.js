@@ -572,7 +572,7 @@ let UserService = class UserService {
     updateUser(userid, user) {
         return __awaiter(this, void 0, void 0, function* () {
             user.password = yield crypto_utils_1.hashPassword(user.password);
-            return this.userModel.updateOne({ _id: userid }, user);
+            return this.userModel.updateOne({ _id: userid }, Object.assign(Object.assign({}, user), { roles: [user.roleType] }));
         });
     }
     subscribeToPushNotification(userId, pushtoken) {

@@ -9,7 +9,6 @@ exports.CampaignConfigSchema = new mongoose_1.Schema({
     type: String,
     options: [String],
     checked: Boolean,
-    group: String,
     organization: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Organization",

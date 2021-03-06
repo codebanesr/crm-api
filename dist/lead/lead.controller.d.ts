@@ -14,6 +14,7 @@ import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
 import { Response } from "express";
+import { BulkReassignDto } from "./dto/bulk-reassign.dto";
 export declare class LeadController {
     private readonly leadService;
     constructor(leadService: LeadService);
@@ -31,6 +32,7 @@ export declare class LeadController {
     updateLead(user: User, updateLeadObj: UpdateLeadDto, leadId: string): Promise<{}>;
     addContact(body: UpdateContactDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
     reassignLead(body: ReassignLeadDto, user: User): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
+    reassignBulkLead(user: User, bulkReassignDto: BulkReassignDto): Promise<any>;
     getLeadHistoryById(user: User, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
     getUsersPerformance(req: any): Promise<void>;
     getLeadSuggestions(user: User, externalId: string, page?: number, perPage?: number): Promise<any>;
