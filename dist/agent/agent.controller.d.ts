@@ -10,6 +10,6 @@ export declare class AgentController {
     getUsersPerformance(user: User, skip: number, fileType: string, sortBy: string, me: boolean, campaign: string): Promise<any>;
     downloadFile(res: Response, location: string): Promise<void>;
     batteryStatus(batLvl: BatteryStatusDto, user: User): Promise<import("./interface/visit-track.interface").VisitTrack>;
-    getVisitTrack(userLocationDto: GetUsersLocationsDto, user: User): Promise<import("./interface/visit-track.interface").VisitTrack[]>;
+    getVisitTrack(userLocationDto: GetUsersLocationsDto, user: User): Promise<Pick<import("./interface/visit-track.interface").VisitTrack, "_id" | "userId" | "batLvl" | "isGpsEnabled" | "locations">[]>;
     addVisitTrack(user: User, payload: AddLocationDto): Promise<import("./interface/visit-track.interface").VisitTrack>;
 }
