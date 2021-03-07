@@ -22,7 +22,7 @@ export class LeadAnalyticService {
   attachCommonGraphFilters(pipeline: Aggregate<any[]>, organization: string, filter: GetGraphDataDto) {
     pipeline.match({
       organization,
-      createdAt: {$gte: filter.startDate || this.startDate, $lt: filter.endDate|| this.endDate}
+      updatedAt: {$gte: filter.startDate || this.startDate, $lt: filter.endDate|| this.endDate}
     });
 
     if(filter.handler?.length > 0) {
@@ -38,7 +38,12 @@ export class LeadAnalyticService {
 
   async getGraphData(organization: string, userList: string[]) {
     const barAgg = this.leadModel.aggregate();
-    barAgg.match({ organization, email: { $in: userList } });
+    let fltrs = { organization };
+    
+    if(userList?.length > 0) {
+      fltrs["email"] = { $in: userList }
+    }
+    barAgg.match(fltrs);
     barAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
     barAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
 
