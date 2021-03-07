@@ -33,7 +33,7 @@ let LeadAnalyticService = class LeadAnalyticService {
         var _a;
         pipeline.match({
             organization,
-            createdAt: { $gte: filter.startDate || this.startDate, $lt: filter.endDate || this.endDate }
+            updatedAt: { $gte: filter.startDate || this.startDate, $lt: filter.endDate || this.endDate }
         });
         if (((_a = filter.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
             pipeline.match({ email: { $in: filter.handler } });
@@ -45,7 +45,11 @@ let LeadAnalyticService = class LeadAnalyticService {
     getGraphData(organization, userList) {
         return __awaiter(this, void 0, void 0, function* () {
             const barAgg = this.leadModel.aggregate();
-            barAgg.match({ organization, email: { $in: userList } });
+            let fltrs = { organization };
+            if ((userList === null || userList === void 0 ? void 0 : userList.length) > 0) {
+                fltrs["email"] = { $in: userList };
+            }
+            barAgg.match(fltrs);
             barAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
             barAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
             const pieAgg = this.leadHistoryModel.aggregate();
