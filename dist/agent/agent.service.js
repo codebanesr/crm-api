@@ -106,7 +106,7 @@ let AgentService = class AgentService {
             return this.visitTrackModel.find({
                 userId: { $in: validUserIds },
                 createdAt: { $gte: startDate, $lte: endDate }
-            });
+            }).lean().populate('userId', 'fullName roles roleType').exec();
         });
     }
     getSubordinates(id, roleType) {

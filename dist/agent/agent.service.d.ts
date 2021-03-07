@@ -15,6 +15,6 @@ export declare class AgentService {
     downloadFile(location: string, res: Response): Promise<void>;
     updateBatteryStatus(userId: string, batLvlDto: BatteryStatusDto): Promise<VisitTrack>;
     addVisitTrack(userId: string, payload: AddLocationDto): Promise<VisitTrack>;
-    getVisitTrack(id: string, roleType: string, organization: string, userLocationDto: GetUsersLocationsDto): Promise<VisitTrack[]>;
+    getVisitTrack(id: string, roleType: string, organization: string, userLocationDto: GetUsersLocationsDto): Promise<Pick<VisitTrack, "_id" | "userId" | "batLvl" | "isGpsEnabled" | "locations">[]>;
     getSubordinates(id: string, roleType: string): Promise<any[]>;
 }
