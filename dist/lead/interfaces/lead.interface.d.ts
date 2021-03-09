@@ -27,4 +27,5 @@ export interface Lead extends Document {
     }[];
     documentLinks?: string[];
     isPristine?: boolean;
+    archived?: boolean;
 }

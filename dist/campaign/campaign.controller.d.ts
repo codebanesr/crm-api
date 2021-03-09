@@ -24,7 +24,7 @@ export declare class CampaignController {
     getCampaignTypes(hint: string, user: User): Promise<import("./interfaces/campaign.interface").Campaign[]>;
     uploadConfig(file: any): Promise<void>;
     createCampaignForm(user: User, body: any): Promise<any>;
-    findOneByIdOrName(campaignId: string): Promise<Pick<import("./interfaces/campaign.interface").Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "archived" | "campaignName" | "startDate" | "endDate" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo" | "autodialSettings">>;
+    findOneByIdOrName(campaignId: string): Promise<Pick<import("./interfaces/campaign.interface").Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "campaignName" | "startDate" | "endDate" | "archived" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo" | "autodialSettings">>;
     createCampaignAndDisposition(currrentUser: User, body: CreateCampaignAndDispositionDto): Promise<{
         campaign: import("./interfaces/campaign.interface").Campaign;
         disposition: import("mongodb").FindAndModifyWriteOpResultObject<import("./interfaces/disposition.interface").Disposition>;

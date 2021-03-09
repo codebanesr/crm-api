@@ -44,6 +44,10 @@ export const LeadSchema = new Schema(
     isPristine: {
       type: Boolean,
       default: true
+    },
+    arhived: {
+      type: Boolean,
+      default: false
     }
   },
   {

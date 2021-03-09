@@ -41,6 +41,10 @@ exports.LeadSchema = new mongoose_1.Schema({
     isPristine: {
         type: Boolean,
         default: true
+    },
+    arhived: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true,

@@ -21,7 +21,7 @@ class FiltersDto {
 __decorate([
     class_validator_1.IsBoolean(),
     __metadata("design:type", Boolean)
-], FiltersDto.prototype, "archived", void 0);
+], FiltersDto.prototype, "showArchived", void 0);
 __decorate([
     class_validator_1.IsBoolean(),
     __metadata("design:type", Boolean)

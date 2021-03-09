@@ -190,6 +190,13 @@ let LeadController = class LeadController {
             });
         });
     }
+    archiveLead(leadId) {
+        return this.leadService.archiveLead(leadId);
+    }
+    bulkArchiveLeads(leadIds) {
+        common_1.Logger.debug(leadIds);
+        return this.leadService.archiveLeads(leadIds);
+    }
 };
 __decorate([
     common_1.Get("getAllLeadColumns/:campaignId"),
@@ -484,6 +491,28 @@ __decorate([
     __metadata("design:paramtypes", [follow_up_dto_1.FollowUpDto, Object]),
     __metadata("design:returntype", Promise)
 ], LeadController.prototype, "fetchFollowUps", null);
+__decorate([
+    common_1.Delete("archive/:leadId"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("admin"),
+    common_1.HttpCode(common_1.HttpStatus.CREATED),
+    swagger_1.ApiOperation({ summary: "Register user" }),
+    __param(0, common_1.Param('leadId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "archiveLead", null);
+__decorate([
+    common_1.Delete("bulkArchive"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("admin"),
+    common_1.HttpCode(common_1.HttpStatus.CREATED),
+    swagger_1.ApiOperation({ summary: "Register user" }),
+    __param(0, common_1.Query('leadIds')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Array]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "bulkArchiveLeads", null);
 LeadController = __decorate([
     swagger_1.ApiTags("Lead"),
     common_1.Controller("lead"),

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsOptional, IsEmail, IsNumber, Min, IsDateString, ValidateNested } from "class-validator";
+import { IsString, IsOptional, IsEmail, IsNumber, Min, IsDateString, ValidateNested, IsPhoneNumber, IsMobilePhone } from "class-validator";
 import { GeoLocation } from "../interfaces/geo-location.interface";
 
 export class Lead {
@@ -113,6 +113,7 @@ export class Lead {
     })
     @IsOptional()
     @IsString()
+    @IsMobilePhone('en-IN', { strictMode: true }, { message: 'Mobile number must be prefixed with +91 and should be valid' })
     phoneNumber: string;
   
     @ApiProperty({

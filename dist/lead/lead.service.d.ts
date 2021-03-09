@@ -57,7 +57,7 @@ export declare class LeadService {
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
     findOneById(leadId: string, email: string, roleType: string): Promise<{
-        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine">;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived">;
         leadHistory: any[];
     }>;
     patch(productId: string, body: any[]): Promise<any>;
@@ -120,4 +120,6 @@ export declare class LeadService {
     getAllAlarms(body: any, organization: any): Promise<any>;
     getUsersActivity(dateRange: Date[], userEmail: string, organization: string): Promise<any>;
     addContact(contact: UpdateContactDto, leadId: string): Promise<Lead>;
+    archiveLead(leadId: string): Promise<Lead>;
+    archiveLeads(leadIds: string[]): Promise<any>;
 }

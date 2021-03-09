@@ -1,5 +1,5 @@
 export declare class FiltersDto {
-    archived: false;
+    showArchived?: false;
     assigned: true;
     dateRange: string[];
     selectedCampaign: string;

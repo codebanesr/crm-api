@@ -24,7 +24,7 @@ import {
 
 export class FiltersDto {
   @IsBoolean()
-  archived: false;
+  showArchived?: false;
 
   @IsBoolean()
   assigned: true;

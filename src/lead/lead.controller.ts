@@ -15,6 +15,7 @@ import {
   PreconditionFailedException,
   Res,
   Logger,
+  Delete,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
@@ -496,5 +497,26 @@ export class LeadController {
       page,
       skip,
     });
+  }
+
+
+  @Delete("archive/:leadId")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Register user" })
+  archiveLead(@Param('leadId') leadId: string) {
+    return this.leadService.archiveLead(leadId);
+  }
+
+
+  @Delete("bulkArchive")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Register user" })
+  bulkArchiveLeads(@Query('leadIds') leadIds: string[]) {
+    Logger.debug(leadIds);
+    return this.leadService.archiveLeads(leadIds);
   }
 }

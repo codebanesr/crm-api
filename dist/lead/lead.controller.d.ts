@@ -52,7 +52,7 @@ export declare class LeadController {
     uploadMultipleLeadFiles(user: User, body: UploadMultipleFilesDto): Promise<import("bull").Job<any>>;
     saveEmailAttachments(files: any): any;
     findOneById(leadId: string, user: User): Promise<{
-        lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine">;
+        lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived">;
         leadHistory: any[];
     }>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;
@@ -63,4 +63,6 @@ export declare class LeadController {
     getAllAlarms(user: User, body: any): Promise<any>;
     usersActivityLog(userActivityDto: UserActivityDto, user: User): Promise<any>;
     fetchFollowUps(followUpDto: FollowUpDto, user: User): Promise<any>;
+    archiveLead(leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
+    bulkArchiveLeads(leadIds: string[]): Promise<any>;
 }
