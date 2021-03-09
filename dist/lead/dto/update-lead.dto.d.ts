@@ -13,6 +13,7 @@ declare class CallRecord {
 }
 export declare class UpdateLead extends Lead {
     mobilePhone: string;
+    notes?: string;
 }
 export declare class UpdateLeadDto {
     lead: UpdateLead;

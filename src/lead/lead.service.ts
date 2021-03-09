@@ -213,7 +213,7 @@ export class LeadService {
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
-    const { assigned, selectedCampaign, dateRange, leadStatusKeys, ...otherFilters } = filters;
+    const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, ...otherFilters } = filters;
     const [startDate, endDate] = dateRange || [];
 
     const leadAgg = this.leadModel.aggregate();
@@ -222,7 +222,11 @@ export class LeadService {
       leadAgg.match({ $text: { $search: searchTerm } });
     }
 
-    const matchQuery = { organization };
+    const matchQuery = { organization, archived: {$eq: null} };
+
+    if(showArchived) {
+      matchQuery.archived.$eq = true;
+    }
 
     if(campaignId!=='all') {
       matchQuery['campaignId'] = Types.ObjectId(campaignId);
@@ -642,6 +646,10 @@ export class LeadService {
       nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${handlerName}`;
     }
 
+    if(lead.notes) {
+      nextEntryInHistory.notes += `\n User Note: ${lead.notes}`;
+    }
+
     nextEntryInHistory.geoLocation = geoLocation;
     if (requestedInformation && Object.keys(requestedInformation).length > 0) {
       /** @Todo this filter should be removed, checkbox is currently returning empty object, please remove that */
@@ -801,6 +809,7 @@ export class LeadService {
       $or: [
         { email: { $in: [...subordinateEmails, email] } },
         { email: { $exists: false } },
+        { archived: false }
       ],
     })
 
@@ -1098,5 +1107,13 @@ export class LeadService {
     return this.leadModel.findByIdAndUpdate(leadId, {
       $push: { contact },
     });
+  }
+
+  async archiveLead(leadId: string) {
+    return this.leadModel.findOneAndUpdate({_id: leadId}, {$set: {archived: true}});
+  }
+
+  async archiveLeads(leadIds: string[]) {
+    return this.leadModel.updateMany({_id: {$in: leadIds}}, {archived: true})
   }
 }

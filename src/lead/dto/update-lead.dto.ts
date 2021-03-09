@@ -34,8 +34,11 @@ class CallRecord {
 }
 
 export class UpdateLead extends Lead {
-  @IsMobilePhone('en-IN', {})
+  @IsMobilePhone('en-IN', {strictMode: true}, { message: 'Mobile number must be prefixed with +91 and should be valid' })
   mobilePhone: string;
+
+  @IsOptional()
+  notes?: string;
 }
 
 export class UpdateLeadDto {

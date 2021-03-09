@@ -134,6 +134,7 @@ __decorate([
     }),
     class_validator_1.IsOptional(),
     class_validator_1.IsString(),
+    class_validator_1.IsMobilePhone('en-IN', { strictMode: true }, { message: 'Mobile number must be prefixed with +91 and should be valid' }),
     __metadata("design:type", String)
 ], Lead.prototype, "phoneNumber", void 0);
 __decorate([

@@ -160,13 +160,16 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
-            const { assigned, selectedCampaign, dateRange, leadStatusKeys } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange", "leadStatusKeys"]);
+            const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange", "leadStatusKeys", "showArchived"]);
             const [startDate, endDate] = dateRange || [];
             const leadAgg = this.leadModel.aggregate();
             if (searchTerm) {
                 leadAgg.match({ $text: { $search: searchTerm } });
             }
-            const matchQuery = { organization };
+            const matchQuery = { organization, archived: { $eq: null } };
+            if (showArchived) {
+                matchQuery.archived.$eq = true;
+            }
             if (campaignId !== 'all') {
                 matchQuery['campaignId'] = mongoose_3.Types.ObjectId(campaignId);
             }
@@ -444,6 +447,9 @@ let LeadService = class LeadService {
             if (lead.leadStatus !== oldLead.leadStatus) {
                 nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${handlerName}`;
             }
+            if (lead.notes) {
+                nextEntryInHistory.notes += `\n User Note: ${lead.notes}`;
+            }
             nextEntryInHistory.geoLocation = geoLocation;
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
                 nextEntryInHistory["requestedInformation"] = requestedInformation.filter((ri) => Object.keys(ri).length > 0);
@@ -550,6 +556,7 @@ let LeadService = class LeadService {
                 $or: [
                     { email: { $in: [...subordinateEmails, email] } },
                     { email: { $exists: false } },
+                    { archived: false }
                 ],
             });
             if (nonKeyFilters) {
@@ -769,6 +776,16 @@ let LeadService = class LeadService {
             return this.leadModel.findByIdAndUpdate(leadId, {
                 $push: { contact },
             });
+        });
+    }
+    archiveLead(leadId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.leadModel.findOneAndUpdate({ _id: leadId }, { $set: { archived: true } });
+        });
+    }
+    archiveLeads(leadIds) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.leadModel.updateMany({ _id: { $in: leadIds } }, { archived: true });
         });
     }
 };
