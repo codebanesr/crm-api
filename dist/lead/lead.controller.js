@@ -45,6 +45,7 @@ const xlsx_1 = require("xlsx");
 const fs_1 = require("fs");
 const bulk_reassign_dto_1 = require("./dto/bulk-reassign.dto");
 const role_type_enum_1 = require("../shared/role-type.enum");
+const transfer_leads_dto_1 = require("./dto/transfer-leads.dto");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
@@ -196,6 +197,12 @@ let LeadController = class LeadController {
     bulkArchiveLeads(leadIds) {
         common_1.Logger.debug(leadIds);
         return this.leadService.archiveLeads(leadIds);
+    }
+    transferLeads(tranferLeadsDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { leadIds, toCampaignId } = tranferLeadsDto;
+            return this.leadService.transferLeads(leadIds, toCampaignId);
+        });
     }
 };
 __decorate([
@@ -513,6 +520,17 @@ __decorate([
     __metadata("design:paramtypes", [Array]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "bulkArchiveLeads", null);
+__decorate([
+    common_1.Post("transferLeads"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("admin"),
+    common_1.HttpCode(common_1.HttpStatus.CREATED),
+    swagger_1.ApiOperation({ summary: "Register user" }),
+    __param(0, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [transfer_leads_dto_1.TransferLeadsDto]),
+    __metadata("design:returntype", Promise)
+], LeadController.prototype, "transferLeads", null);
 LeadController = __decorate([
     swagger_1.ApiTags("Lead"),
     common_1.Controller("lead"),

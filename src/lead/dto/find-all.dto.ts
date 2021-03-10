@@ -36,7 +36,11 @@ export class FiltersDto {
   selectedCampaign: string = undefined;
 
   @IsString({each: true})
-  leadStatusKeys: string[]
+  leadStatusKeys: string[];
+
+
+  @IsEmail({}, {each: true})
+  handlers: string[];
 }
 
 export class FindAllDto {

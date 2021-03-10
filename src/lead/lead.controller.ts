@@ -45,6 +45,7 @@ import { createReadStream } from "fs";
 import { Response } from "express";
 import { BulkReassignDto } from "./dto/bulk-reassign.dto";
 import { RoleType } from "../shared/role-type.enum";
+import { TransferLeadsDto } from "./dto/transfer-leads.dto";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -518,5 +519,18 @@ export class LeadController {
   bulkArchiveLeads(@Query('leadIds') leadIds: string[]) {
     Logger.debug(leadIds);
     return this.leadService.archiveLeads(leadIds);
+  }
+
+
+  @Post("transferLeads")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Register user" })
+  async transferLeads(
+    @Body() tranferLeadsDto: TransferLeadsDto
+  ) {
+    const { leadIds, toCampaignId } = tranferLeadsDto;
+    return this.leadService.transferLeads(leadIds, toCampaignId);
   }
 }

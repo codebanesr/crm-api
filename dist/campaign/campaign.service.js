@@ -327,6 +327,29 @@ let CampaignService = class CampaignService {
     deleteConfig(_id) {
         return this.campaignConfigModel.deleteOne({ _id });
     }
+    cloneCampaign(campaignId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let campaignConfig = yield this.campaignConfigModel.find({ campaignId }, { _id: 0, __v: 0, campaignId: 0 }).lean().exec();
+            const campaign = yield this.campaignModel.findOne({ _id: campaignId }, { _id: 0, __v: 0 }).lean().exec();
+            const session = yield this.campaignConfigModel.db.startSession();
+            session.startTransaction();
+            try {
+                const time = new Date().getTime() / 1000;
+                const newCampaign = yield this.campaignModel.create(Object.assign(Object.assign({}, campaign), { campaignName: `${time}-${campaign.campaignName}` }));
+                campaignConfig = campaignConfig.map(c => {
+                    return Object.assign(Object.assign({}, c), { campaignId: newCampaign._id });
+                });
+                yield this.campaignConfigModel.insertMany(campaignConfig);
+                session.commitTransaction();
+            }
+            catch (e) {
+                session.abortTransaction();
+            }
+            finally {
+                session.endSession();
+            }
+        });
+    }
 };
 CampaignService = __decorate([
     common_1.Injectable(),

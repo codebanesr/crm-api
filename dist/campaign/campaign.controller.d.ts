@@ -38,4 +38,7 @@ export declare class CampaignController {
     } & {
         deletedCount?: number;
     }>;
+    cloneCampaign(user: any, body: {
+        campaignId: string;
+    }): Promise<void>;
 }

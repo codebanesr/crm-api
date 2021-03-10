@@ -23,6 +23,7 @@ const current_user_decorator_1 = require("../auth/decorators/current-user.decora
 const update_configs_dto_1 = require("./dto/update-configs.dto");
 const create_campaign_disposition_dto_1 = require("./dto/create-campaign-disposition.dto");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const role_type_enum_1 = require("../shared/role-type.enum");
 let CampaignController = class CampaignController {
     constructor(campaignService) {
         this.campaignService = campaignService;
@@ -83,6 +84,10 @@ let CampaignController = class CampaignController {
     }
     deleteConfig(configId) {
         return this.campaignService.deleteConfig(configId);
+    }
+    cloneCampaign(user, body) {
+        const { campaignId } = body;
+        return this.campaignService.cloneCampaign(campaignId);
     }
 };
 __decorate([
@@ -215,6 +220,17 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "deleteConfig", null);
+__decorate([
+    common_1.Post("clone"),
+    swagger_1.ApiOperation({ summary: "Creates a clone of the campaign whose id has been provided" }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    roles_decorator_1.Roles(role_type_enum_1.RoleType.admin),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], CampaignController.prototype, "cloneCampaign", null);
 CampaignController = __decorate([
     swagger_1.ApiTags("Campaign"),
     common_1.Controller("campaign"),

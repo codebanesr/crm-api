@@ -4,6 +4,7 @@ export declare class FiltersDto {
     dateRange: string[];
     selectedCampaign: string;
     leadStatusKeys: string[];
+    handlers: string[];
 }
 export declare class FindAllDto {
     readonly page: number;

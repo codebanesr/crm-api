@@ -213,7 +213,7 @@ export class LeadService {
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
-    const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, ...otherFilters } = filters;
+    const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, handlers,...otherFilters } = filters;
     const [startDate, endDate] = dateRange || [];
 
     const leadAgg = this.leadModel.aggregate();
@@ -226,6 +226,10 @@ export class LeadService {
 
     if(showArchived) {
       matchQuery.archived.$eq = true;
+    }
+
+    if(handlers) {
+      matchQuery["email"] = {$in: handlers};
     }
 
     if(campaignId!=='all') {
@@ -1115,5 +1119,13 @@ export class LeadService {
 
   async archiveLeads(leadIds: string[]) {
     return this.leadModel.updateMany({_id: {$in: leadIds}}, {archived: true})
+  }
+
+
+  async transferLeads(leadIds: string[], toCampaignId: string) {
+    const {campaignName, _id} = await this.campaignModel.findOne({_id: toCampaignId}, {campaignName: 1}).lean().exec();
+
+
+    return this.leadModel.updateMany({_id: {$in: leadIds}}, {$set: {campaignId: _id, campaign: campaignName}}).lean().exec();
   }
 }

@@ -16,6 +16,7 @@ import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-dispositi
 import { coreConfig } from "./core-config";
 import * as moment from "moment";
 import { RoleType } from "../shared/role-type.enum";
+import {v4 as uuidV4} from "uuid";
 
 @Injectable()
 export class CampaignService {
@@ -407,5 +408,31 @@ export class CampaignService {
 
   deleteConfig(_id: string) {
     return this.campaignConfigModel.deleteOne({_id});
+  }
+
+
+  async cloneCampaign(campaignId: string) {
+    let campaignConfig = await this.campaignConfigModel.find({campaignId}, {_id: 0, __v: 0, campaignId: 0}).lean().exec();
+    const campaign = await this.campaignModel.findOne({_id: campaignId}, {_id: 0, __v: 0}).lean().exec();
+    
+    const session = await this.campaignConfigModel.db.startSession();
+
+    session.startTransaction();
+
+    try {
+      const time = new Date().getTime()/1000;
+      // adding the time infront of the campaign name to identify the newly created campaign
+      const newCampaign = await this.campaignModel.create({...campaign, campaignName: `${time}-${campaign.campaignName}`});
+      // old campaignId wasnot retrieved and here we will add the copy campaign id
+      campaignConfig = campaignConfig.map(c => {
+        return {...c, campaignId: newCampaign._id }
+      });
+      await this.campaignConfigModel.insertMany(campaignConfig);
+      session.commitTransaction();
+    }catch(e) {
+      session.abortTransaction();
+    } finally {
+      session.endSession();
+    }
   }
 }

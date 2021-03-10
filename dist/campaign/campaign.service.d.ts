@@ -80,4 +80,5 @@ export declare class CampaignService {
     } & {
         deletedCount?: number;
     }>;
+    cloneCampaign(campaignId: string): Promise<void>;
 }
