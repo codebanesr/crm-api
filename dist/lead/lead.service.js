@@ -160,7 +160,7 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
-            const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange", "leadStatusKeys", "showArchived"]);
+            const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, handlers } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange", "leadStatusKeys", "showArchived", "handlers"]);
             const [startDate, endDate] = dateRange || [];
             const leadAgg = this.leadModel.aggregate();
             if (searchTerm) {
@@ -169,6 +169,9 @@ let LeadService = class LeadService {
             const matchQuery = { organization, archived: { $eq: null } };
             if (showArchived) {
                 matchQuery.archived.$eq = true;
+            }
+            if (handlers) {
+                matchQuery["email"] = { $in: handlers };
             }
             if (campaignId !== 'all') {
                 matchQuery['campaignId'] = mongoose_3.Types.ObjectId(campaignId);
@@ -786,6 +789,12 @@ let LeadService = class LeadService {
     archiveLeads(leadIds) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.leadModel.updateMany({ _id: { $in: leadIds } }, { archived: true });
+        });
+    }
+    transferLeads(leadIds, toCampaignId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { campaignName, _id } = yield this.campaignModel.findOne({ _id: toCampaignId }, { campaignName: 1 }).lean().exec();
+            return this.leadModel.updateMany({ _id: { $in: leadIds } }, { $set: { campaignId: _id, campaign: campaignName } }).lean().exec();
         });
     }
 };

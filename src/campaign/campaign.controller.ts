@@ -24,6 +24,7 @@ import { User } from "../user/interfaces/user.interface";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
 import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
 import { Roles } from "../auth/decorators/roles.decorator";
+import { RoleType } from "../shared/role-type.enum";
 
 @ApiTags("Campaign")
 @Controller("campaign")
@@ -171,5 +172,14 @@ export class CampaignController {
     return this.campaignService.deleteConfig(configId);
   }
 
+  @Post("clone")
+  @ApiOperation({ summary: "Creates a clone of the campaign whose id has been provided" })
+  @UseGuards(AuthGuard("jwt"))
+  @HttpCode(HttpStatus.OK)
+  @Roles(RoleType.admin)
+  cloneCampaign(@CurrentUser() user, @Body() body: {campaignId: string}) {
+    const { campaignId } = body;
+    return this.campaignService.cloneCampaign(campaignId);
+  }
 }
 // PATCH /campaign/addConfigs/5f49637c37c8e231c6711b36/spec-v4
