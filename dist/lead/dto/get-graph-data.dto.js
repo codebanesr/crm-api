@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetGraphDataDto = void 0;
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 class GetGraphDataDto {
 }
@@ -20,9 +21,16 @@ __decorate([
 ], GetGraphDataDto.prototype, "campaign", void 0);
 __decorate([
     class_validator_1.IsOptional(),
-    class_validator_1.IsDateString(),
-    __metadata("design:type", String)
+    class_transformer_1.Transform(v => new Date(v)),
+    class_validator_1.IsDate(),
+    __metadata("design:type", Date)
 ], GetGraphDataDto.prototype, "endDate", void 0);
+__decorate([
+    class_validator_1.IsOptional(),
+    class_transformer_1.Transform(v => new Date(v)),
+    class_validator_1.IsDate(),
+    __metadata("design:type", Date)
+], GetGraphDataDto.prototype, "startDate", void 0);
 __decorate([
     class_validator_1.IsOptional(),
     class_validator_1.IsEmail({}, { each: true }),
@@ -33,11 +41,5 @@ __decorate([
     class_validator_1.IsString(),
     __metadata("design:type", void 0)
 ], GetGraphDataDto.prototype, "prospectName", void 0);
-__decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.IsDateString(),
-    class_validator_1.IsDate(),
-    __metadata("design:type", String)
-], GetGraphDataDto.prototype, "startDate", void 0);
 exports.GetGraphDataDto = GetGraphDataDto;
 //# sourceMappingURL=get-graph-data.dto.js.map

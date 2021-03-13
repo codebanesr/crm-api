@@ -34,7 +34,10 @@ export declare class LeadController {
     addGeoLocation(body: GeoLocationDto, user: any): Promise<import("./interfaces/geo-location.interface").GeoLocation>;
     updateLead(user: User, updateLeadObj: UpdateLeadDto, leadId: string): Promise<{}>;
     addContact(body: UpdateContactDto, leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
-    reassignLead(body: ReassignLeadDto, user: User): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
+    reassignLead(body: ReassignLeadDto, user: User): Promise<{
+        result: Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[];
+        leadHistory: import("./interfaces/lead-history.interface").LeadHistory;
+    }>;
     reassignBulkLead(user: User, bulkReassignDto: BulkReassignDto): Promise<any>;
     getLeadHistoryById(user: User, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
     getUsersPerformance(req: any): Promise<void>;

@@ -7,6 +7,7 @@ import {
   IsEnum,
   IsString,
   IsMobilePhone,
+  IsEmail,
 } from "class-validator";
 import { Transform, Type } from "class-transformer";
 import { ECallStatus } from "../enum/call-status.enum";
@@ -15,10 +16,6 @@ import { Lead } from "./lead-model.dto";
 class GeoLocation {
   @IsNumber({}, { each: true })
   coordinates: number[];
-}
-
-export class ReassignmentInfo {
-  newUser: string;
 }
 
 class CallRecord {
@@ -58,7 +55,8 @@ export class UpdateLeadDto {
   geoLocation: GeoLocation;
 
   @IsOptional()
-  reassignmentInfo?: ReassignmentInfo;
+  @IsEmail()
+  reassignToUser?: string;
 
   @IsOptional()
   emailForm: {

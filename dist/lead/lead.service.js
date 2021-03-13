@@ -83,12 +83,20 @@ let LeadService = class LeadService {
                 oldUser: oldUserEmail,
                 newUser: newUserEmail,
                 notes,
+                lead: lead._id,
+                campaign: lead.campaignId,
+                campaignName: lead.campaign,
+                organization: lead.organization,
+                geoLocation: {
+                    coordinates: null
+                }
             };
             const result = yield this.leadModel
-                .updateOne({ _id: lead._id }, { email: newUserEmail, $push: { history: history } })
+                .updateOne({ _id: lead._id }, { email: newUserEmail })
                 .lean()
                 .exec();
-            return result;
+            const leadHistory = yield this.leadHistoryModel.create(history);
+            return { result, leadHistory };
         });
     }
     createEmailTemplate(userEmail, content, subject, campaign, attachments, organization, templateName) {
@@ -412,11 +420,10 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }) {
+    updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, emailForm, requestedInformation, campaignId, callRecord, reassignToUser }) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
-            common_1.Logger.debug({ geoLocation, reassignmentInfo });
             const keysToUpdate = Object.keys(lead);
             if (keysToUpdate.length > 40) {
                 throw new common_1.PreconditionFailedException(null, "Cannot have more than 40 fields in the lead schema");
@@ -438,23 +445,23 @@ let LeadService = class LeadService {
                 .find({})
                 .sort({ $natural: -1 })
                 .limit(1);
-            if (!reassignmentInfo) {
+            if (!reassignToUser) {
                 nextEntryInHistory.oldUser = handlerEmail;
                 nextEntryInHistory.newUser = handlerEmail;
             }
             if (((_a = lead.documentLinks) === null || _a === void 0 ? void 0 : _a.length) > 0) {
                 nextEntryInHistory.documentLinks = lead.documentLinks;
             }
-            if (reassignmentInfo && (prevHistory === null || prevHistory === void 0 ? void 0 : prevHistory.newUser) !== reassignmentInfo.newUser) {
-                nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${handlerName}`;
+            if (reassignToUser && (prevHistory === null || prevHistory === void 0 ? void 0 : prevHistory.newUser) !== reassignToUser) {
+                nextEntryInHistory.notes = `Lead has been assigned to ${reassignToUser} by ${handlerName}`;
                 nextEntryInHistory.oldUser = prevHistory.newUser;
-                nextEntryInHistory.newUser = reassignmentInfo.newUser;
+                nextEntryInHistory.newUser = reassignToUser;
             }
             if (lead.leadStatus !== oldLead.leadStatus) {
                 nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${handlerName}`;
             }
             if (lead.notes) {
-                nextEntryInHistory.notes += `\n User Note: ${lead.notes}`;
+                nextEntryInHistory.notes = (nextEntryInHistory.notes || '') + `\n User Note: ${lead.notes}`;
             }
             nextEntryInHistory.geoLocation = geoLocation;
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
@@ -467,8 +474,8 @@ let LeadService = class LeadService {
             nextEntryInHistory.campaign = campaignId;
             nextEntryInHistory.nextAction = lead.nextAction;
             let { contact } = obj, filteredObj = __rest(obj, ["contact"]);
-            if (lodash_1.get(reassignmentInfo, "newUser")) {
-                obj.email = reassignmentInfo.newUser;
+            if (reassignToUser) {
+                obj.email = reassignToUser;
             }
             yield this.ruleService.applyRules(campaignId, oldLead, lead, nextEntryInHistory);
             filteredObj.isPristine = false;

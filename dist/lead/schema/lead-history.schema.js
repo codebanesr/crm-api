@@ -24,8 +24,8 @@ exports.LeadHistory = new mongoose_1.Schema({
     nextAction: String,
     organization: { type: mongoose_1.Schema.Types.ObjectId, ref: "Organization" },
     documentLinks: [String],
-    number: String,
-    duration: Number,
+    number: { type: String, default: '' },
+    duration: { type: Number, default: 0 },
     type: Number,
     callStatus: String
 });

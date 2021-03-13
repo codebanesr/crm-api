@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateLeadDto = exports.UpdateLead = exports.ReassignmentInfo = void 0;
+exports.UpdateLeadDto = exports.UpdateLead = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const call_status_enum_1 = require("../enum/call-status.enum");
@@ -20,9 +20,6 @@ __decorate([
     class_validator_1.IsNumber({}, { each: true }),
     __metadata("design:type", Array)
 ], GeoLocation.prototype, "coordinates", void 0);
-class ReassignmentInfo {
-}
-exports.ReassignmentInfo = ReassignmentInfo;
 class CallRecord {
 }
 __decorate([
@@ -66,8 +63,9 @@ __decorate([
 ], UpdateLeadDto.prototype, "geoLocation", void 0);
 __decorate([
     class_validator_1.IsOptional(),
-    __metadata("design:type", ReassignmentInfo)
-], UpdateLeadDto.prototype, "reassignmentInfo", void 0);
+    class_validator_1.IsEmail(),
+    __metadata("design:type", String)
+], UpdateLeadDto.prototype, "reassignToUser", void 0);
 __decorate([
     class_validator_1.IsOptional(),
     __metadata("design:type", Object)

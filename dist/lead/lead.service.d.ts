@@ -14,13 +14,13 @@ import { AttachmentDto } from "./dto/create-email-template.dto";
 import { S3UploadedFiles } from "./dto/generic.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
-import { LeadHistory } from "./interfaces/lead-history.interface";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
 import { RulesService } from "../rules/rules.service";
 import { UserService } from "../user/user.service";
 import { Queue } from "bull";
 import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
+import { LeadHistory } from "./interfaces/lead-history.interface";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -38,7 +38,10 @@ export declare class LeadService {
     logger: Logger;
     saveEmailAttachments(files: any): any;
     reassignBulkLead(user: User, newUserEmail: string, leadIds: string[]): Promise<any>;
-    reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
+    reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<{
+        result: Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[];
+        leadHistory: LeadHistory;
+    }>;
     createEmailTemplate(userEmail: string, content: any, subject: string, campaign: string, attachments: AttachmentDto[], organization: string, templateName: string): Promise<EmailTemplate>;
     getAllEmailTemplates(limit: any, skip: any, campaign: string, organization: string): Promise<Pick<EmailTemplate, "_id" | "content" | "email" | "organization" | "campaign" | "subject" | "attachments">[]>;
     getLeadHistoryById(externalId: string, organization: any): Promise<Lead>;
@@ -75,7 +78,7 @@ export declare class LeadService {
     uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string, pushtoken: any, campaignId: string): Promise<import("bull").Job<any>>;
     addGeolocation(activeUserId: string, lat: number, lng: number, organization: string): Promise<GeoLocation>;
     getPerformance(): Promise<void>;
-    updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, reassignmentInfo, emailForm, requestedInformation, campaignId, callRecord }: UpdateLeadDto & {
+    updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, emailForm, requestedInformation, campaignId, callRecord, reassignToUser }: UpdateLeadDto & {
         leadId: string;
         organization: string;
         handlerEmail: string;

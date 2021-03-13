@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { maxBy } from "lodash";
-import { Aggregate, Model } from "mongoose";
+import { Aggregate, Model, Types, Schema } from "mongoose";
 import { GetGraphDataDto } from "./dto/get-graph-data.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { Lead } from "./interfaces/lead.interface";
@@ -15,14 +15,11 @@ export class LeadAnalyticService {
   @InjectModel("LeadHistory")
   private readonly leadHistoryModel: Model<LeadHistory>;
 
-  private startDate = moment().startOf('month').subtract(2,'month').toDate();
-  private endDate = moment().endOf('month').toDate();
-
 
   attachCommonGraphFilters(pipeline: Aggregate<any[]>, organization: string, filter: GetGraphDataDto) {
     pipeline.match({
       organization,
-      updatedAt: {$gte: filter.startDate || this.startDate, $lt: filter.endDate|| this.endDate}
+      updatedAt: {$gte: filter.startDate, $lt: filter.endDate}
     });
 
     if(filter.handler?.length > 0) {
@@ -30,7 +27,7 @@ export class LeadAnalyticService {
     }
 
     if(filter.campaign) {
-      pipeline.match({campaign: filter.campaign})
+      pipeline.match({campaignId: Types.ObjectId(filter.campaign)})
     }
   }
   
@@ -240,7 +237,15 @@ export class LeadAnalyticService {
   async getUserTalktime(email: string, organization: string, filter: GetGraphDataDto) {
     const pipeline = this.leadHistoryModel.aggregate();
     
-    this.attachCommonGraphFilters(pipeline, organization, filter);
+    pipeline.match({
+      organization,
+      updatedAt: {$gte: filter.startDate, $lt: filter.endDate}
+    });
+
+    if(filter.handler?.length > 0) {
+      pipeline.match({email: {$in: filter.handler}});
+    }
+
 
     // this is wrong and was done willfully so, change this to old user, because if reassignment was done, talktime should go to the 
     // previous user
