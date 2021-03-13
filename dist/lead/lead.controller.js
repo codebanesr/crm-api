@@ -46,6 +46,8 @@ const fs_1 = require("fs");
 const bulk_reassign_dto_1 = require("./dto/bulk-reassign.dto");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const transfer_leads_dto_1 = require("./dto/transfer-leads.dto");
+const bulk_unarchive_dto_1 = require("./dto/bulk-unarchive.dto");
+const open_closed_lead_dto_1 = require("./dto/open-closed-lead.dto");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
@@ -195,13 +197,22 @@ let LeadController = class LeadController {
         return this.leadService.archiveLead(leadId);
     }
     bulkArchiveLeads(leadIds) {
-        common_1.Logger.debug(leadIds);
         return this.leadService.archiveLeads(leadIds);
+    }
+    unarchiveLeads(buLeadsDto) {
+        const { leadIds } = buLeadsDto;
+        return this.leadService.unarchiveLeads(leadIds);
     }
     transferLeads(tranferLeadsDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const { leadIds, toCampaignId } = tranferLeadsDto;
             return this.leadService.transferLeads(leadIds, toCampaignId);
+        });
+    }
+    openClosedLeads(openClosedLead) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { leadIds } = openClosedLead;
+            return this.leadService.openClosedLeads(leadIds);
         });
     }
 };
@@ -510,7 +521,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "archiveLead", null);
 __decorate([
-    common_1.Delete("bulkArchive"),
+    common_1.Delete("archiveLeads"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     roles_decorator_1.Roles("admin"),
     common_1.HttpCode(common_1.HttpStatus.CREATED),
@@ -520,6 +531,17 @@ __decorate([
     __metadata("design:paramtypes", [Array]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "bulkArchiveLeads", null);
+__decorate([
+    common_1.Post("unarchiveLeads"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("admin"),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    swagger_1.ApiOperation({ summary: "Bulk Unarchive" }),
+    __param(0, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [bulk_unarchive_dto_1.BulkUnArchiveLeads]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "unarchiveLeads", null);
 __decorate([
     common_1.Post("transferLeads"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
@@ -531,6 +553,17 @@ __decorate([
     __metadata("design:paramtypes", [transfer_leads_dto_1.TransferLeadsDto]),
     __metadata("design:returntype", Promise)
 ], LeadController.prototype, "transferLeads", null);
+__decorate([
+    common_1.Post("openClosedLeads"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("admin"),
+    common_1.HttpCode(common_1.HttpStatus.CREATED),
+    swagger_1.ApiOperation({ summary: "Change lead status to open" }),
+    __param(0, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [open_closed_lead_dto_1.OpenClosedLeadDto]),
+    __metadata("design:returntype", Promise)
+], LeadController.prototype, "openClosedLeads", null);
 LeadController = __decorate([
     swagger_1.ApiTags("Lead"),
     common_1.Controller("lead"),

@@ -1,6 +1,7 @@
 export declare class FiltersDto {
-    showArchived?: false;
-    assigned: true;
+    showArchived?: boolean;
+    showClosed?: boolean;
+    assigned: boolean;
     dateRange: string[];
     selectedCampaign: string;
     leadStatusKeys: string[];

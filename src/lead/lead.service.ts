@@ -213,7 +213,7 @@ export class LeadService {
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
-    const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, handlers,...otherFilters } = filters;
+    const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, showClosed, handlers,...otherFilters } = filters;
     const [startDate, endDate] = dateRange || [];
 
     const leadAgg = this.leadModel.aggregate();
@@ -222,10 +222,16 @@ export class LeadService {
       leadAgg.match({ $text: { $search: searchTerm } });
     }
 
-    const matchQuery = { organization, archived: {$eq: null} };
+    // this will check if the value is non existent, false or null, all of which are possible depending on 
+    // whether the field has been touched or not
+    const matchQuery = { organization, archived: {$ne: true} };
 
     if(showArchived) {
-      matchQuery.archived.$eq = true;
+      matchQuery.archived["$eq"] = true;
+    }
+
+    if(showClosed) {
+      matchQuery['nextAction'] = '__closed__'
     }
 
     if(handlers) {
@@ -1118,14 +1124,20 @@ export class LeadService {
   }
 
   async archiveLeads(leadIds: string[]) {
-    return this.leadModel.updateMany({_id: {$in: leadIds}}, {archived: true})
+    return this.leadModel.updateMany({_id: {$in: leadIds}}, {$set: {archived: true}});
   }
 
+  async unarchiveLeads(leadIds: string[]) {
+    return this.leadModel.updateMany({_id: {$in: leadIds}}, {$set: { archived: false }});
+  }
 
   async transferLeads(leadIds: string[], toCampaignId: string) {
     const {campaignName, _id} = await this.campaignModel.findOne({_id: toCampaignId}, {campaignName: 1}).lean().exec();
-
-
     return this.leadModel.updateMany({_id: {$in: leadIds}}, {$set: {campaignId: _id, campaign: campaignName}}).lean().exec();
+  }
+
+
+  async openClosedLeads(leadIds: string[]) {
+    return this.leadModel.updateMany({_id: {$in: leadIds}}, {$set: {nextAction: '__open__'}});
   }
 }
