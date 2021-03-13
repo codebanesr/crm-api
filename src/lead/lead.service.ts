@@ -6,7 +6,7 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Document, Model } from "mongoose";
 import { Lead } from "./interfaces/lead.interface";
 import { get, intersection, isArray, isEmpty, values } from "lodash";
 import { Types } from "mongoose";
@@ -23,18 +23,16 @@ import { AttachmentDto } from "./dto/create-email-template.dto";
 import { S3UploadedFiles } from "./dto/generic.dto";
 import { UpdateContactDto } from "./dto/update-contact.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
-import { LeadHistory } from "./interfaces/lead-history.interface";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
 import { RulesService } from "../rules/rules.service";
 import { UserService } from "../user/user.service";
 import { InjectQueue } from "@nestjs/bull";
 import { Queue } from "bull";
-import { createTransport, SendMailOptions } from "nodemailer";
 import config from '../config';
 import { RoleType } from "../shared/role-type.enum";
 import { FetchNextLeadDto, TypeOfLead } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
-import { BulkReassignDto } from "./dto/bulk-reassign.dto";
+import { LeadHistory } from "./interfaces/lead-history.interface";
 @Injectable()
 export class LeadService {
   constructor(
@@ -99,20 +97,32 @@ export class LeadService {
     } else {
       notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
     }
-    const history: Partial<LeadHistory> = {
+
+    const history: Pick<LeadHistory, 'oldUser'|'newUser'|'notes'|'lead'|'campaign'|'campaignName'|'organization' | 'geoLocation'> = {
       oldUser: oldUserEmail,
       newUser: newUserEmail,
       notes,
+      lead: lead._id,
+      campaign: lead.campaignId,
+      campaignName: lead.campaign, 
+      organization: lead.organization,
+      geoLocation: {
+        coordinates: null
+      }
     };
 
     const result = await this.leadModel
       .updateOne(
         { _id: lead._id },
-        { email: newUserEmail, $push: { history: history } }
+        { email: newUserEmail }
       )
       .lean()
       .exec();
-    return result;
+
+
+    /** @Todo check for better types */
+    const leadHistory = await this.leadHistoryModel.create(history as any);
+    return { result, leadHistory };
   }
 
 
@@ -585,11 +595,11 @@ export class LeadService {
     geoLocation,
     handlerEmail,
     handlerName,
-    reassignmentInfo,
     emailForm,
     requestedInformation,
     campaignId,
-    callRecord
+    callRecord,
+    reassignToUser
   }: UpdateLeadDto & {
     leadId: string;
     organization: string;
@@ -597,7 +607,6 @@ export class LeadService {
     handlerName: string;
   }) {
     let obj = {} as Partial<Lead>;
-    Logger.debug({ geoLocation, reassignmentInfo });
     const keysToUpdate = Object.keys(lead);
 
     if (keysToUpdate.length > 40) {
@@ -633,7 +642,7 @@ export class LeadService {
       .sort({ $natural: -1 })
       .limit(1);
 
-    if (!reassignmentInfo) {
+    if (!reassignToUser) {
       // assign to logged in user and notes will be lead was created by
       // we are not changing old user and new user, call duration calculation will always be done on 
       // old user, agar agent call karke reassign kiya to bhi call duration uske me hi count hoga.
@@ -646,10 +655,10 @@ export class LeadService {
       nextEntryInHistory.documentLinks = lead.documentLinks;
     }
 
-    if (reassignmentInfo && prevHistory?.newUser !== reassignmentInfo.newUser) {
-      nextEntryInHistory.notes = `Lead has been assigned to ${reassignmentInfo.newUser} by ${handlerName}`;
+    if (reassignToUser && prevHistory?.newUser !== reassignToUser) {
+      nextEntryInHistory.notes = `Lead has been assigned to ${reassignToUser} by ${handlerName}`;
       nextEntryInHistory.oldUser = prevHistory.newUser;
-      nextEntryInHistory.newUser = reassignmentInfo.newUser;
+      nextEntryInHistory.newUser = reassignToUser;
     }
 
     if (lead.leadStatus !== oldLead.leadStatus) {
@@ -657,7 +666,7 @@ export class LeadService {
     }
 
     if(lead.notes) {
-      nextEntryInHistory.notes += `\n User Note: ${lead.notes}`;
+      nextEntryInHistory.notes = (nextEntryInHistory.notes || '') + `\n User Note: ${lead.notes}`;
     }
 
     nextEntryInHistory.geoLocation = geoLocation;
@@ -680,8 +689,8 @@ export class LeadService {
     let { contact, ...filteredObj } = obj;
 
     // if reassignment is required, change that in the lead
-    if (get(reassignmentInfo, "newUser")) {
-      obj.email = reassignmentInfo.newUser;
+    if (reassignToUser) {
+      obj.email = reassignToUser;
     }
 
 

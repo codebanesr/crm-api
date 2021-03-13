@@ -3,8 +3,6 @@ import { GetGraphDataDto } from "./dto/get-graph-data.dto";
 export declare class LeadAnalyticService {
     private readonly leadModel;
     private readonly leadHistoryModel;
-    private startDate;
-    private endDate;
     attachCommonGraphFilters(pipeline: Aggregate<any[]>, organization: string, filter: GetGraphDataDto): void;
     getGraphData(organization: string, userList: string[]): Promise<{
         pieData: any[];

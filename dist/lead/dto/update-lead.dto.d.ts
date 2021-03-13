@@ -2,9 +2,6 @@ import { Lead } from "./lead-model.dto";
 declare class GeoLocation {
     coordinates: number[];
 }
-export declare class ReassignmentInfo {
-    newUser: string;
-}
 declare class CallRecord {
     number: string;
     duration: number;
@@ -18,7 +15,7 @@ export declare class UpdateLead extends Lead {
 export declare class UpdateLeadDto {
     lead: UpdateLead;
     geoLocation: GeoLocation;
-    reassignmentInfo?: ReassignmentInfo;
+    reassignToUser?: string;
     emailForm: {
         attachments: {
             filePath: string;
