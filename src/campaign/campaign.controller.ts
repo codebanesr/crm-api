@@ -125,20 +125,20 @@ export class CampaignController {
     return this.campaignService.createCampaignAndDisposition({...body, activeUserId, organization});
   }
 
-  @Get("disposition/campaignName/:campaignName")
-  @ApiOperation({ summary: "Get disposition By Campaign Name" })
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard("jwt"))
-  getDispositionByCampaignName(
-    @Param("campaignName") campaignName: string,
-    @CurrentUser() user: User
-  ) {
-    const { organization } = user;
-    return this.campaignService.getDispositionByCampaignName(
-      campaignName,
-      organization
-    );
-  }
+  // @Get("disposition/campaignName/:campaignName")
+  // @ApiOperation({ summary: "Get disposition By Campaign Name" })
+  // @HttpCode(HttpStatus.OK)
+  // @UseGuards(AuthGuard("jwt"))
+  // getDispositionByCampaignName(
+  //   @Param("campaignName") campaignName: string,
+  //   @CurrentUser() user: User
+  // ) {
+  //   const { organization } = user;
+  //   return this.campaignService.getDispositionByCampaignName(
+  //     campaignName,
+  //     organization
+  //   );
+  // }
 
   @Post("archive")
   @ApiOperation({ summary: "Archives a campaign" })

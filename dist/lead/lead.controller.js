@@ -259,7 +259,6 @@ __decorate([
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Fetches all lead for the given user" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     __param(0, common_1.Body()), __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [find_all_dto_1.FindAllDto, Object]),
@@ -310,7 +309,6 @@ __decorate([
 ], LeadController.prototype, "reassignLead", null);
 __decorate([
     common_1.Post("bulkReassign"),
-    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Assign multiple leads to a user" }),
     common_1.HttpCode(common_1.HttpStatus.ACCEPTED),
     roles_decorator_1.Roles(role_type_enum_1.RoleType.admin, role_type_enum_1.RoleType.manager, role_type_enum_1.RoleType.seniorManager),

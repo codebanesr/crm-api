@@ -177,7 +177,7 @@ let CampaignService = class CampaignService {
                 editableCols = browsableCols;
                 uniqueCols = ['mobilePhone'];
             }
-            const campaign = yield this.campaignModel.findOneAndUpdate({ campaignName: campaignInfo.campaignName, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
+            const campaign = yield this.campaignModel.findOneAndUpdate({ _id: campaignInfo._id, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
                 browsableCols,
                 editableCols,
                 uniqueCols,
@@ -239,22 +239,6 @@ let CampaignService = class CampaignService {
             const filePath = path_1.join(__dirname, "..", "..", "crm_response", filename);
             xlsx_1.writeFile(wb, filename);
             return filePath;
-        });
-    }
-    getDispositionByCampaignName(campaignName, organization) {
-        return __awaiter(this, void 0, void 0, function* () {
-            common_1.Logger.debug({ campaignName, organization });
-            const campaignAgg = this.campaignModel.aggregate();
-            campaignAgg.match({ campaignName, organization });
-            campaignAgg.lookup({
-                from: "dispositions",
-                localField: "_id",
-                foreignField: "campaign",
-                as: "disposition",
-            });
-            campaignAgg.project({ disposition: "$disposition" });
-            const result = yield campaignAgg.exec();
-            return result[0].disposition[0];
         });
     }
     updateCampaignForm({ organization, payload, campaign }) {

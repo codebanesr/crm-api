@@ -216,7 +216,7 @@ export class CampaignService {
     }
 
     const campaign = await this.campaignModel.findOneAndUpdate(
-      { campaignName: campaignInfo.campaignName, organization },
+      { _id: campaignInfo._id, organization },
       {
         ...campaignInfo,
         createdBy: activeUserId,
@@ -305,26 +305,26 @@ export class CampaignService {
     return filePath;
   }
 
-  async getDispositionByCampaignName(
-    campaignName: string,
-    organization: string
-  ) {
-    Logger.debug({ campaignName, organization });
-    const campaignAgg = this.campaignModel.aggregate();
-    campaignAgg.match({ campaignName, organization });
-    campaignAgg.lookup({
-      from: "dispositions",
-      localField: "_id",
-      foreignField: "campaign",
-      as: "disposition",
-    });
+  // async getDispositionByCampaignName(
+  //   campaignName: string,
+  //   organization: string
+  // ) {
+  //   Logger.debug({ campaignName, organization });
+  //   const campaignAgg = this.campaignModel.aggregate();
+  //   campaignAgg.match({ campaignName, organization });
+  //   campaignAgg.lookup({
+  //     from: "dispositions",
+  //     localField: "_id",
+  //     foreignField: "campaign",
+  //     as: "disposition",
+  //   });
 
-    campaignAgg.project({ disposition: "$disposition" });
+  //   campaignAgg.project({ disposition: "$disposition" });
 
-    const result = await campaignAgg.exec();
+  //   const result = await campaignAgg.exec();
 
-    return result[0].disposition[0];
-  }
+  //   return result[0].disposition[0];
+  // }
 
   async updateCampaignForm({ organization, payload, campaign }) {
     return this.campaignFormModel.updateOne(

@@ -12,6 +12,7 @@ import {
   MethodNotAllowedException,
   ForbiddenException,
   PreconditionFailedException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
@@ -348,7 +349,7 @@ export class UserService {
   private async findByEmail(email: string): Promise<User> {
     const user = await this.userModel.findOne({ email, verified: true });
     if (!user) {
-      throw new NotFoundException("Email not found.");
+      throw new UnauthorizedException("Email not found.");
     }
     return user;
   }
@@ -361,7 +362,7 @@ export class UserService {
   private async findUserByEmail(email: string): Promise<User> {
     const user = await this.userModel.findOne({ email, verified: true });
     if (!user) {
-      throw new NotFoundException("Wrong email or password.");
+      throw new UnauthorizedException("Wrong email or password.");
     }
     return user;
   }
@@ -370,7 +371,7 @@ export class UserService {
     const match = await bcrypt.compare(attemptPass, user.password);
     if (!match) {
       await this.passwordsDoNotMatch(user);
-      throw new NotFoundException("Wrong email or password.");
+      throw new UnauthorizedException("Wrong email or password.");
     }
     return match;
   }

@@ -1,7 +1,7 @@
 import { GeoLocation } from "../interfaces/geo-location.interface";
 export declare class Lead {
     externalId?: string;
-    email: string;
+    email?: string;
     campaign: string;
     firstName: string;
     lastName: string;
@@ -10,7 +10,7 @@ export declare class Lead {
     amount: number;
     customerEmail: string;
     phoneNumberPrefix?: string;
-    phoneNumber: string;
+    mobilePhone: string;
     leadStatus: string;
     address: string;
     followUp: Date;

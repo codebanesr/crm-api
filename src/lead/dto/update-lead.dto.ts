@@ -8,7 +8,7 @@ import {
   IsString,
   IsMobilePhone,
 } from "class-validator";
-import { Type } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import { ECallStatus } from "../enum/call-status.enum";
 import { Lead } from "./lead-model.dto";
 
@@ -34,9 +34,17 @@ class CallRecord {
 }
 
 export class UpdateLead extends Lead {
-  @IsMobilePhone('en-IN', {strictMode: true}, { message: 'Mobile number must be prefixed with +91 and should be valid' })
+  // try using this from createlead dto itself
+  @Transform(mobileNumber => {
+    if(mobileNumber.startsWith("+91")) {
+      return mobileNumber
+    } else if(mobileNumber.startsWith("+")) {
+      return mobileNumber;
+    }
+    return "+91"+mobileNumber
+  })
+  @IsMobilePhone()
   mobilePhone: string;
-
   @IsOptional()
   notes?: string;
 }
