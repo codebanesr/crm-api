@@ -35,7 +35,6 @@ __decorate([
         default: null,
     }),
     class_validator_1.IsOptional(),
-    class_validator_1.IsEmail(),
     __metadata("design:type", String)
 ], Lead.prototype, "email", void 0);
 __decorate([
@@ -126,17 +125,18 @@ __decorate([
     __metadata("design:type", String)
 ], Lead.prototype, "phoneNumberPrefix", void 0);
 __decorate([
-    swagger_1.ApiProperty({
-        example: "9199945454",
-        description: "Mobile Number",
-        type: String,
-        default: "-",
+    class_transformer_1.Transform(mobileNumber => {
+        if (mobileNumber.startsWith("+91")) {
+            return mobileNumber;
+        }
+        else if (mobileNumber.startsWith("+")) {
+            return mobileNumber;
+        }
+        return "+91" + mobileNumber;
     }),
-    class_validator_1.IsOptional(),
-    class_validator_1.IsString(),
-    class_validator_1.IsMobilePhone('en-IN', { strictMode: true }, { message: 'Mobile number must be prefixed with +91 and should be valid' }),
+    class_validator_1.IsMobilePhone(),
     __metadata("design:type", String)
-], Lead.prototype, "phoneNumber", void 0);
+], Lead.prototype, "mobilePhone", void 0);
 __decorate([
     swagger_1.ApiProperty({
         example: "Nurturing",

@@ -36,7 +36,16 @@ __decorate([
 class UpdateLead extends lead_model_dto_1.Lead {
 }
 __decorate([
-    class_validator_1.IsMobilePhone('en-IN', { strictMode: true }, { message: 'Mobile number must be prefixed with +91 and should be valid' }),
+    class_transformer_1.Transform(mobileNumber => {
+        if (mobileNumber.startsWith("+91")) {
+            return mobileNumber;
+        }
+        else if (mobileNumber.startsWith("+")) {
+            return mobileNumber;
+        }
+        return "+91" + mobileNumber;
+    }),
+    class_validator_1.IsMobilePhone(),
     __metadata("design:type", String)
 ], UpdateLead.prototype, "mobilePhone", void 0);
 __decorate([

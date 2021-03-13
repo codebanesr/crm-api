@@ -283,7 +283,7 @@ let UserService = class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.userModel.findOne({ email, verified: true });
             if (!user) {
-                throw new common_1.NotFoundException("Email not found.");
+                throw new common_1.UnauthorizedException("Email not found.");
             }
             return user;
         });
@@ -298,7 +298,7 @@ let UserService = class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.userModel.findOne({ email, verified: true });
             if (!user) {
-                throw new common_1.NotFoundException("Wrong email or password.");
+                throw new common_1.UnauthorizedException("Wrong email or password.");
             }
             return user;
         });
@@ -308,7 +308,7 @@ let UserService = class UserService {
             const match = yield bcrypt.compare(attemptPass, user.password);
             if (!match) {
                 yield this.passwordsDoNotMatch(user);
-                throw new common_1.NotFoundException("Wrong email or password.");
+                throw new common_1.UnauthorizedException("Wrong email or password.");
             }
             return match;
         });

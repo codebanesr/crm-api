@@ -139,7 +139,6 @@ export class LeadController {
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Fetches all lead for the given user" })
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard("jwt"))
   findAll(@Body() body: FindAllDto, @CurrentUser() user) {
     const {
       page,
@@ -220,13 +219,12 @@ export class LeadController {
 
 
   @Post("bulkReassign")
-  @UseGuards(AuthGuard("jwt"))
   @ApiOperation({summary: "Assign multiple leads to a user"})
   @HttpCode(HttpStatus.ACCEPTED)
   @Roles(RoleType.admin, RoleType.manager, RoleType.seniorManager)
   reassignBulkLead(
     @CurrentUser() user: User,
-    @Body() bulkReassignDto: BulkReassignDto
+    @Body() bulkReassignDto: BulkReassignDto,
   ) {
     const {userEmail: newUserEmail, leadIds} = bulkReassignDto;
     return this.leadService.reassignBulkLead(user, newUserEmail, leadIds);

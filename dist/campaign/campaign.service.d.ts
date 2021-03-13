@@ -64,7 +64,6 @@ export declare class CampaignService {
     saveCampaignSchema(ccJSON: any[], others: any & {
         organization: string;
     }): Promise<string>;
-    getDispositionByCampaignName(campaignName: string, organization: string): Promise<any>;
     updateCampaignForm({ organization, payload, campaign }: {
         organization: any;
         payload: any;
