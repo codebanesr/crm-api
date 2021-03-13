@@ -122,5 +122,7 @@ export declare class LeadService {
     addContact(contact: UpdateContactDto, leadId: string): Promise<Lead>;
     archiveLead(leadId: string): Promise<Lead>;
     archiveLeads(leadIds: string[]): Promise<any>;
+    unarchiveLeads(leadIds: string[]): Promise<any>;
     transferLeads(leadIds: string[], toCampaignId: string): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
+    openClosedLeads(leadIds: string[]): Promise<any>;
 }

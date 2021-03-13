@@ -25,6 +25,10 @@ __decorate([
 __decorate([
     class_validator_1.IsBoolean(),
     __metadata("design:type", Boolean)
+], FiltersDto.prototype, "showClosed", void 0);
+__decorate([
+    class_validator_1.IsBoolean(),
+    __metadata("design:type", Boolean)
 ], FiltersDto.prototype, "assigned", void 0);
 __decorate([
     class_validator_1.IsArray(),

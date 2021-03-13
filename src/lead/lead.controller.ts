@@ -46,6 +46,8 @@ import { Response } from "express";
 import { BulkReassignDto } from "./dto/bulk-reassign.dto";
 import { RoleType } from "../shared/role-type.enum";
 import { TransferLeadsDto } from "./dto/transfer-leads.dto";
+import { BulkUnArchiveLeads } from "./dto/bulk-unarchive.dto";
+import { OpenClosedLeadDto } from "./dto/open-closed-lead.dto";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -511,15 +513,26 @@ export class LeadController {
   }
 
 
-  @Delete("bulkArchive")
+  @Delete("archiveLeads")
   @UseGuards(AuthGuard("jwt"))
   @Roles("admin")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Register user" })
   bulkArchiveLeads(@Query('leadIds') leadIds: string[]) {
-    Logger.debug(leadIds);
     return this.leadService.archiveLeads(leadIds);
   }
+
+
+  @Post("unarchiveLeads")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({summary: "Bulk Unarchive"})
+  unarchiveLeads(@Body() buLeadsDto: BulkUnArchiveLeads) {
+    const { leadIds } = buLeadsDto;
+    return this.leadService.unarchiveLeads(leadIds);
+  }
+
 
 
   @Post("transferLeads")
@@ -532,5 +545,17 @@ export class LeadController {
   ) {
     const { leadIds, toCampaignId } = tranferLeadsDto;
     return this.leadService.transferLeads(leadIds, toCampaignId);
+  }
+
+  @Post("openClosedLeads")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Change lead status to open" })
+  async openClosedLeads(
+    @Body() openClosedLead: OpenClosedLeadDto
+  ) {
+    const { leadIds } = openClosedLead;
+    return this.leadService.openClosedLeads(leadIds);
   }
 }

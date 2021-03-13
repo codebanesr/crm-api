@@ -160,15 +160,18 @@ let LeadService = class LeadService {
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
-            const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, handlers } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange", "leadStatusKeys", "showArchived", "handlers"]);
+            const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, showClosed, handlers } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange", "leadStatusKeys", "showArchived", "showClosed", "handlers"]);
             const [startDate, endDate] = dateRange || [];
             const leadAgg = this.leadModel.aggregate();
             if (searchTerm) {
                 leadAgg.match({ $text: { $search: searchTerm } });
             }
-            const matchQuery = { organization, archived: { $eq: null } };
+            const matchQuery = { organization, archived: { $ne: true } };
             if (showArchived) {
-                matchQuery.archived.$eq = true;
+                matchQuery.archived["$eq"] = true;
+            }
+            if (showClosed) {
+                matchQuery['nextAction'] = '__closed__';
             }
             if (handlers) {
                 matchQuery["email"] = { $in: handlers };
@@ -788,13 +791,23 @@ let LeadService = class LeadService {
     }
     archiveLeads(leadIds) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.leadModel.updateMany({ _id: { $in: leadIds } }, { archived: true });
+            return this.leadModel.updateMany({ _id: { $in: leadIds } }, { $set: { archived: true } });
+        });
+    }
+    unarchiveLeads(leadIds) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.leadModel.updateMany({ _id: { $in: leadIds } }, { $set: { archived: false } });
         });
     }
     transferLeads(leadIds, toCampaignId) {
         return __awaiter(this, void 0, void 0, function* () {
             const { campaignName, _id } = yield this.campaignModel.findOne({ _id: toCampaignId }, { campaignName: 1 }).lean().exec();
             return this.leadModel.updateMany({ _id: { $in: leadIds } }, { $set: { campaignId: _id, campaign: campaignName } }).lean().exec();
+        });
+    }
+    openClosedLeads(leadIds) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.leadModel.updateMany({ _id: { $in: leadIds } }, { $set: { nextAction: '__open__' } });
         });
     }
 };

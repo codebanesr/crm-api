@@ -24,10 +24,13 @@ import {
 
 export class FiltersDto {
   @IsBoolean()
-  showArchived?: false;
+  showArchived?: boolean;
 
   @IsBoolean()
-  assigned: true;
+  showClosed?: boolean;
+
+  @IsBoolean()
+  assigned: boolean;
 
   @IsArray()
   dateRange: string[] = [];

@@ -33,7 +33,7 @@ export const LeadSchema = new Schema(
     companyName: String,
     state: String,
     pincode: Number,
-    nextAction: {type: String, default: null},
+    nextAction: { type: String, default: null },
     organization: { type: Schema.Types.ObjectId, ref: "Organization" },
     documentLinks: [String],
     mobilePhone: {

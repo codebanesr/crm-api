@@ -16,6 +16,8 @@ import { GetTransactionDto } from "./dto/get-transaction.dto";
 import { Response } from "express";
 import { BulkReassignDto } from "./dto/bulk-reassign.dto";
 import { TransferLeadsDto } from "./dto/transfer-leads.dto";
+import { BulkUnArchiveLeads } from "./dto/bulk-unarchive.dto";
+import { OpenClosedLeadDto } from "./dto/open-closed-lead.dto";
 export declare class LeadController {
     private readonly leadService;
     constructor(leadService: LeadService);
@@ -66,5 +68,7 @@ export declare class LeadController {
     fetchFollowUps(followUpDto: FollowUpDto, user: User): Promise<any>;
     archiveLead(leadId: string): Promise<import("./interfaces/lead.interface").Lead>;
     bulkArchiveLeads(leadIds: string[]): Promise<any>;
+    unarchiveLeads(buLeadsDto: BulkUnArchiveLeads): Promise<any>;
     transferLeads(tranferLeadsDto: TransferLeadsDto): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
+    openClosedLeads(openClosedLead: OpenClosedLeadDto): Promise<any>;
 }
