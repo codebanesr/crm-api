@@ -420,7 +420,7 @@ let LeadService = class LeadService {
     getPerformance() {
         return __awaiter(this, void 0, void 0, function* () { });
     }
-    updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, emailForm, requestedInformation, campaignId, callRecord, reassignToUser }) {
+    updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, emailForm, requestedInformation, campaignId, callRecord, reassignToUser, }) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             let obj = {};
@@ -493,12 +493,12 @@ let LeadService = class LeadService {
             }
             yield this.leadHistoryModel.create(Object.assign(Object.assign({}, nextEntryInHistory), callRecord));
             if (!lodash_1.values(emailForm).every(lodash_1.isEmpty)) {
-                const { subject, attachments, content } = emailForm;
+                const { subject, attachments, content, overwriteEmail } = emailForm;
                 this.sendEmailToLead({
                     content,
                     subject,
                     attachments,
-                    email: lead.email,
+                    email: overwriteEmail || lead.email,
                 });
             }
             return result;

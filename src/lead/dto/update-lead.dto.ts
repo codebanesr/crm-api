@@ -66,6 +66,8 @@ export class UpdateLeadDto {
     };
     content: string;
     subject: string;
+
+    overwriteEmail: string;
   };
 
   @IsNotEmpty()

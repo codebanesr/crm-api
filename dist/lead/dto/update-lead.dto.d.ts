@@ -23,6 +23,7 @@ export declare class UpdateLeadDto {
         };
         content: string;
         subject: string;
+        overwriteEmail: string;
     };
     campaignId: string;
     requestedInformation?: {

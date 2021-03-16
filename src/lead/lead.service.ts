@@ -599,7 +599,7 @@ export class LeadService {
     requestedInformation,
     campaignId,
     callRecord,
-    reassignToUser
+    reassignToUser,
   }: UpdateLeadDto & {
     leadId: string;
     organization: string;
@@ -719,12 +719,12 @@ export class LeadService {
 
     await this.leadHistoryModel.create({...nextEntryInHistory, ...callRecord });
     if (!values(emailForm).every(isEmpty)) {
-      const { subject, attachments, content } = emailForm;
+      const { subject, attachments, content, overwriteEmail } = emailForm;
       this.sendEmailToLead({
         content,
         subject,
         attachments,
-        email: lead.email,
+        email: overwriteEmail || lead.email,
       });
     }
     return result;
