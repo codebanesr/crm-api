@@ -16,7 +16,7 @@ export declare class UserController {
     register(createUserDto: CreateUserDto, user: User): Promise<any>;
     registerReseller(createResellerDto: CreateResellerDto, user: User): Promise<any>;
     getAllUsersHack(user: User): Promise<any>;
-    getUserById(user: User, userid: string): Promise<User>;
+    getUserById(user: User, userid: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
     verifyEmail(req: IRequest, verifyUuidDto: VerifyUuidDto): Promise<{
         fullName: string;
         email: string;
@@ -25,6 +25,7 @@ export declare class UserController {
     }>;
     login(req: IRequest, loginUserDto: LoginUserDto): Promise<{
         fullName: string;
+        organization: any;
         email: string;
         roleType: import("../shared/role-type.enum").RoleType;
         accessToken: string;

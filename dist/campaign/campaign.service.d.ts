@@ -58,7 +58,7 @@ export declare class CampaignService {
         activeUserId: string;
         organization: string;
     }): Promise<{
-        campaign: Campaign;
+        campaign: any;
         disposition: import("mongodb").FindAndModifyWriteOpResultObject<Disposition>;
     }>;
     saveCampaignSchema(ccJSON: any[], others: any & {

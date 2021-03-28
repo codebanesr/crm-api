@@ -14,15 +14,17 @@ import { FindAllDto } from "../lead/dto/find-all.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { RoleType } from "../shared/role-type.enum";
+import { VisitTrack } from "../agent/interface/visit-track.interface";
 export declare class UserService {
     private readonly userModel;
     private readonly forgotPasswordModel;
     private readonly adminActionModel;
+    private readonly visitTrackModel;
     private readonly authService;
     HOURS_TO_VERIFY: number;
     HOURS_TO_BLOCK: number;
     LOGIN_ATTEMPTS_TO_BLOCK: number;
-    constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, authService: AuthService);
+    constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, visitTrackModel: Model<VisitTrack>, authService: AuthService);
     create(createUserDto: CreateUserDto, organization: string, isFirstUser?: boolean): Promise<any>;
     checkHierarchyPreconditions(createUserDto: CreateUserDto): Promise<boolean>;
     getSuperiorRoleTypes(email: string): Promise<RoleType[]>;
@@ -35,6 +37,7 @@ export declare class UserService {
     }>;
     login(req: Request, loginUserDto: LoginUserDto): Promise<{
         fullName: string;
+        organization: any;
         email: string;
         roleType: RoleType;
         accessToken: string;
@@ -87,7 +90,7 @@ export declare class UserService {
     saveToExcel(json: any): string;
     sendEmailForgotPassword(email: string, token: string): Promise<boolean>;
     getAllUsersHack(organization: string): Promise<any>;
-    getUserById(userid: string, organization: any): Promise<User>;
+    getUserById(userId: string, organization: any): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
     subscribeToPushNotification(userId: string, pushtoken: PushNotificationDto): Promise<{
         message: string;

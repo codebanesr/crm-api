@@ -48,6 +48,7 @@ export class LeadAnalyticService {
     pieAgg.match({ organization });
     pieAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
     pieAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
+    pieAgg.sort({value: 1});
 
     const stackBarData = this.leadHistoryModel.aggregate();
     stackBarData.match({ organization, email: { $in: userList } });
@@ -66,12 +67,13 @@ export class LeadAnalyticService {
       type: "$_id.callStatus",
     });
 
-    const [pieData, barData, stackData] = await Promise.all([
+    let [pieData, barData, stackData] = await Promise.all([
       pieAgg,
       barAgg,
       stackBarData,
     ]);
 
+    pieData = pieData.filter(d => d.type !== null);
     return { pieData, barData, stackData };
   }
 

@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   ValidateNested,
 } from "class-validator";
@@ -15,10 +16,10 @@ export enum SortOrder {
 }
 
 class Pagination {
-  @IsNumber()
+  @IsPositive()
   page: number = 1;
 
-  @IsNumber()
+  @IsPositive()
   perPage: number = 20;
 
   @IsString()

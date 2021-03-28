@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model, Mongoose, Schema, Types } from "mongoose";
+import { Model, Types } from "mongoose";
 import { createReadStream } from "fs";
 import { Response } from "express";
 import { AdminAction } from "../agent/interface/admin-actions.interface";

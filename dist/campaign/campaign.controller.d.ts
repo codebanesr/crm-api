@@ -26,7 +26,7 @@ export declare class CampaignController {
     createCampaignForm(user: User, body: any): Promise<any>;
     findOneByIdOrName(campaignId: string): Promise<Pick<import("./interfaces/campaign.interface").Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "campaignName" | "startDate" | "endDate" | "archived" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo" | "autodialSettings">>;
     createCampaignAndDisposition(currrentUser: User, body: CreateCampaignAndDispositionDto): Promise<{
-        campaign: import("./interfaces/campaign.interface").Campaign;
+        campaign: any;
         disposition: import("mongodb").FindAndModifyWriteOpResultObject<import("./interfaces/disposition.interface").Disposition>;
     }>;
     archiveCampaign(user: User, body: any): Promise<import("./interfaces/campaign.interface").Campaign>;

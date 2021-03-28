@@ -39,10 +39,11 @@ const crypto_utils_1 = require("../utils/crypto.utils");
 const uuid_2 = require("uuid");
 const role_type_enum_1 = require("../shared/role-type.enum");
 let UserService = class UserService {
-    constructor(userModel, forgotPasswordModel, adminActionModel, authService) {
+    constructor(userModel, forgotPasswordModel, adminActionModel, visitTrackModel, authService) {
         this.userModel = userModel;
         this.forgotPasswordModel = forgotPasswordModel;
         this.adminActionModel = adminActionModel;
+        this.visitTrackModel = visitTrackModel;
         this.authService = authService;
         this.HOURS_TO_VERIFY = 4;
         this.HOURS_TO_BLOCK = 6;
@@ -128,6 +129,7 @@ let UserService = class UserService {
             yield this.passwordsAreMatch(user);
             return {
                 fullName: user.fullName,
+                organization: user.get('organization.organizationName'),
                 email: user.email,
                 roleType: user.roleType,
                 accessToken: yield this.authService.createAccessToken(user._id, singleLoginKey),
@@ -296,7 +298,8 @@ let UserService = class UserService {
     }
     findUserByEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.userModel.findOne({ email, verified: true });
+            const user = yield this.userModel.findOne({ email, verified: true })
+                .populate('organization');
             if (!user) {
                 throw new common_1.UnauthorizedException("Wrong email or password.");
             }
@@ -564,9 +567,10 @@ let UserService = class UserService {
                 .exec();
         });
     }
-    getUserById(userid, organization) {
+    getUserById(userId, organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.userModel.findOne({ _id: userid }, { password: 0 });
+            const user = yield this.userModel.findOne({ _id: userId }, { password: 0 }).lean().exec();
+            return user;
         });
     }
     updateUser(userid, user) {
@@ -592,7 +596,9 @@ UserService = __decorate([
     __param(0, mongoose_1.InjectModel("User")),
     __param(1, mongoose_1.InjectModel("ForgotPassword")),
     __param(2, mongoose_1.InjectModel("AdminAction")),
+    __param(3, mongoose_1.InjectModel("VisitTrack")),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         auth_service_1.AuthService])

@@ -171,31 +171,47 @@ let CampaignService = class CampaignService {
         });
     }
     createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew, autodialSettings }) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (isNew) {
                 browsableCols = core_config_1.coreConfig.map(c => c.internalField);
                 editableCols = browsableCols;
                 uniqueCols = ['mobilePhone'];
             }
-            const campaign = yield this.campaignModel.findOneAndUpdate({ _id: campaignInfo._id, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
-                browsableCols,
-                editableCols,
-                uniqueCols,
-                formModel,
-                advancedSettings,
-                assignTo,
-                groups,
-                autodialSettings }), { new: true, upsert: true, rawResult: true });
+            let campaign;
+            if (!isNew) {
+                campaign = yield this.campaignModel.findOneAndUpdate({ _id: campaignInfo._id, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
+                    browsableCols,
+                    editableCols,
+                    uniqueCols,
+                    formModel,
+                    advancedSettings,
+                    assignTo,
+                    groups,
+                    autodialSettings }), { new: true, upsert: true, rawResult: true }).lean().exec();
+            }
+            else {
+                campaign = yield this.campaignModel.create(Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
+                    browsableCols,
+                    editableCols,
+                    uniqueCols,
+                    formModel,
+                    advancedSettings,
+                    assignTo,
+                    groups,
+                    autodialSettings }));
+            }
+            const campaignId = ((_a = campaign.value) === null || _a === void 0 ? void 0 : _a._id) || campaign._doc._id;
             if (isNew) {
                 core_config_1.coreConfig.forEach(config => {
                     config.organization = organization;
-                    config.campaignId = campaign.value._id;
+                    config.campaignId = campaignId;
                 });
                 yield this.campaignConfigModel.insertMany(core_config_1.coreConfig);
             }
-            const disposition = yield this.dispositionModel.findOneAndUpdate({ campaign: campaign.value.id, organization }, {
+            const disposition = yield this.dispositionModel.findOneAndUpdate({ campaign: campaignId, organization }, {
                 options: dispositionData,
-                campaign: campaign.value.id,
+                campaign: campaignId,
             }, { new: true, upsert: true, rawResult: true });
             return {
                 campaign: campaign.value,

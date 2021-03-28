@@ -17,6 +17,7 @@ import { coreConfig } from "./core-config";
 import * as moment from "moment";
 import { RoleType } from "../shared/role-type.enum";
 import {v4 as uuidV4} from "uuid";
+import { ca } from "date-fns/locale";
 
 @Injectable()
 export class CampaignService {
@@ -215,38 +216,59 @@ export class CampaignService {
       uniqueCols = ['mobilePhone']
     }
 
-    const campaign = await this.campaignModel.findOneAndUpdate(
-      { _id: campaignInfo._id, organization },
-      {
-        ...campaignInfo,
-        createdBy: activeUserId,
-        organization,
-        browsableCols,
-        editableCols,
-        uniqueCols,
-        formModel,
-        advancedSettings,
-        assignTo,
-        groups,
-        autodialSettings
-      },
-      { new: true, upsert: true, rawResult: true }
-    );
+    let campaign;
+    if(!isNew) {
+      campaign = await this.campaignModel.findOneAndUpdate(
+        { _id: campaignInfo._id, organization },
+        {
+          ...campaignInfo,
+          createdBy: activeUserId,
+          organization,
+          browsableCols,
+          editableCols,
+          uniqueCols,
+          formModel,
+          advancedSettings,
+          assignTo,
+          groups,
+          autodialSettings
+        },
+        { new: true, upsert: true, rawResult: true }
+      ).lean().exec();
+    } else {
+      campaign = await this.campaignModel.create(
+        {
+          ...campaignInfo,
+          createdBy: activeUserId,
+          organization,
+          browsableCols,
+          editableCols,
+          uniqueCols,
+          formModel,
+          advancedSettings,
+          assignTo,
+          groups,
+          autodialSettings
+        }
+      );
+    }
 
+    //in case of new campaign creation we will not have the value property
+    const campaignId = campaign.value?._id || campaign._doc._id
     if(isNew) {
       coreConfig.forEach(config=>{
         config.organization = organization;
-        config.campaignId = campaign.value._id;
+        config.campaignId = campaignId; 
       })
 
       await this.campaignConfigModel.insertMany(coreConfig);
     }
 
     const disposition = await this.dispositionModel.findOneAndUpdate(
-      { campaign: campaign.value.id, organization },
+      { campaign: campaignId, organization },
       {
         options: dispositionData,
-        campaign: campaign.value.id,
+        campaign: campaignId,
       },
       { new: true, upsert: true, rawResult: true }
     );

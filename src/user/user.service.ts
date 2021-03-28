@@ -39,6 +39,7 @@ import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { hashPassword } from "../utils/crypto.utils";
 import { v4 as uuidv4 } from 'uuid';
 import { RoleType } from "../shared/role-type.enum";
+import { VisitTrack } from "../agent/interface/visit-track.interface";
 
 @Injectable()
 export class UserService {
@@ -52,6 +53,9 @@ export class UserService {
     private readonly forgotPasswordModel: Model<ForgotPassword>,
     @InjectModel("AdminAction")
     private readonly adminActionModel: Model<AdminAction>,
+
+    @InjectModel("VisitTrack")
+    private readonly visitTrackModel: Model<VisitTrack>,
 
     private readonly authService: AuthService
   ) {}
@@ -151,6 +155,7 @@ export class UserService {
     await this.passwordsAreMatch(user);
     return {
       fullName: user.fullName,
+      organization: user.get('organization.organizationName'),
       email: user.email,
       roleType: user.roleType,
       accessToken: await this.authService.createAccessToken(user._id, singleLoginKey),
@@ -244,13 +249,16 @@ export class UserService {
     const subordinates = await this.getSubordinates(email, roleType, organization);
     
     const matchQuery = { email: {$in: subordinates} };
+
+    // doing it in separate query instead of lookup because lookup will consume a lot of memory, it will fetch
+    // all userTrack data and try to fix it in pipeline
     const users = await this.userModel.find(matchQuery, {
        email: 1,
        fullName: 1,
        manages: 1,
        roles: 1,  
        roleType: 1,
-       reportsTo: 1  
+       reportsTo: 1
     }).skip(skip).limit(perPage).lean().exec();
 
     const userCount = await this.userModel.countDocuments(matchQuery).lean().exec();
@@ -360,7 +368,8 @@ export class UserService {
   }
 
   private async findUserByEmail(email: string): Promise<User> {
-    const user = await this.userModel.findOne({ email, verified: true });
+    const user = await this.userModel.findOne({ email, verified: true })
+      .populate('organization');
     if (!user) {
       throw new UnauthorizedException("Wrong email or password.");
     }
@@ -655,8 +664,10 @@ export class UserService {
       .exec();
   }
 
-  async getUserById(userid: string, organization) {
-    return this.userModel.findOne({ _id: userid }, { password: 0 });
+  async getUserById(userId: string, organization) {
+    const user = await this.userModel.findOne({ _id: userId }, { password: 0 }).lean().exec();
+
+    return user;
   }
 
   async updateUser(userid: string, user: CreateUserDto) {
