@@ -41,23 +41,21 @@ let CampaignService = class CampaignService {
         this.campaignFormModel = campaignFormModel;
         this.leadModel = leadModel;
     }
-    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, roles }) {
+    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, roles, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((page - 1) * limit);
             const campaignAgg = this.campaignModel.aggregate();
+            campaignAgg.match({ organization, archived: { $ne: true } });
             const { campaigns = [], select = [] } = filters;
             if (!roles.includes(role_type_enum_1.RoleType.admin)) {
                 campaignAgg.match({
-                    $and: [
-                        { organization },
-                        { $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }] },
-                    ],
+                    $or: [{ createdBy: loggedInUserId }, { assignees: loggedInUserId }],
                 });
             }
             else {
                 campaignAgg.match({
-                    organization
+                    organization,
                 });
             }
             if (campaigns && campaigns.length > 0) {
@@ -65,7 +63,7 @@ let CampaignService = class CampaignService {
             }
             if (select.length > 0) {
                 const project = {};
-                select.forEach(s => {
+                select.forEach((s) => {
                     project[s] = 1;
                 });
                 campaignAgg.project(project);
@@ -170,17 +168,18 @@ let CampaignService = class CampaignService {
             const excelObject = parseExcel_1.default(path);
         });
     }
-    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew, autodialSettings }) {
+    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew, autodialSettings, }) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (isNew) {
-                browsableCols = core_config_1.coreConfig.map(c => c.internalField);
+                browsableCols = core_config_1.coreConfig.map((c) => c.internalField);
                 editableCols = browsableCols;
-                uniqueCols = ['mobilePhone'];
+                uniqueCols = ["mobilePhone"];
             }
             let campaign;
             if (!isNew) {
-                campaign = yield this.campaignModel.findOneAndUpdate({ _id: campaignInfo._id, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
+                campaign = yield this.campaignModel
+                    .findOneAndUpdate({ _id: campaignInfo._id, organization }, Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
                     browsableCols,
                     editableCols,
                     uniqueCols,
@@ -188,7 +187,9 @@ let CampaignService = class CampaignService {
                     advancedSettings,
                     assignTo,
                     groups,
-                    autodialSettings }), { new: true, upsert: true, rawResult: true }).lean().exec();
+                    autodialSettings }), { new: true, upsert: true, rawResult: true })
+                    .lean()
+                    .exec();
             }
             else {
                 campaign = yield this.campaignModel.create(Object.assign(Object.assign({}, campaignInfo), { createdBy: activeUserId, organization,
@@ -203,7 +204,7 @@ let CampaignService = class CampaignService {
             }
             const campaignId = ((_a = campaign.value) === null || _a === void 0 ? void 0 : _a._id) || campaign._doc._id;
             if (isNew) {
-                core_config_1.coreConfig.forEach(config => {
+                core_config_1.coreConfig.forEach((config) => {
                     config.organization = organization;
                     config.campaignId = campaignId;
                 });
@@ -262,10 +263,10 @@ let CampaignService = class CampaignService {
             return this.campaignFormModel.updateOne({ organization, campaign }, { $set: { payload } }, { upsert: true });
         });
     }
-    archiveCampaign(campaign) {
+    archiveCampaign(organization, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.campaignModel.findByIdAndUpdate(campaign._id, {
-                $set: { archived: campaign.archived },
+            return this.campaignModel.findOneAndUpdate({ _id: campaignId, organization }, {
+                $set: { archived: true },
             }, { new: true });
         });
     }
@@ -281,20 +282,12 @@ let CampaignService = class CampaignService {
                 _id: { campaign: "$campaign" },
                 followUp: {
                     $sum: {
-                        $cond: [
-                            { $gt: ["$followUp", currentDate] },
-                            1,
-                            0,
-                        ],
+                        $cond: [{ $gt: ["$followUp", currentDate] }, 1, 0],
                     },
                 },
                 overdue: {
                     $sum: {
-                        $cond: [
-                            { $lt: ["$followUp", currentDate] },
-                            1,
-                            0,
-                        ],
+                        $cond: [{ $lt: ["$followUp", currentDate] }, 1, 0],
                     },
                 },
             });
@@ -311,10 +304,14 @@ let CampaignService = class CampaignService {
     updateConfigs(config, organization, campaignId, campaignName) {
         return __awaiter(this, void 0, void 0, function* () {
             if (config._id)
-                return this.campaignConfigModel.findOneAndUpdate({ _id: config._id }, Object.assign(Object.assign({}, config), { name: campaignName, organization, campaignId }), { upsert: true }).lean().exec();
+                return this.campaignConfigModel
+                    .findOneAndUpdate({ _id: config._id }, Object.assign(Object.assign({}, config), { name: campaignName, organization, campaignId }), { upsert: true })
+                    .lean()
+                    .exec();
             else {
                 try {
-                    return this.campaignConfigModel.create(Object.assign(Object.assign({}, config), { name: campaignName, organization, campaignId, checked: true }));
+                    return this.campaignConfigModel.create(Object.assign(Object.assign({}, config), { name: campaignName, organization,
+                        campaignId, checked: true }));
                 }
                 catch (e) {
                     throw new common_1.BadRequestException("possibly duplicate field for this campaign");
@@ -322,21 +319,26 @@ let CampaignService = class CampaignService {
             }
         });
     }
-    createCampaignConfigs() {
-    }
+    createCampaignConfigs() { }
     deleteConfig(_id) {
         return this.campaignConfigModel.deleteOne({ _id });
     }
     cloneCampaign(campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            let campaignConfig = yield this.campaignConfigModel.find({ campaignId }, { _id: 0, __v: 0, campaignId: 0 }).lean().exec();
-            const campaign = yield this.campaignModel.findOne({ _id: campaignId }, { _id: 0, __v: 0 }).lean().exec();
+            let campaignConfig = yield this.campaignConfigModel
+                .find({ campaignId }, { _id: 0, __v: 0, campaignId: 0 })
+                .lean()
+                .exec();
+            const campaign = yield this.campaignModel
+                .findOne({ _id: campaignId }, { _id: 0, __v: 0 })
+                .lean()
+                .exec();
             const session = yield this.campaignConfigModel.db.startSession();
             session.startTransaction();
             try {
                 const time = new Date().getTime() / 1000;
                 const newCampaign = yield this.campaignModel.create(Object.assign(Object.assign({}, campaign), { campaignName: `${time}-${campaign.campaignName}` }));
-                campaignConfig = campaignConfig.map(c => {
+                campaignConfig = campaignConfig.map((c) => {
                     return Object.assign(Object.assign({}, c), { campaignId: newCampaign._id });
                 });
                 yield this.campaignConfigModel.insertMany(campaignConfig);
