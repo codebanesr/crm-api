@@ -70,9 +70,9 @@ let CampaignController = class CampaignController {
         const { id: activeUserId, organization } = currrentUser;
         return this.campaignService.createCampaignAndDisposition(Object.assign(Object.assign({}, body), { activeUserId, organization }));
     }
-    archiveCampaign(user, body) {
+    archiveCampaign(user, campaignId) {
         const { organization } = user;
-        return this.campaignService.archiveCampaign(body);
+        return this.campaignService.archiveCampaign(organization, campaignId);
     }
     updateConfigs(user, configs, campaignId, campaignName) {
         const { organization } = user;
@@ -172,18 +172,18 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "createCampaignAndDisposition", null);
 __decorate([
-    common_1.Post("archive"),
+    common_1.Delete("archive/:id"),
     swagger_1.ApiOperation({ summary: "Archives a campaign" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
-    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Param('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "archiveCampaign", null);
 __decorate([
     common_1.Patch("addConfigs/:campaignId/:campaignName"),
-    swagger_1.ApiOperation({ summary: "Archives a campaign" }),
+    swagger_1.ApiOperation({ summary: "Adds configuration to existing campaign" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, current_user_decorator_1.CurrentUser()),

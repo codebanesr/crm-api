@@ -140,17 +140,17 @@ export class CampaignController {
   //   );
   // }
 
-  @Post("archive")
+  @Delete("archive/:id")
   @ApiOperation({ summary: "Archives a campaign" })
   @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
-  archiveCampaign(@CurrentUser() user: User, @Body() body) {
+  archiveCampaign(@CurrentUser() user: User, @Param('id') campaignId: string) {
     const { organization } = user;
-    return this.campaignService.archiveCampaign(body);
+    return this.campaignService.archiveCampaign(organization, campaignId);
   }
 
   @Patch("addConfigs/:campaignId/:campaignName")
-  @ApiOperation({ summary: "Archives a campaign" })
+  @ApiOperation({ summary: "Adds configuration to existing campaign" })
   @UseGuards(AuthGuard("jwt"))
   @HttpCode(HttpStatus.OK)
   updateConfigs(

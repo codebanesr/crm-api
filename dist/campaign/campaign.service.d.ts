@@ -16,7 +16,7 @@ export declare class CampaignService {
     private readonly campaignFormModel;
     private readonly leadModel;
     constructor(campaignModel: Model<Campaign>, campaignConfigModel: Model<CampaignConfig>, dispositionModel: Model<Disposition>, adminActionModel: Model<AdminAction>, campaignFormModel: Model<CampaignForm>, leadModel: Model<Lead>);
-    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, roles }: {
+    findAll({ page, perPage, filters, sortBy, loggedInUserId, organization, roles, }: {
         page: any;
         perPage: any;
         filters: any;
@@ -54,7 +54,7 @@ export declare class CampaignService {
         error?: undefined;
     }>;
     uploadConfig(file: any): Promise<void>;
-    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew, autodialSettings }: CreateCampaignAndDispositionDto & {
+    createCampaignAndDisposition({ activeUserId, dispositionData, campaignInfo, organization, editableCols, browsableCols, formModel, uniqueCols, assignTo, advancedSettings, groups, isNew, autodialSettings, }: CreateCampaignAndDispositionDto & {
         activeUserId: string;
         organization: string;
     }): Promise<{
@@ -69,7 +69,7 @@ export declare class CampaignService {
         payload: any;
         campaign: any;
     }): Promise<any>;
-    archiveCampaign(campaign: any): Promise<Campaign>;
+    archiveCampaign(organization: string, campaignId: string): Promise<Campaign>;
     getQuickStatsForCampaigns(campaignIds: string[], organization: string): Promise<import("lodash").Dictionary<any>>;
     updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string): Promise<Pick<CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "campaignId" | "internalField" | "checked">>;
     createCampaignConfigs(): void;

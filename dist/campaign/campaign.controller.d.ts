@@ -29,7 +29,7 @@ export declare class CampaignController {
         campaign: any;
         disposition: import("mongodb").FindAndModifyWriteOpResultObject<import("./interfaces/disposition.interface").Disposition>;
     }>;
-    archiveCampaign(user: User, body: any): Promise<import("./interfaces/campaign.interface").Campaign>;
+    archiveCampaign(user: User, campaignId: string): Promise<import("./interfaces/campaign.interface").Campaign>;
     updateConfigs(user: User, configs: UpdateConfigsDto, campaignId: string, campaignName: string): Promise<Pick<import("../lead/interfaces/campaign-config.interface").CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "campaignId" | "internalField" | "checked">>;
     deleteConfig(configId: string): import("mongoose").Query<{
         ok?: number;
