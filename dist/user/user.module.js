@@ -16,6 +16,7 @@ const forgot_password_schema_1 = require("./schemas/forgot-password.schema");
 const admin_action_schema_1 = require("./schemas/admin-action.schema");
 const platform_express_1 = require("@nestjs/platform-express");
 const mongoose_1 = require("@nestjs/mongoose");
+const visit_track_schema_1 = require("../agent/schemas/visit-track.schema");
 let UserModule = class UserModule {
 };
 UserModule = __decorate([
@@ -24,7 +25,8 @@ UserModule = __decorate([
             mongoose_1.MongooseModule.forFeature([
                 { name: "User", schema: user_schema_1.UserSchema },
                 { name: "ForgotPassword", schema: forgot_password_schema_1.ForgotPasswordSchema },
-                { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema }
+                { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },
+                { name: "VisitTrack", schema: visit_track_schema_1.VisitTrackSchema },
             ]),
             platform_express_1.MulterModule.register({
                 dest: "~/.upload/users",

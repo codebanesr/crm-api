@@ -23,11 +23,11 @@ class Pagination {
     }
 }
 __decorate([
-    class_validator_1.IsNumber(),
+    class_validator_1.IsPositive(),
     __metadata("design:type", Number)
 ], Pagination.prototype, "page", void 0);
 __decorate([
-    class_validator_1.IsNumber(),
+    class_validator_1.IsPositive(),
     __metadata("design:type", Number)
 ], Pagination.prototype, "perPage", void 0);
 __decorate([
