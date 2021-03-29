@@ -349,6 +349,7 @@ export class LeadService {
     }
 
     const projectQ = {} as any;
+    flds.push('campaignId'); // this is used for browsing through different campaigns when all campaigns is selected
 
     flds.forEach((fld: string) => {
       // projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
