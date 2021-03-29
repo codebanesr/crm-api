@@ -486,7 +486,7 @@ let LeadService = class LeadService {
                 if (!lead.nextAction) {
                     filteredObj.nextAction = '__closed__';
                 }
-                result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $inc: { transactionCount: 1 }, $set: filteredObj }, { new: true });
+                result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $inc: { transactionCount: 1 }, $set: filteredObj }, { new: true }).lean().exec();
             }
             catch (e) {
                 if (e.code === 11000) {
