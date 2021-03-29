@@ -258,6 +258,7 @@ let LeadService = class LeadService {
                     .exec()).map((config) => config.internalField);
             }
             const projectQ = {};
+            flds.push('campaignId');
             flds.forEach((fld) => {
                 projectQ[fld] = 1;
             });
