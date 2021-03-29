@@ -25,6 +25,7 @@ export const LeadSchema = new Schema(
       type: Number,
       default: 0
     },
+    notes: String,
     firstName: String,
     lastName: String,
     fullName: String,

@@ -108,6 +108,7 @@ export class Lead {
     phoneNumberPrefix?: string;
   
     @Transform(mobileNumber => {
+      mobileNumber += "";
       if(mobileNumber.startsWith("+91")) {
         return mobileNumber
       } else if(mobileNumber.startsWith("+")) {

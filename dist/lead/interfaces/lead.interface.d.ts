@@ -29,4 +29,5 @@ export interface Lead extends Document {
     isPristine?: boolean;
     archived?: boolean;
     transactionCount?: number;
+    notes?: string;
 }

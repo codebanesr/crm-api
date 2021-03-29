@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { Model } from "mongoose";
+import { DocumentDefinition, Model } from "mongoose";
 import { Lead } from "./interfaces/lead.interface";
 import { User } from "../user/interfaces/user.interface";
 import { Alarm } from "./interfaces/alarm";
@@ -60,7 +60,7 @@ export declare class LeadService {
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
     findOneById(leadId: string, email: string, roleType: string): Promise<{
-        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "notes" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
         leadHistory: any[];
     }>;
     patch(productId: string, body: any[]): Promise<any>;
@@ -96,14 +96,15 @@ export declare class LeadService {
             $gt: Date;
         };
     }>;
-    findInjectableLeads(organization: string, email: string, campaignId: string, projection: any): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">>;
+    findInjectableLeads(organization: string, email: string, campaignId: string, projection: any): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "notes" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">>;
+    static postProcessLead(lead: DocumentDefinition<Lead>): Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "notes" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
     fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters }: FetchNextLeadDto & {
         campaignId: string;
         email: string;
         organization: string;
         roleType: string;
     }): Promise<{
-        lead: any;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "notes" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
         leadHistory: any[];
         isInjectableLead: boolean;
     }>;
