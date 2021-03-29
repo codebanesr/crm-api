@@ -23,5 +23,6 @@ export interface Lead extends Document {
   documentLinks?: string[],
   isPristine?: boolean,
   archived?: boolean,
-  transactionCount?: number
+  transactionCount?: number,
+  notes?: string
 }

@@ -31,6 +31,7 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
+var LeadService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadService = void 0;
 const common_1 = require("@nestjs/common");
@@ -46,7 +47,7 @@ const config_1 = require("../config");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 const moment = require("moment");
-let LeadService = class LeadService {
+let LeadService = LeadService_1 = class LeadService {
     constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
@@ -320,7 +321,7 @@ let LeadService = class LeadService {
                     .lean()
                     .exec();
             }
-            return { lead, leadHistory };
+            return { lead: LeadService_1.postProcessLead(lead), leadHistory };
         });
     }
     patch(productId, body) {
@@ -563,6 +564,11 @@ let LeadService = class LeadService {
             return lead;
         });
     }
+    static postProcessLead(lead) {
+        lead.notes = "";
+        lead.nextAction = null;
+        return lead;
+    }
     fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters }) {
         return __awaiter(this, void 0, void 0, function* () {
             Object.keys(filters).forEach((k) => {
@@ -590,8 +596,10 @@ let LeadService = class LeadService {
                 this.logger.log("Injectable lead found, returning it");
                 const leadHistory = yield this.leadHistoryModel
                     .find({ lead: injectableLead._id })
-                    .limit(5);
-                return { lead: injectableLead, leadHistory, isInjectableLead: true };
+                    .limit(5)
+                    .lean()
+                    .exec();
+                return { lead: LeadService_1.postProcessLead(injectableLead), leadHistory, isInjectableLead: true };
             }
             const singleLeadAgg = this.leadModel.aggregate();
             singleLeadAgg.match({ campaignId: campaign._id });
@@ -676,8 +684,7 @@ let LeadService = class LeadService {
                 yield this.leadModel.findOneAndUpdate({ _id: lead._id }, { email }, { timestamps: false });
                 this.logger.debug(`Assigned lead ${lead._id} to ${email}`);
             }
-            lead.nextAction = null;
-            return { lead, leadHistory, isInjectableLead: false };
+            return { lead: LeadService_1.postProcessLead(lead), leadHistory, isInjectableLead: false };
         });
     }
     getSaleAmountByLeadStatus(campaignName) {
@@ -841,7 +848,7 @@ let LeadService = class LeadService {
         });
     }
 };
-LeadService = __decorate([
+LeadService = LeadService_1 = __decorate([
     common_1.Injectable(),
     __param(0, mongoose_1.InjectModel("Lead")),
     __param(1, mongoose_1.InjectModel("AdminAction")),

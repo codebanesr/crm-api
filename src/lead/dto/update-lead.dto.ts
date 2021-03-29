@@ -32,7 +32,8 @@ class CallRecord {
 
 export class UpdateLead extends Lead {
   // try using this from createlead dto itself
-  @Transform(mobileNumber => {
+  @Transform((mobileNumber: string) => {
+    mobileNumber+="";
     if(mobileNumber.startsWith("+91")) {
       return mobileNumber
     } else if(mobileNumber.startsWith("+")) {

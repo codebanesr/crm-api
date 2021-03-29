@@ -33,7 +33,8 @@ __decorate([
 class UpdateLead extends lead_model_dto_1.Lead {
 }
 __decorate([
-    class_transformer_1.Transform(mobileNumber => {
+    class_transformer_1.Transform((mobileNumber) => {
+        mobileNumber += "";
         if (mobileNumber.startsWith("+91")) {
             return mobileNumber;
         }

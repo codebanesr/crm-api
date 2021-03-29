@@ -6,7 +6,7 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Document, Model } from "mongoose";
+import { Document, DocumentDefinition, Model } from "mongoose";
 import { Lead } from "./interfaces/lead.interface";
 import { get, intersection, isArray, isEmpty, values } from "lodash";
 import { Types } from "mongoose";
@@ -425,7 +425,7 @@ export class LeadService {
       .lean()
       .exec();
     }
-    return {lead, leadHistory};
+    return {lead: LeadService.postProcessLead(lead), leadHistory};
   }
 
   async patch(productId: string, body: any[]) {
@@ -795,6 +795,14 @@ export class LeadService {
     return lead;
   }
 
+  static postProcessLead(lead: DocumentDefinition<Lead>) {
+    lead.notes = "";
+    lead.nextAction = null;
+
+
+    return lead;
+  }
+
   /** @Todo here we are setting nextAction to null before sending it to the frontend, but this happens also in getLead api
    * this should be remembered and fetching the lead should be done in the same function to prevent this in the future
    */
@@ -850,8 +858,10 @@ export class LeadService {
       this.logger.log("Injectable lead found, returning it");
       const leadHistory = await this.leadHistoryModel
       .find({ lead: injectableLead._id })
-      .limit(5);
-      return {lead: injectableLead, leadHistory, isInjectableLead: true};
+      .limit(5)
+      .lean()
+      .exec();
+      return { lead: LeadService.postProcessLead(injectableLead), leadHistory, isInjectableLead: true };
     }
 
     const singleLeadAgg = this.leadModel.aggregate();
@@ -971,9 +981,7 @@ export class LeadService {
       this.logger.debug(`Assigned lead ${lead._id} to ${email}`);
     }
 
-
-    lead.nextAction = null;
-    return { lead, leadHistory, isInjectableLead: false };
+    return { lead: LeadService.postProcessLead(lead), leadHistory, isInjectableLead: false };
   }
 
   getSaleAmountByLeadStatus(campaignName?: string) {

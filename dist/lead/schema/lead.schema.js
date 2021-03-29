@@ -23,6 +23,7 @@ exports.LeadSchema = new mongoose_1.Schema({
         type: Number,
         default: 0
     },
+    notes: String,
     firstName: String,
     lastName: String,
     fullName: String,

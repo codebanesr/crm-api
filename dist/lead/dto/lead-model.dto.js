@@ -126,6 +126,7 @@ __decorate([
 ], Lead.prototype, "phoneNumberPrefix", void 0);
 __decorate([
     class_transformer_1.Transform(mobileNumber => {
+        mobileNumber += "";
         if (mobileNumber.startsWith("+91")) {
             return mobileNumber;
         }
