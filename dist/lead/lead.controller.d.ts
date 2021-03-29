@@ -58,13 +58,14 @@ export declare class LeadController {
     uploadMultipleLeadFiles(user: User, body: UploadMultipleFilesDto): Promise<import("bull").Job<any>>;
     saveEmailAttachments(files: any): any;
     findOneById(leadId: string, user: User): Promise<{
-        lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived">;
+        lead: Pick<import("./interfaces/lead.interface").Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
         leadHistory: any[];
     }>;
     leadActivityByUser(email: string, startDate: string, endDate: string): Promise<any>;
     fetchNextLead(user: User, campaignId: string, body: FetchNextLeadDto): Promise<{
         lead: any;
         leadHistory: any[];
+        isInjectableLead: boolean;
     }>;
     getAllAlarms(user: User, body: any): Promise<any>;
     usersActivityLog(userActivityDto: UserActivityDto, user: User): Promise<any>;

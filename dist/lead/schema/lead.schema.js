@@ -19,6 +19,10 @@ exports.LeadSchema = new mongoose_1.Schema({
         ref: "Campaign",
         required: true
     },
+    transactionCount: {
+        type: Number,
+        default: 0
+    },
     firstName: String,
     lastName: String,
     fullName: String,

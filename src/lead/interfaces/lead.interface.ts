@@ -22,5 +22,6 @@ export interface Lead extends Document {
   requestedInformation?: { [key: string]: string }[];
   documentLinks?: string[],
   isPristine?: boolean,
-  archived?: boolean
+  archived?: boolean,
+  transactionCount?: number
 }
