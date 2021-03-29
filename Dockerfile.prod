@@ -12,4 +12,5 @@ COPY . .
 EXPOSE 3000
 
 RUN ls -sail
+
 CMD [ "npm", "start" ]

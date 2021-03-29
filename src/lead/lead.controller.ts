@@ -476,24 +476,23 @@ export class LeadController {
     @Body() followUpDto: FollowUpDto,
     @CurrentUser() user: User
   ) {
-    const { organization } = user;
+    const { organization, email } = user;
     const {
       interval,
-      userEmail,
-      campaignName,
+      campaignId,
       page,
       perPage,
     } = followUpDto;
 
-    await this.leadService.checkPrecondition(user, userEmail);
+    // await this.leadService.checkPrecondition(user, userEmail);
 
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
     return this.leadService.getFollowUps({
       interval,
       organization,
-      email: userEmail || user.email,
-      campaignName,
+      email,
+      campaignId,
       limit,
       page,
       skip,

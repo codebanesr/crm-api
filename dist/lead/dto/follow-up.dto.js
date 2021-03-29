@@ -36,7 +36,7 @@ __decorate([
     class_validator_1.IsOptional(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], FollowUpDto.prototype, "campaignName", void 0);
+], FollowUpDto.prototype, "campaignId", void 0);
 __decorate([
     class_validator_1.IsNumber(),
     __metadata("design:type", Number)

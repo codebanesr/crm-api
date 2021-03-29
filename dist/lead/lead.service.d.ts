@@ -96,6 +96,7 @@ export declare class LeadService {
             $gt: Date;
         };
     }>;
+    findInjectableLeads(organization: string, email: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived">>;
     fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters }: FetchNextLeadDto & {
         campaignId: string;
         email: string;
@@ -110,11 +111,11 @@ export declare class LeadService {
         response: Partial<LeadHistory>[];
         total: number;
     }>;
-    getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }: {
+    getFollowUps({ interval, organization, email, campaignId, limit, skip, page, }: {
         interval: any;
         organization: any;
         email: any;
-        campaignName: any;
+        campaignId: any;
         limit: any;
         skip: any;
         page: any;

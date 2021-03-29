@@ -1,7 +1,7 @@
 export declare class FollowUpDto {
     readonly interval?: string[];
     readonly userEmail?: string;
-    campaignName?: string;
+    campaignId?: string;
     readonly page: number;
     readonly perPage: number;
 }
