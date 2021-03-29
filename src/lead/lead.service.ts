@@ -33,6 +33,7 @@ import { RoleType } from "../shared/role-type.enum";
 import { FetchNextLeadDto, TypeOfLead } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { LeadHistory } from "./interfaces/lead-history.interface";
+import moment = require("moment");
 @Injectable()
 export class LeadService {
   constructor(
@@ -778,6 +779,22 @@ export class LeadService {
     return uq;
   }
 
+  async findInjectableLeads(organization: string, email: string) {
+    const fiveMinAgo = moment().subtract(5, 'minute').toDate();
+    const now = moment().toDate();
+    const lead = await this.leadModel
+      .findOne({ organization, email })
+      .where("followUp")
+      .gte(fiveMinAgo)
+      .lte(now)
+      .lean()
+      .exec();
+
+
+    this.logger.debug({ injectableLead: lead });
+
+    return lead;
+  }
 
   /** @Todo here we are setting nextAction to null before sending it to the frontend, but this happens also in getLead api
    * this should be remembered and fetching the lead should be done in the same function to prevent this in the future
@@ -802,6 +819,9 @@ export class LeadService {
         delete filters[k];
       }
     });
+
+    this.logger.debug(" <<<------------------------ Getting injectable lead first ----------------------->>>>>>>>> ");
+    await this.findInjectableLeads(organization, email);
 
     const campaign = await this.campaignModel
       .findOne({ _id: campaignId, organization })
@@ -1024,7 +1044,7 @@ export class LeadService {
     interval,
     organization,
     email,
-    campaignName,
+    campaignId,
     limit,
     skip,
     page,
@@ -1040,8 +1060,8 @@ export class LeadService {
     todayEnd.setMinutes(59);
     todayEnd.setSeconds(59);
 
-    if (campaignName) {
-      leadAgg.match({ campaign: campaignName });
+    if (campaignId) {
+      leadAgg.match({ campaignId: Types.ObjectId(campaignId) });
     }
 
     if (interval?.length === 2) {

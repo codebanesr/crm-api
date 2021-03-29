@@ -45,6 +45,7 @@ const bull_1 = require("@nestjs/bull");
 const config_1 = require("../config");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
+const moment = require("moment");
 let LeadService = class LeadService {
     constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService) {
         this.leadModel = leadModel;
@@ -548,6 +549,21 @@ let LeadService = class LeadService {
             return uq;
         });
     }
+    findInjectableLeads(organization, email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const fiveMinAgo = moment().subtract(5, 'minute').toDate();
+            const now = moment().toDate();
+            const lead = yield this.leadModel
+                .findOne({ organization, email })
+                .where("followUp")
+                .gte(fiveMinAgo)
+                .lte(now)
+                .lean()
+                .exec();
+            this.logger.debug({ injectableLead: lead });
+            return lead;
+        });
+    }
     fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters }) {
         return __awaiter(this, void 0, void 0, function* () {
             Object.keys(filters).forEach((k) => {
@@ -555,6 +571,8 @@ let LeadService = class LeadService {
                     delete filters[k];
                 }
             });
+            this.logger.debug(" <<<------------------------ Getting injectable lead first ----------------------->>>>>>>>> ");
+            yield this.findInjectableLeads(organization, email);
             const campaign = yield this.campaignModel
                 .findOne({ _id: campaignId, organization })
                 .lean()
@@ -710,7 +728,7 @@ let LeadService = class LeadService {
             return { response, total: count };
         });
     }
-    getFollowUps({ interval, organization, email, campaignName, limit, skip, page, }) {
+    getFollowUps({ interval, organization, email, campaignId, limit, skip, page, }) {
         return __awaiter(this, void 0, void 0, function* () {
             const leadAgg = this.leadModel.aggregate();
             var todayStart = new Date();
@@ -721,8 +739,8 @@ let LeadService = class LeadService {
             todayEnd.setHours(23);
             todayEnd.setMinutes(59);
             todayEnd.setSeconds(59);
-            if (campaignName) {
-                leadAgg.match({ campaign: campaignName });
+            if (campaignId) {
+                leadAgg.match({ campaignId: mongoose_3.Types.ObjectId(campaignId) });
             }
             if ((interval === null || interval === void 0 ? void 0 : interval.length) === 2) {
                 leadAgg.match({

@@ -27,7 +27,7 @@ export class FollowUpDto {
 
   @IsOptional()
   @IsString()
-  campaignName?: string;
+  campaignId?: string;
 
   @IsNumber()
   readonly page: number;

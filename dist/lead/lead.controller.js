@@ -177,16 +177,15 @@ let LeadController = class LeadController {
     }
     fetchFollowUps(followUpDto, user) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { organization } = user;
-            const { interval, userEmail, campaignName, page, perPage, } = followUpDto;
-            yield this.leadService.checkPrecondition(user, userEmail);
+            const { organization, email } = user;
+            const { interval, campaignId, page, perPage, } = followUpDto;
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
             return this.leadService.getFollowUps({
                 interval,
                 organization,
-                email: userEmail || user.email,
-                campaignName,
+                email,
+                campaignId,
                 limit,
                 page,
                 skip,
