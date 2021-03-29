@@ -355,6 +355,7 @@ export class LeadService {
       projectQ[fld] = 1;
     });
 
+    projectQ.transactionCount = 1;
     if (Object.keys(projectQ).length > 0) {
       leadAgg.project(projectQ);
     }
@@ -686,8 +687,10 @@ export class LeadService {
     
     nextEntryInHistory.nextAction = lead.nextAction;
 
-    /** Do not update contact, there will be a separate api for adding contact information */
-    let { contact, ...filteredObj } = obj;
+    /** Do not update contact, there will be a separate api for adding contact information, we dont want to set the 
+     * value of transaction count it has to be incremented
+     */
+    let { contact, transactionCount, ...filteredObj } = obj;
 
     // if reassignment is required, change that in the lead
     if (reassignToUser) {
@@ -708,9 +711,9 @@ export class LeadService {
 
       result = await this.leadModel.findOneAndUpdate(
         { _id: leadId, organization },
-        { $set: filteredObj, $inc: {transactionCount: 1} },
+        { $inc: { transactionCount: 1 }, $set: filteredObj },
         {new: true} //set it to false for performance boost
-      );
+      ).lean().exec();
     }catch(e) {
       if(e.code === 11000) {
         throw new ConflictException("Mobile number must be unique");
