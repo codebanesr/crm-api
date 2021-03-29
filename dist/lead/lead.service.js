@@ -485,7 +485,7 @@ let LeadService = class LeadService {
                 if (!lead.nextAction) {
                     filteredObj.nextAction = '__closed__';
                 }
-                result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj }, { new: true });
+                result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj, $inc: { transactionCount: 1 } }, { new: true });
             }
             catch (e) {
                 if (e.code === 11000) {
@@ -549,15 +549,12 @@ let LeadService = class LeadService {
             return uq;
         });
     }
-    findInjectableLeads(organization, email) {
+    findInjectableLeads(organization, email, campaignId, projection) {
         return __awaiter(this, void 0, void 0, function* () {
-            const fiveMinAgo = moment().subtract(5, 'minute').toDate();
+            const fifteenMinsAgo = moment().subtract(15, 'minutes').toDate();
             const now = moment().toDate();
             const lead = yield this.leadModel
-                .findOne({ organization, email })
-                .where("followUp")
-                .gte(fiveMinAgo)
-                .lte(now)
+                .findOne({ campaignId, organization, email, followUp: { $lte: now, $gte: fifteenMinsAgo } })
                 .lean()
                 .exec();
             this.logger.debug({ injectableLead: lead });
@@ -571,14 +568,28 @@ let LeadService = class LeadService {
                     delete filters[k];
                 }
             });
-            this.logger.debug(" <<<------------------------ Getting injectable lead first ----------------------->>>>>>>>> ");
-            yield this.findInjectableLeads(organization, email);
             const campaign = yield this.campaignModel
                 .findOne({ _id: campaignId, organization })
                 .lean()
                 .exec();
             if (!campaign || !campaign.browsableCols || !campaign.editableCols) {
                 throw new common_1.UnprocessableEntityException();
+            }
+            let projection = {
+                documentLinks: 1
+            };
+            campaign.browsableCols.forEach((c) => {
+                projection[c] = 1;
+            });
+            projection["contact"] = 1;
+            projection["email"] = 1;
+            const injectableLead = yield this.findInjectableLeads(organization, email, campaign._id, projection);
+            if (injectableLead) {
+                this.logger.log("Injectable lead found, returning it");
+                const leadHistory = yield this.leadHistoryModel
+                    .find({ lead: injectableLead._id })
+                    .limit(5);
+                return { lead: injectableLead, leadHistory, isInjectableLead: true };
             }
             const singleLeadAgg = this.leadModel.aggregate();
             singleLeadAgg.match({ campaignId: campaign._id });
@@ -650,14 +661,6 @@ let LeadService = class LeadService {
             });
             singleLeadAgg.sort({ updatedAt: 1 });
             singleLeadAgg.limit(1);
-            let projection = {
-                documentLinks: 1
-            };
-            campaign.browsableCols.forEach((c) => {
-                projection[c] = 1;
-            });
-            projection["contact"] = 1;
-            projection["email"] = 1;
             singleLeadAgg.project(projection);
             const lead = (yield singleLeadAgg.exec())[0];
             let leadHistory = [];
@@ -672,7 +675,7 @@ let LeadService = class LeadService {
                 this.logger.debug(`Assigned lead ${lead._id} to ${email}`);
             }
             lead.nextAction = null;
-            return { lead, leadHistory };
+            return { lead, leadHistory, isInjectableLead: false };
         });
     }
     getSaleAmountByLeadStatus(campaignName) {

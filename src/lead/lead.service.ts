@@ -708,7 +708,7 @@ export class LeadService {
 
       result = await this.leadModel.findOneAndUpdate(
         { _id: leadId, organization },
-        { $set: filteredObj },
+        { $set: filteredObj, $inc: {transactionCount: 1} },
         {new: true} //set it to false for performance boost
       );
     }catch(e) {
@@ -779,20 +779,15 @@ export class LeadService {
     return uq;
   }
 
-  async findInjectableLeads(organization: string, email: string) {
-    const fiveMinAgo = moment().subtract(5, 'minute').toDate();
+  async findInjectableLeads(organization: string, email: string, campaignId: string, projection) {
+    const fifteenMinsAgo = moment().subtract(15, 'minutes').toDate();
     const now = moment().toDate();
     const lead = await this.leadModel
-      .findOne({ organization, email })
-      .where("followUp")
-      .gte(fiveMinAgo)
-      .lte(now)
+      .findOne({ campaignId, organization, email, followUp: {$lte: now, $gte: fifteenMinsAgo} })
       .lean()
       .exec();
 
-
     this.logger.debug({ injectableLead: lead });
-
     return lead;
   }
 
@@ -820,9 +815,6 @@ export class LeadService {
       }
     });
 
-    this.logger.debug(" <<<------------------------ Getting injectable lead first ----------------------->>>>>>>>> ");
-    await this.findInjectableLeads(organization, email);
-
     const campaign = await this.campaignModel
       .findOne({ _id: campaignId, organization })
       .lean()
@@ -830,6 +822,32 @@ export class LeadService {
 
     if (!campaign || !campaign.browsableCols || !campaign.editableCols) {
       throw new UnprocessableEntityException();
+    }
+
+
+    // this should always be fetched ...
+    let projection = {
+      documentLinks: 1
+    };
+
+    campaign.browsableCols.forEach((c) => {
+      projection[c] = 1;
+    });
+
+    /** @Todo Quick fix for sending contact ionformation to frontend, to put some effort into this if required */
+    projection["contact"] = 1;
+    // next action should not be carried forward
+    // projection["nextAction"] = 1;
+    projection["email"] = 1;
+
+
+    const injectableLead = await this.findInjectableLeads(organization, email, campaign._id, projection);
+    if(injectableLead) {
+      this.logger.log("Injectable lead found, returning it");
+      const leadHistory = await this.leadHistoryModel
+      .find({ lead: injectableLead._id })
+      .limit(5);
+      return {lead: injectableLead, leadHistory, isInjectableLead: true};
     }
 
     const singleLeadAgg = this.leadModel.aggregate();
@@ -924,20 +942,6 @@ export class LeadService {
     singleLeadAgg.sort({ updatedAt: 1 });
     singleLeadAgg.limit(1);
 
-    // this should always be fetched ...
-    let projection = {
-      documentLinks: 1
-    };
-
-    campaign.browsableCols.forEach((c) => {
-      projection[c] = 1;
-    });
-
-    /** @Todo Quick fix for sending contact ionformation to frontend, to put some effort into this if required */
-    projection["contact"] = 1;
-    // next action should not be carried forward
-    // projection["nextAction"] = 1;
-    projection["email"] = 1;
 
     // other information that should always show up, one is history
 
@@ -965,7 +969,7 @@ export class LeadService {
 
 
     lead.nextAction = null;
-    return { lead, leadHistory };
+    return { lead, leadHistory, isInjectableLead: false };
   }
 
   getSaleAmountByLeadStatus(campaignName?: string) {

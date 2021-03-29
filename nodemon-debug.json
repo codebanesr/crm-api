@@ -6,5 +6,5 @@
   "ignore": [
     "src/**/*.spec.ts"
   ],
-  "exec": "yarn prestart:prod && node --inspect=0.0.0.0 ./dist/main.js"
+  "exec": "yarn build && node --inspect=0.0.0.0 ./dist/main.js"
 }

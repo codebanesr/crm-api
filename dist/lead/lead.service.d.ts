@@ -60,7 +60,7 @@ export declare class LeadService {
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
     findOneById(leadId: string, email: string, roleType: string): Promise<{
-        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived">;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
         leadHistory: any[];
     }>;
     patch(productId: string, body: any[]): Promise<any>;
@@ -96,7 +96,7 @@ export declare class LeadService {
             $gt: Date;
         };
     }>;
-    findInjectableLeads(organization: string, email: string): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived">>;
+    findInjectableLeads(organization: string, email: string, campaignId: string, projection: any): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">>;
     fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters }: FetchNextLeadDto & {
         campaignId: string;
         email: string;
@@ -105,6 +105,7 @@ export declare class LeadService {
     }): Promise<{
         lead: any;
         leadHistory: any[];
+        isInjectableLead: boolean;
     }>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
     getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto, isStreamable: boolean): Promise<{
