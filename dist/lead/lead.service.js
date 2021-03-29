@@ -261,6 +261,7 @@ let LeadService = class LeadService {
             flds.forEach((fld) => {
                 projectQ[fld] = 1;
             });
+            projectQ.transactionCount = 1;
             if (Object.keys(projectQ).length > 0) {
                 leadAgg.project(projectQ);
             }
@@ -474,7 +475,7 @@ let LeadService = class LeadService {
             nextEntryInHistory.organization = organization;
             nextEntryInHistory.campaign = campaignId;
             nextEntryInHistory.nextAction = lead.nextAction;
-            let { contact } = obj, filteredObj = __rest(obj, ["contact"]);
+            let { contact, transactionCount } = obj, filteredObj = __rest(obj, ["contact", "transactionCount"]);
             if (reassignToUser) {
                 obj.email = reassignToUser;
             }
@@ -485,7 +486,7 @@ let LeadService = class LeadService {
                 if (!lead.nextAction) {
                     filteredObj.nextAction = '__closed__';
                 }
-                result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $set: filteredObj, $inc: { transactionCount: 1 } }, { new: true });
+                result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $inc: { transactionCount: 1 }, $set: filteredObj }, { new: true });
             }
             catch (e) {
                 if (e.code === 11000) {
