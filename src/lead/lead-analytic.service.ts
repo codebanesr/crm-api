@@ -241,7 +241,7 @@ export class LeadAnalyticService {
     
     pipeline.match({
       organization,
-      updatedAt: {$gte: filter.startDate, $lt: filter.endDate}
+      createdAt: {$gte: filter.startDate, $lt: filter.endDate}
     });
 
     if(filter.handler?.length > 0) {
@@ -264,6 +264,8 @@ export class LeadAnalyticService {
       _id: 0
     })
 
-    return pipeline.exec();
+    const result = await pipeline.exec();
+
+    return result;
   }
 }
