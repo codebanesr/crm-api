@@ -223,7 +223,7 @@ let LeadAnalyticService = class LeadAnalyticService {
             const pipeline = this.leadHistoryModel.aggregate();
             pipeline.match({
                 organization,
-                updatedAt: { $gte: filter.startDate, $lt: filter.endDate }
+                createdAt: { $gte: filter.startDate, $lt: filter.endDate }
             });
             if (((_a = filter.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
                 pipeline.match({ email: { $in: filter.handler } });
@@ -239,7 +239,8 @@ let LeadAnalyticService = class LeadAnalyticService {
                 type: "$_id.email",
                 _id: 0
             });
-            return pipeline.exec();
+            const result = yield pipeline.exec();
+            return result;
         });
     }
 };
