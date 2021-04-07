@@ -1007,12 +1007,13 @@ export class LeadService {
     ): Promise<{ response: Partial<LeadHistory>[], total: number }> {
     // get email ids of users after him
     let conditionalQueries = {};
-    let subordinateEmails = await this.userService.getSubordinates(email, roleType, organization);
 
     // if the user only wants to see results for some subordinates this will filter it out
     if(payload.filters?.handler?.length > 0) {
-      subordinateEmails = intersection(payload.filters?.handler, subordinateEmails)
+      // subordinateEmails = intersection(payload.filters?.handler, subordinateEmails)
+      conditionalQueries["newUser"] = { $in: payload.filters.handler };
     };
+
 
     if(payload.filters?.leadId) {
       conditionalQueries['lead'] = payload.filters.leadId;
@@ -1039,7 +1040,11 @@ export class LeadService {
 
     const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
 
-    const query = {organization, newUser: {$in: subordinateEmails}, ...conditionalQueries};
+    const query = {
+      organization, 
+      // newUser: {$in: subordinateEmails},
+      ...conditionalQueries
+    };
     const result = this.leadHistoryModel
       .find(query)
       .sort({ [payload.pagination.sortBy]: sortOrder });

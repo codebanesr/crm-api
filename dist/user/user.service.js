@@ -129,7 +129,7 @@ let UserService = class UserService {
             yield this.passwordsAreMatch(user);
             return {
                 fullName: user.fullName,
-                organization: user.get('organization.organizationName'),
+                organization: user.get('organization.name'),
                 email: user.email,
                 roleType: user.roleType,
                 accessToken: yield this.authService.createAccessToken(user._id, singleLoginKey),
