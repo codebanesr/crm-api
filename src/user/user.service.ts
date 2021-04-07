@@ -153,9 +153,10 @@ export class UserService {
     const singleLoginKey = this.setSingleLoginKey(user);
     // save the user if passwords match
     await this.passwordsAreMatch(user);
+
     return {
       fullName: user.fullName,
-      organization: user.get('organization.organizationName'),
+      organization: user.get('organization.name'),
       email: user.email,
       roleType: user.roleType,
       accessToken: await this.authService.createAccessToken(user._id, singleLoginKey),

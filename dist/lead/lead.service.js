@@ -701,33 +701,32 @@ let LeadService = LeadService_1 = class LeadService {
         return qb.exec();
     }
     getTransactions(organization, email, roleType, payload, isStreamable) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g;
         return __awaiter(this, void 0, void 0, function* () {
             let conditionalQueries = {};
-            let subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
             if (((_b = (_a = payload.filters) === null || _a === void 0 ? void 0 : _a.handler) === null || _b === void 0 ? void 0 : _b.length) > 0) {
-                subordinateEmails = lodash_1.intersection((_c = payload.filters) === null || _c === void 0 ? void 0 : _c.handler, subordinateEmails);
+                conditionalQueries["newUser"] = { $in: payload.filters.handler };
             }
             ;
-            if ((_d = payload.filters) === null || _d === void 0 ? void 0 : _d.leadId) {
+            if ((_c = payload.filters) === null || _c === void 0 ? void 0 : _c.leadId) {
                 conditionalQueries['lead'] = payload.filters.leadId;
             }
-            if ((_e = payload.filters) === null || _e === void 0 ? void 0 : _e.prospectName) {
+            if ((_d = payload.filters) === null || _d === void 0 ? void 0 : _d.prospectName) {
                 const expr = new RegExp(payload.filters.prospectName);
                 conditionalQueries['prospectName'] = { $regex: expr, $options: "i" };
             }
-            if ((_f = payload.filters) === null || _f === void 0 ? void 0 : _f.campaign) {
+            if ((_e = payload.filters) === null || _e === void 0 ? void 0 : _e.campaign) {
                 conditionalQueries["campaign"] = payload.filters.campaign;
             }
-            if ((_g = payload.filters) === null || _g === void 0 ? void 0 : _g.startDate) {
+            if ((_f = payload.filters) === null || _f === void 0 ? void 0 : _f.startDate) {
                 conditionalQueries["createdAt"] = {};
                 conditionalQueries["createdAt"]["$gte"] = new Date(payload.filters.startDate);
             }
-            if ((_h = payload.filters) === null || _h === void 0 ? void 0 : _h.endDate) {
+            if ((_g = payload.filters) === null || _g === void 0 ? void 0 : _g.endDate) {
                 conditionalQueries["createdAt"]["$lte"] = new Date(payload.filters.endDate);
             }
             const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
-            const query = Object.assign({ organization, newUser: { $in: subordinateEmails } }, conditionalQueries);
+            const query = Object.assign({ organization }, conditionalQueries);
             const result = this.leadHistoryModel
                 .find(query)
                 .sort({ [payload.pagination.sortBy]: sortOrder });
