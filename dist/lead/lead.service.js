@@ -488,6 +488,9 @@ let LeadService = LeadService_1 = class LeadService {
                 if (!lead.nextAction) {
                     filteredObj.nextAction = '__closed__';
                 }
+                if (!filteredObj.followUp) {
+                    filteredObj.followUp = null;
+                }
                 result = yield this.leadModel.findOneAndUpdate({ _id: leadId, organization }, { $inc: { transactionCount: 1 }, $set: filteredObj }, { new: true }).lean().exec();
             }
             catch (e) {
@@ -567,6 +570,7 @@ let LeadService = LeadService_1 = class LeadService {
     static postProcessLead(lead) {
         lead.notes = "";
         lead.nextAction = null;
+        lead.followUp = null;
         return lead;
     }
     fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters }) {
