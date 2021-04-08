@@ -710,6 +710,11 @@ export class LeadService {
         filteredObj.nextAction = '__closed__';
       }
 
+      // if frontend doesnot send followup, the previous followup should be erased
+      if(!filteredObj.followUp) {
+        filteredObj.followUp = null;
+      }
+
       result = await this.leadModel.findOneAndUpdate(
         { _id: leadId, organization },
         { $inc: { transactionCount: 1 }, $set: filteredObj },
@@ -798,8 +803,9 @@ export class LeadService {
   static postProcessLead(lead: DocumentDefinition<Lead>) {
     lead.notes = "";
     lead.nextAction = null;
-
-
+    
+    // if this lead gets updated we don't want previous followup
+    lead.followUp = null;
     return lead;
   }
 
@@ -1013,7 +1019,6 @@ export class LeadService {
       // subordinateEmails = intersection(payload.filters?.handler, subordinateEmails)
       conditionalQueries["newUser"] = { $in: payload.filters.handler };
     };
-
 
     if(payload.filters?.leadId) {
       conditionalQueries['lead'] = payload.filters.leadId;
