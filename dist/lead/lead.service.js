@@ -248,6 +248,7 @@ let LeadService = LeadService_1 = class LeadService {
                     .exec();
                 leadAgg.match({ campaign: campaign.campaignName });
             }
+            leadAgg.sort({ updatedAt: -1 });
             let flds;
             if (showCols && showCols.length > 0) {
                 flds = showCols;
