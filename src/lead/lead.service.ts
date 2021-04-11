@@ -336,6 +336,7 @@ export class LeadService {
       leadAgg.match({ campaign: campaign.campaignName });
     }
 
+    leadAgg.sort({updatedAt: -1})
     let flds;
     if (showCols && showCols.length > 0) {
       flds = showCols;
