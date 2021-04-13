@@ -38,6 +38,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { RoleType } from "../shared/role-type.enum";
 import { VisitTrack } from "../agent/interface/visit-track.interface";
 import { Organization } from "src/organization/interface/organization.interface";
+import { UpdateProfileDto } from "./dto/updateProfile.dto";
 
 @Injectable()
 export class UserService {
@@ -654,6 +655,21 @@ export class UserService {
         HttpStatus.FORBIDDEN
       );
     }
+  }
+
+
+  async updateProfile(user: User, updateProfileDto: UpdateProfileDto) {
+    const { fullName, password, confirmNewPassword, newPassword, phoneNumber } = updateProfileDto;
+    await this.checkPassword(password, user);
+
+    user.fullName = fullName;
+    user.password = newPassword;
+    user.phoneNumber = phoneNumber;
+
+
+    await user.save();
+
+    return {status: "success"};
   }
 
   async getUserProfile(email) {

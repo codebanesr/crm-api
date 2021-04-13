@@ -556,6 +556,17 @@ let UserService = class UserService {
             }
         });
     }
+    updateProfile(user, updateProfileDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { fullName, password, confirmNewPassword, newPassword, phoneNumber } = updateProfileDto;
+            yield this.checkPassword(password, user);
+            user.fullName = fullName;
+            user.password = newPassword;
+            user.phoneNumber = phoneNumber;
+            yield user.save();
+            return { status: "success" };
+        });
+    }
     getUserProfile(email) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.userModel
