@@ -19,7 +19,7 @@ import { ValidateNewOrganizationDto } from "./dto/validation.dto";
 import { OrganizationService } from "./organization.service";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import { RolesGuard } from "../auth/guards/roles.guard";
-import { PinoLogger } from "nestjs-pino";
+import { Logger } from "nestjs-pino";
 
 @Controller("organization")
 @ApiTags("organization")
@@ -27,9 +27,8 @@ import { PinoLogger } from "nestjs-pino";
 export class OrganizationController {
   constructor(
     private organizationService: OrganizationService,
-    private logger: PinoLogger  
+    private logger: Logger  
   ) {
-    logger.setContext(OrganizationController.name)
   }
 
   @Post()
@@ -88,7 +87,7 @@ export class OrganizationController {
   })
   @ApiCreatedResponse({})
   async createOrUpdateUserQuota(@Body() updateQuota: UpdateQuotaDto) {
-    return await this.organizationService.createOrUpdateUserQuota(updateQuota);
+    return this.organizationService.createOrUpdateUserQuota(updateQuota);
   }
 
   @Post("isValid")

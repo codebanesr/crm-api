@@ -28,12 +28,28 @@ export const OrganizationSchema = new mongoose.Schema ({
         required: [true, 'PHONE_NUMBER_PREFIX_IS_BLANK'],
     },
 
+
     accountType: {
         type: String,
         enum : Object.keys(OrganizationalType),
         default: OrganizationalType.TRIAL
     },
+
     organizationImage: String,
+
+    currentSize: {
+        type: Number,
+        default: 0
+    },
+
+    size: {
+        type: Number,
+        default: 1
+    },
+    
+    startDate: Date,
+
+    endDate: Date
 }, {
     versionKey: false,
     timestamps: true,

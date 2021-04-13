@@ -7,4 +7,7 @@ export declare class CreateOrganizationDto {
     fullName: string;
     password: string;
     organizationImage: string;
+    startDate: Date;
+    endDate: Date;
+    size: number;
 }

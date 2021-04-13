@@ -6,13 +6,13 @@ import { BatteryStatusDto } from "./schemas/battery-status.dto";
 import { VisitTrack } from "./interface/visit-track.interface";
 import { AddLocationDto } from "./dto/add-location.dto";
 import { GetUsersLocationsDto } from "./dto/get-user-locations.dto";
-import { PinoLogger } from "nestjs-pino";
+import { Logger } from "nestjs-pino";
 export declare class AgentService {
     private readonly adminActionModel;
     private readonly visitTrackModel;
     private readonly userModel;
     private logger;
-    constructor(adminActionModel: Model<AdminAction>, visitTrackModel: Model<VisitTrack>, userModel: Model<User>, logger: PinoLogger);
+    constructor(adminActionModel: Model<AdminAction>, visitTrackModel: Model<VisitTrack>, userModel: Model<User>, logger: Logger);
     listActions(activeUserId: string, organization: string, skip: any, fileType: any, sortBy: string, me: any, campaign: string): Promise<any>;
     downloadFile(location: string, res: Response): Promise<void>;
     updateBatteryStatus(userId: string, batLvlDto: BatteryStatusDto): Promise<VisitTrack>;

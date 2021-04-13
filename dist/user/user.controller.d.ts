@@ -16,6 +16,8 @@ export declare class UserController {
     register(createUserDto: CreateUserDto, user: User): Promise<any>;
     registerReseller(createResellerDto: CreateResellerDto, user: User): Promise<any>;
     getAllUsersHack(user: User): Promise<any>;
+    getUserProfile(user: User): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
+    updateUserProfile(user: User): Promise<boolean>;
     getUserById(user: User, userid: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
     verifyEmail(req: IRequest, verifyUuidDto: VerifyUuidDto): Promise<{
         fullName: string;

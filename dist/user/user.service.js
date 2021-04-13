@@ -39,11 +39,11 @@ const crypto_utils_1 = require("../utils/crypto.utils");
 const uuid_2 = require("uuid");
 const role_type_enum_1 = require("../shared/role-type.enum");
 let UserService = class UserService {
-    constructor(userModel, forgotPasswordModel, adminActionModel, visitTrackModel, authService) {
+    constructor(userModel, forgotPasswordModel, adminActionModel, organizationModel, authService) {
         this.userModel = userModel;
         this.forgotPasswordModel = forgotPasswordModel;
         this.adminActionModel = adminActionModel;
-        this.visitTrackModel = visitTrackModel;
+        this.organizationModel = organizationModel;
         this.authService = authService;
         this.HOURS_TO_VERIFY = 4;
         this.HOURS_TO_BLOCK = 6;
@@ -52,12 +52,25 @@ let UserService = class UserService {
     create(createUserDto, organization, isFirstUser = false) {
         return __awaiter(this, void 0, void 0, function* () {
             !isFirstUser && (yield this.checkHierarchyPreconditions(createUserDto));
+            yield this.checkAndUpdateUserQuota(organization);
             const user = new this.userModel(Object.assign(Object.assign({}, createUserDto), { organization, verified: true }));
             user.roles = [createUserDto.roleType];
             yield this.isEmailUnique(user.email);
             this.setRegistrationInfo(user);
             yield user.save();
             return this.buildRegistrationInfo(user);
+        });
+    }
+    checkAndUpdateUserQuota(organizationId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { currentSize, size } = yield this.organizationModel.findById(organizationId, {
+                size: 1,
+                currentSize: 1
+            }).lean().exec();
+            if (currentSize >= size) {
+                throw new common_1.BadRequestException("User quota size exceeded");
+            }
+            yield this.organizationModel.findByIdAndUpdate(organizationId, { $inc: { currentSize: 1 } });
         });
     }
     checkHierarchyPreconditions(createUserDto) {
@@ -210,7 +223,7 @@ let UserService = class UserService {
                 return this.userModel.find({ organization, roleType: { $in: superiorRoleTypes } }, { email: 1, fullName: 1 }).lean().exec();
             }
             else {
-                return this.userModel.find({ roleType: { $ne: role_type_enum_1.RoleType.frontline } }, { email: 1, fullName: 1 }).lean().exec();
+                return this.userModel.find({ organization, roleType: { $ne: role_type_enum_1.RoleType.frontline } }, { email: 1, fullName: 1 }).lean().exec();
             }
         });
     }
@@ -543,6 +556,14 @@ let UserService = class UserService {
             }
         });
     }
+    getUserProfile(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.userModel
+                .findOne({ email }, { email: 1, fullName: 1, phoneNumber: 1 })
+                .lean()
+                .exec();
+        });
+    }
     getAllUsersHack(organization) {
         return __awaiter(this, void 0, void 0, function* () {
             const page = 1, perPage = 25, skip = 0;
@@ -596,7 +617,7 @@ UserService = __decorate([
     __param(0, mongoose_1.InjectModel("User")),
     __param(1, mongoose_1.InjectModel("ForgotPassword")),
     __param(2, mongoose_1.InjectModel("AdminAction")),
-    __param(3, mongoose_1.InjectModel("VisitTrack")),
+    __param(3, mongoose_1.InjectModel("Organization")),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,

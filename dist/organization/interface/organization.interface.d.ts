@@ -8,4 +8,8 @@ export interface Organization extends Document {
     email: string;
     lastActive: string;
     organizationImage: string;
+    startDate: Date;
+    endDate: Date;
+    size: number;
+    currentSize: number;
 }

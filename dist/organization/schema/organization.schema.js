@@ -34,6 +34,16 @@ exports.OrganizationSchema = new mongoose.Schema({
         default: organizational_enum_1.OrganizationalType.TRIAL
     },
     organizationImage: String,
+    currentSize: {
+        type: Number,
+        default: 0
+    },
+    size: {
+        type: Number,
+        default: 1
+    },
+    startDate: Date,
+    endDate: Date
 }, {
     versionKey: false,
     timestamps: true,

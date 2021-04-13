@@ -20,7 +20,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var OrganizationController_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrganizationController = void 0;
 const common_1 = require("@nestjs/common");
@@ -35,11 +34,10 @@ const organization_service_1 = require("./organization.service");
 const update_quota_dto_1 = require("./dto/update-quota.dto");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const nestjs_pino_1 = require("nestjs-pino");
-let OrganizationController = OrganizationController_1 = class OrganizationController {
+let OrganizationController = class OrganizationController {
     constructor(organizationService, logger) {
         this.organizationService = organizationService;
         this.logger = logger;
-        logger.setContext(OrganizationController_1.name);
     }
     register(createOrganizationDto, user) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -61,7 +59,7 @@ let OrganizationController = OrganizationController_1 = class OrganizationContro
     }
     createOrUpdateUserQuota(updateQuota) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.organizationService.createOrUpdateUserQuota(updateQuota);
+            return this.organizationService.createOrUpdateUserQuota(updateQuota);
         });
     }
     isValidAttribute(validateNewOrganizationDto) {
@@ -150,12 +148,12 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], OrganizationController.prototype, "getPayments", null);
-OrganizationController = OrganizationController_1 = __decorate([
+OrganizationController = __decorate([
     common_1.Controller("organization"),
     swagger_1.ApiTags("organization"),
     common_1.UseGuards(roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [organization_service_1.OrganizationService,
-        nestjs_pino_1.PinoLogger])
+        nestjs_pino_1.Logger])
 ], OrganizationController);
 exports.OrganizationController = OrganizationController;
 //# sourceMappingURL=organization.controller.js.map

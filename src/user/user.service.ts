@@ -37,6 +37,7 @@ import { hashPassword } from "../utils/crypto.utils";
 import { v4 as uuidv4 } from 'uuid';
 import { RoleType } from "../shared/role-type.enum";
 import { VisitTrack } from "../agent/interface/visit-track.interface";
+import { Organization } from "src/organization/interface/organization.interface";
 
 @Injectable()
 export class UserService {
@@ -51,9 +52,9 @@ export class UserService {
     @InjectModel("AdminAction")
     private readonly adminActionModel: Model<AdminAction>,
 
-    @InjectModel("VisitTrack")
-    private readonly visitTrackModel: Model<VisitTrack>,
-
+    @InjectModel("Organization") 
+    private readonly organizationModel: Model<Organization>,
+    
     private readonly authService: AuthService
   ) {}
 
@@ -64,6 +65,9 @@ export class UserService {
   // if we have the organiztion then we call this function directly, to call from some other service
   async create(createUserDto: CreateUserDto, organization: string, isFirstUser: boolean = false) {
     !isFirstUser && await this.checkHierarchyPreconditions(createUserDto);
+
+    /** @Todo this should be handled inside a transaction */
+    await this.checkAndUpdateUserQuota(organization);
     const user = new this.userModel({
       ...createUserDto,
       organization,
@@ -77,6 +81,21 @@ export class UserService {
     this.setRegistrationInfo(user);
     await user.save();
     return this.buildRegistrationInfo(user);
+  }
+
+
+  async checkAndUpdateUserQuota(organizationId: string) {
+    const {currentSize, size} = await this.organizationModel.findById(organizationId, {
+      size: 1,
+      currentSize: 1
+    }).lean().exec();
+
+    if(currentSize >= size) {
+      throw new BadRequestException("User quota size exceeded");
+    }
+
+
+    await this.organizationModel.findByIdAndUpdate(organizationId, { $inc: { currentSize: 1 }});
   }
 
   async checkHierarchyPreconditions(createUserDto: CreateUserDto) {
@@ -269,7 +288,7 @@ export class UserService {
       const superiorRoleTypes = await this.getSuperiorRoleTypes(userEmail);
       return this.userModel.find({organization, roleType: {$in: superiorRoleTypes}}, {email: 1, fullName: 1}).lean().exec();
     }else {
-      return this.userModel.find({roleType: {$ne: RoleType.frontline}}, {email: 1, fullName: 1}).lean().exec();
+      return this.userModel.find({organization, roleType: {$ne: RoleType.frontline}}, {email: 1, fullName: 1}).lean().exec();
     }
   }
 
@@ -635,6 +654,13 @@ export class UserService {
         HttpStatus.FORBIDDEN
       );
     }
+  }
+
+  async getUserProfile(email) {
+    return this.userModel
+      .findOne({ email }, { email: 1, fullName: 1, phoneNumber: 1 })
+      .lean()
+      .exec(); 
   }
 
   async getAllUsersHack(organization: string) {
