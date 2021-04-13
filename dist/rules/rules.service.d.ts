@@ -5,7 +5,10 @@ import { RuleDto } from './dto/rule.dto';
 import { Rules } from './rules.interface';
 import { Lead } from '../lead/interfaces/lead.interface';
 import { Lead as UpdateLeadDto } from '../lead/dto/lead-model.dto';
+import { PinoLogger } from 'nestjs-pino';
 export declare class RulesService {
+    private logger;
+    constructor(logger: PinoLogger);
     private readonly ruleModel;
     private readonly leadHistoryModel;
     getRuleById(id: string): Promise<Pick<Rules, "_id" | "url" | "campaign" | "isActive" | "action" | "changeHandler" | "daysOverdue" | "disposition" | "fromDisposition" | "newDisposition" | "newHandler" | "numberOfAttempts" | "toDisposition" | "trigger">>;

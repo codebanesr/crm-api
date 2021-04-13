@@ -4,13 +4,10 @@ import { LoginUserDto } from "./dto/login-user.dto";
 import {
   Injectable,
   BadRequestException,
-  NotFoundException,
   ConflictException,
-  Logger,
   HttpException,
   HttpStatus,
   MethodNotAllowedException,
-  ForbiddenException,
   PreconditionFailedException,
   UnauthorizedException,
 } from "@nestjs/common";

@@ -20,6 +20,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var AgentService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AgentService = void 0;
 const common_1 = require("@nestjs/common");
@@ -28,11 +29,14 @@ const mongoose_2 = require("mongoose");
 const fs_1 = require("fs");
 const lodash_1 = require("lodash");
 const moment = require("moment");
-let AgentService = class AgentService {
-    constructor(adminActionModel, visitTrackModel, userModel) {
+const nestjs_pino_1 = require("nestjs-pino");
+let AgentService = AgentService_1 = class AgentService {
+    constructor(adminActionModel, visitTrackModel, userModel, logger) {
         this.adminActionModel = adminActionModel;
         this.visitTrackModel = visitTrackModel;
         this.userModel = userModel;
+        this.logger = logger;
+        logger.setContext(AgentService_1.name);
     }
     listActions(activeUserId, organization, skip, fileType, sortBy = "handler", me, campaign) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -76,7 +80,7 @@ let AgentService = class AgentService {
     }
     updateBatteryStatus(userId, batLvlDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            common_1.Logger.debug(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}, ${batLvlDto.batLvl}`);
+            this.logger.info(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}, ${batLvlDto.batLvl}`);
             return this.visitTrackModel.findOneAndUpdate({ userId }, {
                 $set: {
                     batLvl: batLvlDto.batLvl
@@ -86,7 +90,7 @@ let AgentService = class AgentService {
     }
     addVisitTrack(userId, payload) {
         return __awaiter(this, void 0, void 0, function* () {
-            common_1.Logger.debug(`userid: ${userId}, coorinates: ${payload.coordinate}`);
+            this.logger.info(`userid: ${userId}, coorinates: ${payload.coordinate}`);
             const start = moment().startOf('day');
             const end = moment().endOf('day');
             return this.visitTrackModel.findOneAndUpdate({ userId, createdAt: { $gte: start, $lt: end } }, {
@@ -138,14 +142,15 @@ let AgentService = class AgentService {
         });
     }
 };
-AgentService = __decorate([
+AgentService = AgentService_1 = __decorate([
     common_1.Injectable(),
     __param(0, mongoose_1.InjectModel("AdminAction")),
     __param(1, mongoose_1.InjectModel("VisitTrack")),
     __param(2, mongoose_1.InjectModel("User")),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        nestjs_pino_1.PinoLogger])
 ], AgentService);
 exports.AgentService = AgentService;
 //# sourceMappingURL=agent.service.js.map

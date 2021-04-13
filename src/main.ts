@@ -10,9 +10,12 @@ import { LeadModule } from "./lead/lead.module";
 import { CampaignModule } from "./campaign/campaign.module";
 import { AgentModule } from "./agent/agent.module";
 import { OrganizationModule } from "./organization/organization.module";
+import { Logger } from "nestjs-pino";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useLogger(app.get(Logger));
+
   app.enableCors();
 
   app.useGlobalPipes(

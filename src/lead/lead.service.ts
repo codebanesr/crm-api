@@ -1,7 +1,6 @@
 import {
   ConflictException,
   Injectable,
-  Logger,
   PreconditionFailedException,
   UnprocessableEntityException,
 } from "@nestjs/common";
@@ -197,7 +196,7 @@ export class LeadService {
 
       return result;
     } catch (e) {
-      Logger.error("An error occured in getLeadReassignmentHistory");
+      this.logger.error("An error occured in getLeadReassignmentHistory");
       return e.message;
     }
   }
@@ -512,7 +511,7 @@ export class LeadService {
       this.notificationService.sendMail({ subject, text, attachments, to: sepEmails });
       return { success: true };
     } catch (e) {
-      Logger.error(
+      this.logger.error(
         "Some error occured while sending bulk emails in sendBulkEmails",
         e.message
       );
@@ -564,9 +563,9 @@ export class LeadService {
     pushtoken: any,
     campaignId: string
   ) {
-    Logger.debug("Sending file to worker for processing");
+    this.logger.info("Sending file to worker for processing");
     const result = await this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
-    Logger.debug(result);
+    this.logger.info(result);
 
     return result;
   }

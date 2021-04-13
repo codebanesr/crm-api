@@ -4,7 +4,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Logger,
   Post,
   Query,
   UseGuards,
@@ -20,12 +19,18 @@ import { ValidateNewOrganizationDto } from "./dto/validation.dto";
 import { OrganizationService } from "./organization.service";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import { RolesGuard } from "../auth/guards/roles.guard";
+import { PinoLogger } from "nestjs-pino";
 
 @Controller("organization")
 @ApiTags("organization")
 @UseGuards(RolesGuard)
 export class OrganizationController {
-  constructor(private organizationService: OrganizationService) {}
+  constructor(
+    private organizationService: OrganizationService,
+    private logger: PinoLogger  
+  ) {
+    logger.setContext(OrganizationController.name)
+  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -40,7 +45,7 @@ export class OrganizationController {
     @Body() createOrganizationDto: CreateOrganizationDto,
     @CurrentUser() user: User
   ) {
-    Logger.debug(createOrganizationDto);
+    this.logger.debug(createOrganizationDto);
     const { _id, fullName } = user;
     return this.organizationService.createOrganization(
       createOrganizationDto,
@@ -103,7 +108,6 @@ export class OrganizationController {
   @ApiOperation({ summary: "Validate create-organization paylod" })
   @ApiCreatedResponse({})
   async getPayments(@Query("organization") organization: string) {
-    Logger.debug(organization);
     return this.organizationService.getAllPayments(organization);
   }
 }

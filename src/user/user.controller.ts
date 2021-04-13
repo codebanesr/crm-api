@@ -16,7 +16,6 @@ import {
   UploadedFile,
   Get,
   Param,
-  Logger,
   Put,
 } from "@nestjs/common";
 import { Request as IRequest } from "express";
