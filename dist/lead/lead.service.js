@@ -47,8 +47,9 @@ const config_1 = require("../config");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 const moment = require("moment");
+const nestjs_pino_1 = require("nestjs-pino");
 let LeadService = LeadService_1 = class LeadService {
-    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService) {
+    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService, logger) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
         this.campaignConfigModel = campaignConfigModel;
@@ -61,7 +62,8 @@ let LeadService = LeadService_1 = class LeadService {
         this.ruleService = ruleService;
         this.userService = userService;
         this.notificationService = notificationService;
-        this.logger = new common_1.Logger("leadService", true);
+        this.logger = logger;
+        logger.setContext(LeadService_1.name);
     }
     saveEmailAttachments(files) {
         return files;
@@ -598,7 +600,7 @@ let LeadService = LeadService_1 = class LeadService {
             projection["email"] = 1;
             const injectableLead = yield this.findInjectableLeads(organization, email, campaign._id, projection);
             if (injectableLead) {
-                this.logger.log("Injectable lead found, returning it");
+                this.logger.debug("Injectable lead found, returning it");
                 const leadHistory = yield this.leadHistoryModel
                     .find({ lead: injectableLead._id })
                     .limit(5)
@@ -872,7 +874,8 @@ LeadService = LeadService_1 = __decorate([
         mongoose_2.Model,
         mongoose_2.Model, Object, rules_service_1.RulesService,
         user_service_1.UserService,
-        notification_service_1.NotificationService])
+        notification_service_1.NotificationService,
+        nestjs_pino_1.PinoLogger])
 ], LeadService);
 exports.LeadService = LeadService;
 //# sourceMappingURL=lead.service.js.map

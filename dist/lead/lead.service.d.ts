@@ -1,4 +1,3 @@
-import { Logger } from "@nestjs/common";
 import { DocumentDefinition, Model } from "mongoose";
 import { Lead } from "./interfaces/lead.interface";
 import { User } from "../user/interfaces/user.interface";
@@ -21,6 +20,7 @@ import { Queue } from "bull";
 import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { LeadHistory } from "./interfaces/lead-history.interface";
+import { PinoLogger } from "nestjs-pino";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -34,8 +34,8 @@ export declare class LeadService {
     private readonly ruleService;
     private userService;
     private notificationService;
-    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, leadUploadQueue: Queue, ruleService: RulesService, userService: UserService, notificationService: NotificationService);
-    logger: Logger;
+    private readonly logger;
+    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, leadUploadQueue: Queue, ruleService: RulesService, userService: UserService, notificationService: NotificationService, logger: PinoLogger);
     saveEmailAttachments(files: any): any;
     reassignBulkLead(user: User, newUserEmail: string, leadIds: string[]): Promise<any>;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<{

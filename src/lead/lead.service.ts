@@ -34,6 +34,7 @@ import { FetchNextLeadDto, TypeOfLead } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import moment = require("moment");
+import { PinoLogger } from "nestjs-pino";
 @Injectable()
 export class LeadService {
   constructor(
@@ -70,10 +71,11 @@ export class LeadService {
     private userService: UserService,
 
     private notificationService: NotificationService,
-  ) {}
 
-
-  logger = new Logger("leadService", true);
+    private readonly logger: PinoLogger
+  ) {
+    logger.setContext(LeadService.name);
+  }
   saveEmailAttachments(files) {
     return files;
   }
@@ -862,7 +864,7 @@ export class LeadService {
 
     const injectableLead = await this.findInjectableLeads(organization, email, campaign._id, projection);
     if(injectableLead) {
-      this.logger.log("Injectable lead found, returning it");
+      this.logger.debug("Injectable lead found, returning it");
       const leadHistory = await this.leadHistoryModel
       .find({ lead: injectableLead._id })
       .limit(5)
