@@ -10,6 +10,7 @@ import {
   MethodNotAllowedException,
   PreconditionFailedException,
   UnauthorizedException,
+  NotAcceptableException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
@@ -36,9 +37,9 @@ import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { hashPassword } from "../utils/crypto.utils";
 import { v4 as uuidv4 } from 'uuid';
 import { RoleType } from "../shared/role-type.enum";
-import { VisitTrack } from "../agent/interface/visit-track.interface";
 import { Organization } from "src/organization/interface/organization.interface";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
+import * as moment from "moment";
 
 @Injectable()
 export class UserService {
@@ -164,6 +165,7 @@ export class UserService {
   // ┴─┘└─┘└─┘┴┘└┘
   async login(req: Request, loginUserDto: LoginUserDto) {
     const user = await this.findUserByEmail(loginUserDto.email);
+    await this.isOrganizationActive(user.organization as any);
     this.isUserBlocked(user);
     await this.checkPassword(loginUserDto.password, user);
 
@@ -406,6 +408,20 @@ export class UserService {
   private isUserBlocked(user) {
     if (user.blockExpires > Date.now()) {
       throw new ConflictException("User has been blocked try later.");
+    }
+  }
+
+
+  private async isOrganizationActive(org: Organization) {
+    const today = moment().toDate();
+    const organization = await this.organizationModel.findOne({
+      _id: org._id,
+      startDate: { $lte: today },
+      endDate: { $gte: today },
+    }).lean().exec();
+
+    if(!organization) {
+      throw new NotAcceptableException("Validity expired, please contact admin");
     }
   }
 
