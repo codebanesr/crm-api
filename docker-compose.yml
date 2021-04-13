@@ -29,6 +29,12 @@ services:
     networks:
       - webnet
     restart: always
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: "ap-south-1"
+        awslogs-group: "Molecule"
+        awslogs-stream: "main"
 
   # minio:
   #   image: 'bitnami/minio:latest'
@@ -60,6 +66,12 @@ services:
       - "6379:6379"
     networks:
       - webnet
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: "ap-south-1"
+        awslogs-group: "Molecule"
+        awslogs-stream: "redis"
 
   webserver:
     restart: unless-stopped
@@ -80,6 +92,12 @@ services:
       - main
     networks:
       - webnet
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: "ap-south-1"
+        awslogs-group: "Molecule"
+        awslogs-stream: "webserver"
   
   worker:
     image: "node:14.15.1-alpine3.12"
@@ -101,6 +119,12 @@ services:
     networks:
       - webnet
     restart: always
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: "ap-south-1"
+        awslogs-group: "Molecule"
+        awslogs-stream: "worker"
 
 networks:
   webnet:
