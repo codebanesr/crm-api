@@ -25,11 +25,13 @@ const upload_service_1 = require("./upload/upload.service");
 const push_notification_service_1 = require("./push-notification/push-notification.service");
 const config_1 = require("./config");
 const rules_module_1 = require("./rules/rules.module");
+const nestjs_pino_1 = require("nestjs-pino");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     common_1.Module({
         imports: [
+            nestjs_pino_1.LoggerModule.forRoot(),
             common_1.CacheModule.register(),
             mongoose_1.MongooseModule.forRoot(config_1.default.MONGODB_URI, { useNewUrlParser: true }),
             user_module_1.UserModule,
