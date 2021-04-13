@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { createReadStream } from "fs";
@@ -11,6 +11,7 @@ import { AddLocationDto } from "./dto/add-location.dto";
 import { intersection, union } from "lodash";
 import { GetUsersLocationsDto } from "./dto/get-user-locations.dto";
 import * as moment from "moment";
+import { PinoLogger } from "nestjs-pino";
 
 @Injectable()
 export class AgentService {
@@ -22,8 +23,12 @@ export class AgentService {
     private readonly visitTrackModel: Model<VisitTrack>,
 
     @InjectModel("User")
-    private readonly userModel: Model<User>
-  ) {}
+    private readonly userModel: Model<User>,
+
+    private logger: PinoLogger
+  ) {
+    logger.setContext(AgentService.name);
+  }
 
 
   // schema filter not working in this service call
@@ -83,7 +88,7 @@ export class AgentService {
 
 
   async updateBatteryStatus(userId: string, batLvlDto: BatteryStatusDto) {
-    Logger.debug(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}, ${batLvlDto.batLvl}`)
+    this.logger.info(`saving battery status  ${userId}, ${batLvlDto}, ${typeof batLvlDto.batLvl}, ${batLvlDto.batLvl}`)
     return this.visitTrackModel.findOneAndUpdate({userId}, {
       $set: {
         batLvl: batLvlDto.batLvl
@@ -93,7 +98,7 @@ export class AgentService {
 
 
   async addVisitTrack(userId: string, payload: AddLocationDto) {
-    Logger.debug(`userid: ${userId}, coorinates: ${payload.coordinate}`);
+    this.logger.info(`userid: ${userId}, coorinates: ${payload.coordinate}`);
 
 
     const start = moment().startOf('day');

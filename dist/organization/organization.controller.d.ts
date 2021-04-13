@@ -4,9 +4,11 @@ import { GenerateTokenDto } from "./dto/generate-token.dto";
 import { ValidateNewOrganizationDto } from "./dto/validation.dto";
 import { OrganizationService } from "./organization.service";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
+import { PinoLogger } from "nestjs-pino";
 export declare class OrganizationController {
     private organizationService;
-    constructor(organizationService: OrganizationService);
+    private logger;
+    constructor(organizationService: OrganizationService, logger: PinoLogger);
     register(createOrganizationDto: CreateOrganizationDto, user: User): Promise<void>;
     getAllResellerOrganizations(user: User): Promise<import("./interface/reseller-organization.interface").ResellerOrganization[]>;
     generateToken(generateTokenDto: GenerateTokenDto): Promise<import("twilio/lib/rest/api/v2010/account/message").MessageInstance>;

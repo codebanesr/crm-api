@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Campaign } from "./interfaces/campaign.interface";
@@ -16,8 +16,7 @@ import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-dispositi
 import { coreConfig } from "./core-config";
 import * as moment from "moment";
 import { RoleType } from "../shared/role-type.enum";
-import {v4 as uuidV4} from "uuid";
-import { ca } from "date-fns/locale";
+
 
 @Injectable()
 export class CampaignService {
@@ -36,7 +35,7 @@ export class CampaignService {
     private readonly campaignFormModel: Model<CampaignForm>,
 
     @InjectModel("Lead")
-    private readonly leadModel: Model<Lead>
+    private readonly leadModel: Model<Lead>,
   ) {}
 
   // sort by default handler
@@ -333,7 +332,7 @@ export class CampaignService {
   //   campaignName: string,
   //   organization: string
   // ) {
-  //   Logger.debug({ campaignName, organization });
+  //   this.logger.info({ campaignName, organization });
   //   const campaignAgg = this.campaignModel.aggregate();
   //   campaignAgg.match({ campaignName, organization });
   //   campaignAgg.lookup({

@@ -17,6 +17,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var RulesService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RulesService = void 0;
 const common_1 = require("@nestjs/common");
@@ -26,7 +27,12 @@ const mongoose_2 = require("mongoose");
 const rules_constants_1 = require("./rules.constants");
 const axios_1 = require("axios");
 const moment = require("moment");
-let RulesService = class RulesService {
+const nestjs_pino_1 = require("nestjs-pino");
+let RulesService = RulesService_1 = class RulesService {
+    constructor(logger) {
+        this.logger = logger;
+        logger.setContext(RulesService_1.name);
+    }
     getRuleById(id) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.ruleModel.findById(id).lean().exec();
@@ -117,7 +123,7 @@ let RulesService = class RulesService {
                 leadDto.email = newHandler;
             }
             else {
-                common_1.Logger.debug("No action matched the trigger in rules.service.ts!!!!!");
+                this.logger.info("No action matched the trigger in rules.service.ts!!!!!");
             }
         });
     }
@@ -138,8 +144,9 @@ __decorate([
     mongoose_1.InjectModel("LeadHistory"),
     __metadata("design:type", mongoose_2.Model)
 ], RulesService.prototype, "leadHistoryModel", void 0);
-RulesService = __decorate([
-    common_1.Injectable()
+RulesService = RulesService_1 = __decorate([
+    common_1.Injectable(),
+    __metadata("design:paramtypes", [nestjs_pino_1.PinoLogger])
 ], RulesService);
 exports.RulesService = RulesService;
 //# sourceMappingURL=rules.service.js.map

@@ -153,7 +153,7 @@ let LeadService = LeadService_1 = class LeadService {
                 return result;
             }
             catch (e) {
-                common_1.Logger.error("An error occured in getLeadReassignmentHistory");
+                this.logger.error("An error occured in getLeadReassignmentHistory");
                 return e.message;
             }
         });
@@ -384,7 +384,7 @@ let LeadService = LeadService_1 = class LeadService {
                 return { success: true };
             }
             catch (e) {
-                common_1.Logger.error("Some error occured while sending bulk emails in sendBulkEmails", e.message);
+                this.logger.error("Some error occured while sending bulk emails in sendBulkEmails", e.message);
                 return { error: e.message };
             }
         });
@@ -405,9 +405,9 @@ let LeadService = LeadService_1 = class LeadService {
     }
     uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            common_1.Logger.debug("Sending file to worker for processing");
+            this.logger.info("Sending file to worker for processing");
             const result = yield this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
-            common_1.Logger.debug(result);
+            this.logger.info(result);
             return result;
         });
     }
