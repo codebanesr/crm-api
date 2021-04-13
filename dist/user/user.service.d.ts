@@ -73,6 +73,7 @@ export declare class UserService {
     private findUserByEmail;
     private checkPassword;
     private isUserBlocked;
+    private isOrganizationActive;
     private passwordsDoNotMatch;
     private blockUser;
     private passwordsAreMatch;

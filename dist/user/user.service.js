@@ -38,6 +38,7 @@ const forgot_password_template_1 = require("../utils/forgot-password-template");
 const crypto_utils_1 = require("../utils/crypto.utils");
 const uuid_2 = require("uuid");
 const role_type_enum_1 = require("../shared/role-type.enum");
+const moment = require("moment");
 let UserService = class UserService {
     constructor(userModel, forgotPasswordModel, adminActionModel, organizationModel, authService) {
         this.userModel = userModel;
@@ -136,6 +137,7 @@ let UserService = class UserService {
     login(req, loginUserDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.findUserByEmail(loginUserDto.email);
+            yield this.isOrganizationActive(user.organization);
             this.isUserBlocked(user);
             yield this.checkPassword(loginUserDto.password, user);
             const singleLoginKey = this.setSingleLoginKey(user);
@@ -333,6 +335,19 @@ let UserService = class UserService {
         if (user.blockExpires > Date.now()) {
             throw new common_1.ConflictException("User has been blocked try later.");
         }
+    }
+    isOrganizationActive(org) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const today = moment().toDate();
+            const organization = yield this.organizationModel.findOne({
+                _id: org._id,
+                startDate: { $lte: today },
+                endDate: { $gte: today },
+            }).lean().exec();
+            if (!organization) {
+                throw new common_1.NotAcceptableException("Validity expired, please contact admin");
+            }
+        });
     }
     passwordsDoNotMatch(user) {
         return __awaiter(this, void 0, void 0, function* () {
