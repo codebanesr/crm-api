@@ -17,11 +17,29 @@ import { PushNotificationService } from "./push-notification/push-notification.s
 import Config from "./config";
 import { RulesModule } from './rules/rules.module';
 import { LoggerModule } from "nestjs-pino";
+import { stdSerializers } from "pino";
 
 
 @Module({
   imports: [
-    LoggerModule.forRoot(),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        serializers: {
+          req: (req) => {
+            // req has already been processed
+            // see https://github.com/pinojs/pino-std-serializers#exportsreqrequest
+            return {
+              id: req.id,
+              url: req.url,
+              body: req.body,
+              method: req.method
+            }
+          },
+          res: stdSerializers.res,
+          err: stdSerializers.err,
+        }
+      }
+    }),
     CacheModule.register(),
     // { useNewUrlParser: true } -> for atlas connection
     MongooseModule.forRoot(Config.MONGODB_URI, { useNewUrlParser: true }),
