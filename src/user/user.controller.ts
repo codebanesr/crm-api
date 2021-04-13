@@ -92,6 +92,23 @@ export class UserController {
     return this.userService.getAllUsersHack(organization);
   }
 
+  @Get('profile')
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Gets Logged in users profile information" })
+  async getUserProfile(@CurrentUser() user: User) {
+    const { email } = user;
+    return this.userService.getUserProfile(email);
+  }
+
+  @Post('profile')
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Gets Logged in users profile information" })
+  async updateUserProfile(@CurrentUser() user: User) {
+    const { email } = user;
+    // return this.userService.getUserProfile(email);
+    return true;
+  }
+
   @Get("single/:id")
   @Roles("admin")
   @UseGuards(AuthGuard("jwt"))

@@ -63,7 +63,6 @@ let LeadService = LeadService_1 = class LeadService {
         this.userService = userService;
         this.notificationService = notificationService;
         this.logger = logger;
-        logger.setContext(LeadService_1.name);
     }
     saveEmailAttachments(files) {
         return files;
@@ -405,9 +404,9 @@ let LeadService = LeadService_1 = class LeadService {
     }
     uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken, campaignId) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.logger.info("Sending file to worker for processing");
+            this.logger.log("Sending file to worker for processing");
             const result = yield this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
-            this.logger.info(result);
+            this.logger.log(result);
             return result;
         });
     }
@@ -875,7 +874,7 @@ LeadService = LeadService_1 = __decorate([
         mongoose_2.Model, Object, rules_service_1.RulesService,
         user_service_1.UserService,
         notification_service_1.NotificationService,
-        nestjs_pino_1.PinoLogger])
+        nestjs_pino_1.Logger])
 ], LeadService);
 exports.LeadService = LeadService;
 //# sourceMappingURL=lead.service.js.map

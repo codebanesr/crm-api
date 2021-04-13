@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, MinLength, MaxLength, IsEmail, IsEnum, IsDateString, IsDate, IsIn, IsOptional, IsUrl } from "class-validator";
+import { Type } from "class-transformer";
+import { IsNotEmpty, IsString, MinLength, MaxLength, IsEmail, IsEnum, IsDateString, IsDate, IsIn, IsOptional, IsUrl, IsNumber, IsPositive } from "class-validator";
 import { OrganizationalType } from "../../utils/organizational.enum";
 
 /** @Todo add phone number and email as well with @OneOf */
@@ -14,7 +15,7 @@ export class CreateOrganizationDto {
       })
       @IsNotEmpty()
       @IsString()
-      @MinLength(5)
+      @MinLength(6)
       @MaxLength(255)
       @IsString()
       readonly name: string;
@@ -114,4 +115,17 @@ export class CreateOrganizationDto {
       })
       @IsUrl()
       organizationImage: string;
+
+
+      @Type(() => Date)
+      @IsDate()
+      startDate: Date;
+  
+      @Type(() => Date)
+      @IsDate()
+      endDate: Date;
+
+      @IsNotEmpty()
+      @IsPositive()
+      size: number;
 }

@@ -61,6 +61,18 @@ let UserController = class UserController {
             return this.userService.getAllUsersHack(organization);
         });
     }
+    getUserProfile(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email } = user;
+            return this.userService.getUserProfile(email);
+        });
+    }
+    updateUserProfile(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email } = user;
+            return true;
+        });
+    }
     getUserById(user, userid) {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization } = user;
@@ -166,6 +178,24 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getAllUsersHack", null);
+__decorate([
+    common_1.Get('profile'),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOperation({ summary: "Gets Logged in users profile information" }),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getUserProfile", null);
+__decorate([
+    common_1.Post('profile'),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOperation({ summary: "Gets Logged in users profile information" }),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "updateUserProfile", null);
 __decorate([
     common_1.Get("single/:id"),
     roles_decorator_1.Roles("admin"),

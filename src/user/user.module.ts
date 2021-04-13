@@ -8,11 +8,13 @@ import { AdminActionSchema } from "./schemas/admin-action.schema";
 import { MulterModule } from "@nestjs/platform-express";
 import { MongooseModule } from "@nestjs/mongoose";
 import { VisitTrackSchema } from "../agent/schemas/visit-track.schema";
+import { OrganizationSchema } from "../organization/schema/organization.schema";
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: "User", schema: UserSchema },
+      { name: "Organization", schema: OrganizationSchema },
       { name: "ForgotPassword", schema: ForgotPasswordSchema },
       { name: "AdminAction", schema: AdminActionSchema },
       { name: "VisitTrack", schema: VisitTrackSchema },

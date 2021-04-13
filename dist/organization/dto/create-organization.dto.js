@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateOrganizationDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const organizational_enum_1 = require("../../utils/organizational.enum");
 class CreateOrganizationDto {
@@ -30,7 +31,7 @@ __decorate([
     }),
     class_validator_1.IsNotEmpty(),
     class_validator_1.IsString(),
-    class_validator_1.MinLength(5),
+    class_validator_1.MinLength(6),
     class_validator_1.MaxLength(255),
     class_validator_1.IsString(),
     __metadata("design:type", String)
@@ -118,5 +119,20 @@ __decorate([
     class_validator_1.IsUrl(),
     __metadata("design:type", String)
 ], CreateOrganizationDto.prototype, "organizationImage", void 0);
+__decorate([
+    class_transformer_1.Type(() => Date),
+    class_validator_1.IsDate(),
+    __metadata("design:type", Date)
+], CreateOrganizationDto.prototype, "startDate", void 0);
+__decorate([
+    class_transformer_1.Type(() => Date),
+    class_validator_1.IsDate(),
+    __metadata("design:type", Date)
+], CreateOrganizationDto.prototype, "endDate", void 0);
+__decorate([
+    class_validator_1.IsNotEmpty(),
+    class_validator_1.IsPositive(),
+    __metadata("design:type", Number)
+], CreateOrganizationDto.prototype, "size", void 0);
 exports.CreateOrganizationDto = CreateOrganizationDto;
 //# sourceMappingURL=create-organization.dto.js.map

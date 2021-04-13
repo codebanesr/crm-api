@@ -33,7 +33,7 @@ import { FetchNextLeadDto, TypeOfLead } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import moment = require("moment");
-import { PinoLogger } from "nestjs-pino";
+import { Logger } from "nestjs-pino";
 @Injectable()
 export class LeadService {
   constructor(
@@ -71,10 +71,8 @@ export class LeadService {
 
     private notificationService: NotificationService,
 
-    private readonly logger: PinoLogger
-  ) {
-    logger.setContext(LeadService.name);
-  }
+    private readonly logger: Logger
+  ) {}
   saveEmailAttachments(files) {
     return files;
   }
@@ -563,9 +561,9 @@ export class LeadService {
     pushtoken: any,
     campaignId: string
   ) {
-    this.logger.info("Sending file to worker for processing");
+    this.logger.log("Sending file to worker for processing");
     const result = await this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
-    this.logger.info(result);
+    this.logger.log(result);
 
     return result;
   }

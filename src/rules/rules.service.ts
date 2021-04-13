@@ -11,14 +11,12 @@ import axios from "axios";
 import { Lead } from '../lead/interfaces/lead.interface';
 import { Lead as UpdateLeadDto } from '../lead/dto/lead-model.dto';
 import * as moment from "moment";
-import { PinoLogger } from 'nestjs-pino';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class RulesService {
 
-    constructor(private logger: PinoLogger) {
-        logger.setContext(RulesService.name);
-    }
+    constructor(private logger: Logger) {}
 
     @InjectModel("Rule")
     private readonly ruleModel: Model<Rules>;
@@ -128,7 +126,7 @@ export class RulesService {
             nextEntryInHistory.notes += `\n prospect handler changed from ${leadDto.email} to ${newHandler} for rule ${rule._id}`;
             leadDto.email = newHandler;
         } else{
-            this.logger.info("No action matched the trigger in rules.service.ts!!!!!");
+            this.logger.log("No action matched the trigger in rules.service.ts!!!!!");
         }
     }
 
