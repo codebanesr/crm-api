@@ -26,12 +26,28 @@ const push_notification_service_1 = require("./push-notification/push-notificati
 const config_1 = require("./config");
 const rules_module_1 = require("./rules/rules.module");
 const nestjs_pino_1 = require("nestjs-pino");
+const pino_1 = require("pino");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     common_1.Module({
         imports: [
-            nestjs_pino_1.LoggerModule.forRoot(),
+            nestjs_pino_1.LoggerModule.forRoot({
+                pinoHttp: {
+                    serializers: {
+                        req: (req) => {
+                            return {
+                                id: req.id,
+                                url: req.url,
+                                body: req.body,
+                                method: req.method
+                            };
+                        },
+                        res: pino_1.stdSerializers.res,
+                        err: pino_1.stdSerializers.err,
+                    }
+                }
+            }),
             common_1.CacheModule.register(),
             mongoose_1.MongooseModule.forRoot(config_1.default.MONGODB_URI, { useNewUrlParser: true }),
             user_module_1.UserModule,
