@@ -41,9 +41,9 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "./interfaces/user.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
-import { UserActivityDto } from "./dto/user-activity.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
+import { UpdateProfileDto } from "./dto/updateProfile.dto";
 
 @ApiTags("User")
 @Controller("user")
@@ -102,11 +102,10 @@ export class UserController {
 
   @Post('profile')
   @UseGuards(AuthGuard("jwt"))
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Gets Logged in users profile information" })
-  async updateUserProfile(@CurrentUser() user: User) {
-    const { email } = user;
-    // return this.userService.getUserProfile(email);
-    return true;
+  async updateUserProfile(@CurrentUser() user: User, @Body() updateProfileDto: UpdateProfileDto) {
+    return this.userService.updateProfile(user, updateProfileDto);
   }
 
   @Get("single/:id")

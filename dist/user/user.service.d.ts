@@ -15,6 +15,7 @@ import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { RoleType } from "../shared/role-type.enum";
 import { Organization } from "src/organization/interface/organization.interface";
+import { UpdateProfileDto } from "./dto/updateProfile.dto";
 export declare class UserService {
     private readonly userModel;
     private readonly forgotPasswordModel;
@@ -61,7 +62,7 @@ export declare class UserService {
         message: string;
     }>;
     getAll(user: User, assigned: string, findAllDto: FindAllDto, organization: any): Promise<any>;
-    getAllManagers(organization: string, userEmail?: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    getAllManagers(organization: string, userEmail?: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     getSubordinates(email: string, roleType: string, organization: string): Promise<string[]>;
     private isEmailUnique;
     private setRegistrationInfo;
@@ -90,9 +91,12 @@ export declare class UserService {
     managersForReassignment(email: string, roleType: string, organization: string): Promise<string[]>;
     saveToExcel(json: any): string;
     sendEmailForgotPassword(email: string, token: string): Promise<boolean>;
-    getUserProfile(email: any): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
+    updateProfile(user: User, updateProfileDto: UpdateProfileDto): Promise<{
+        status: string;
+    }>;
+    getUserProfile(email: any): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
     getAllUsersHack(organization: string): Promise<any>;
-    getUserById(userId: string, organization: any): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
+    getUserById(userId: string, organization: any): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
     subscribeToPushNotification(userId: string, pushtoken: PushNotificationDto): Promise<{
         message: string;

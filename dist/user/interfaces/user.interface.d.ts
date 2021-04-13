@@ -15,6 +15,7 @@ export interface User extends Document {
     bankAccountName?: string;
     batLvl: number;
     roleType: RoleType;
+    phoneNumber: string;
     singleLoginKey: string;
     history: string[];
     hierarchyWeight: number;

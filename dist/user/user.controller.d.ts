@@ -10,15 +10,18 @@ import { FindAllDto } from "../lead/dto/find-all.dto";
 import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
+import { UpdateProfileDto } from "./dto/updateProfile.dto";
 export declare class UserController {
     private readonly userService;
     constructor(userService: UserService);
     register(createUserDto: CreateUserDto, user: User): Promise<any>;
     registerReseller(createResellerDto: CreateResellerDto, user: User): Promise<any>;
     getAllUsersHack(user: User): Promise<any>;
-    getUserProfile(user: User): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
-    updateUserProfile(user: User): Promise<boolean>;
-    getUserById(user: User, userid: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
+    getUserProfile(user: User): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
+    updateUserProfile(user: User, updateProfileDto: UpdateProfileDto): Promise<{
+        status: string;
+    }>;
+    getUserById(user: User, userid: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
     verifyEmail(req: IRequest, verifyUuidDto: VerifyUuidDto): Promise<{
         fullName: string;
         email: string;
@@ -50,7 +53,7 @@ export declare class UserController {
         message: string;
     }>;
     findAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any>;
-    getAllManagers(user: User, userEmail: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    getAllManagers(user: User, userEmail: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     managersForReassignment(user: User, assigned: string): Promise<string[]>;
     add(req: any, assigned: string, file: any, user: User): Promise<import("../agent/interface/admin-actions.interface").AdminAction>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;

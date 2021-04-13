@@ -40,6 +40,7 @@ const find_all_dto_1 = require("../lead/dto/find-all.dto");
 const create_forgot_password_dto_1 = require("./dto/create-forgot-password.dto");
 const push_notification_dto_1 = require("./dto/push-notification.dto");
 const create_reseller_dto_1 = require("./dto/create-reseller.dto");
+const updateProfile_dto_1 = require("./dto/updateProfile.dto");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
@@ -67,10 +68,9 @@ let UserController = class UserController {
             return this.userService.getUserProfile(email);
         });
     }
-    updateUserProfile(user) {
+    updateUserProfile(user, updateProfileDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { email } = user;
-            return true;
+            return this.userService.updateProfile(user, updateProfileDto);
         });
     }
     getUserById(user, userid) {
@@ -190,10 +190,11 @@ __decorate([
 __decorate([
     common_1.Post('profile'),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    common_1.HttpCode(common_1.HttpStatus.OK),
     swagger_1.ApiOperation({ summary: "Gets Logged in users profile information" }),
-    __param(0, current_user_decorator_1.CurrentUser()),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, updateProfile_dto_1.UpdateProfileDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "updateUserProfile", null);
 __decorate([
