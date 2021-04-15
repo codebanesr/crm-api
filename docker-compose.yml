@@ -118,6 +118,8 @@ services:
       - '../molecule_bull_microservice/.env'
     networks:
       - webnet
+    ports:
+      - 9999:3333
     restart: always
     logging:
       driver: awslogs
