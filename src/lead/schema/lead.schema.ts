@@ -9,7 +9,7 @@ export const LeadSchema = new Schema(
       {
         label: String,
         value: String,
-        category: String,
+        category: String
       },
     ],
     campaign: String,
