@@ -11,6 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetTransactionDto = exports.SortOrder = void 0;
 const class_validator_1 = require("class-validator");
+require("reflect-metadata");
+const class_transformer_1 = require("class-transformer");
 var SortOrder;
 (function (SortOrder) {
     SortOrder["ASC"] = "ASC";
@@ -42,22 +44,35 @@ __decorate([
 class TransactionFilter {
 }
 __decorate([
+    class_validator_1.IsOptional(),
+    class_transformer_1.Transform(val => new Date(val)),
     class_validator_1.IsDate(),
     __metadata("design:type", Date)
 ], TransactionFilter.prototype, "startDate", void 0);
 __decorate([
+    class_validator_1.IsOptional(),
+    class_transformer_1.Transform(val => new Date(val)),
     class_validator_1.IsDate(),
     __metadata("design:type", Date)
 ], TransactionFilter.prototype, "endDate", void 0);
 __decorate([
+    class_validator_1.IsOptional(),
     class_validator_1.IsString({ each: true }),
     __metadata("design:type", Array)
 ], TransactionFilter.prototype, "handler", void 0);
 __decorate([
+    class_validator_1.IsOptional(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], TransactionFilter.prototype, "prospectName", void 0);
 __decorate([
+    class_transformer_1.Transform(val => {
+        if (val === "null") {
+            return null;
+        }
+        return val;
+    }),
+    class_validator_1.IsOptional(),
     class_validator_1.IsMongoId(),
     __metadata("design:type", String)
 ], TransactionFilter.prototype, "campaign", void 0);
@@ -76,6 +91,7 @@ __decorate([
 __decorate([
     class_validator_1.IsOptional(),
     class_validator_1.ValidateNested(),
+    class_transformer_1.Type(() => TransactionFilter),
     __metadata("design:type", TransactionFilter)
 ], GetTransactionDto.prototype, "filters", void 0);
 exports.GetTransactionDto = GetTransactionDto;

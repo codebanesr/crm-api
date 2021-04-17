@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
+import { Transform } from "class-transformer";
 
 export class FollowUpDto {
   @ApiProperty({
@@ -27,6 +28,13 @@ export class FollowUpDto {
 
   @IsOptional()
   @IsString()
+  @Transform(v=>{
+    if(v === 'all') {
+      return null
+    }
+
+    return v;
+  })
   campaignId?: string;
 
   @IsNumber()
