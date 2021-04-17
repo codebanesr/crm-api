@@ -52,6 +52,7 @@ export class Lead {
       type: String,
       default: "doe",
     })
+    @IsOptional()
     @IsString()
     lastName: string;
   

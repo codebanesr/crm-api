@@ -179,6 +179,7 @@ let LeadService = LeadService_1 = class LeadService {
             }
             const matchQuery = { organization, archived: { $ne: true } };
             if (showArchived) {
+                delete matchQuery.archived.$ne;
                 matchQuery.archived["$eq"] = true;
             }
             if (showClosed) {
@@ -680,11 +681,12 @@ let LeadService = LeadService_1 = class LeadService {
             singleLeadAgg.project(projection);
             const lead = (yield singleLeadAgg.exec())[0];
             let leadHistory = [];
-            if (lead) {
-                leadHistory = yield this.leadHistoryModel
-                    .find({ lead: lead._id })
-                    .limit(5);
+            if (!lead) {
+                return { lead: null, leadHistory, isInjectableLead: false };
             }
+            leadHistory = yield this.leadHistoryModel
+                .find({ lead: lead._id })
+                .limit(5);
             if (!lead.email && roleType === role_type_enum_1.RoleType.frontline) {
                 lead.email = email;
                 yield this.leadModel.findOneAndUpdate({ _id: lead._id }, { email }, { timestamps: false });
