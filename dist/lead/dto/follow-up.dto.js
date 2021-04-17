@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FollowUpDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 class FollowUpDto {
 }
 __decorate([
@@ -35,6 +36,12 @@ __decorate([
 __decorate([
     class_validator_1.IsOptional(),
     class_validator_1.IsString(),
+    class_transformer_1.Transform(v => {
+        if (v === 'all') {
+            return null;
+        }
+        return v;
+    }),
     __metadata("design:type", String)
 ], FollowUpDto.prototype, "campaignId", void 0);
 __decorate([

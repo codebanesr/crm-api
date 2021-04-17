@@ -9,6 +9,8 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
+import "reflect-metadata"
+import { Transform, Type } from "class-transformer";
 
 export enum SortOrder {
   ASC = "ASC",
@@ -31,18 +33,32 @@ class Pagination {
 }
 
 class TransactionFilter {
+  @IsOptional()
+  @Transform(val=> new Date(val))
   @IsDate()
   startDate: Date;
 
+  @IsOptional()
+  @Transform(val=> new Date(val))
   @IsDate()
   endDate: Date;
 
+  @IsOptional()
   @IsString({each: true})
   handler: string[];
 
+  @IsOptional()
   @IsString()
   prospectName: string;
 
+  @Transform(val=>{
+    if(val === "null") {
+      return null;
+    }
+
+    return val;
+  })
+  @IsOptional()
   @IsMongoId()
   campaign: string;
 
@@ -58,6 +74,7 @@ export class GetTransactionDto {
 
   @IsOptional()
   @ValidateNested()
+  @Type(()=> TransactionFilter)
   filters?: TransactionFilter;
 }
 
