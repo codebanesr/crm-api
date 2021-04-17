@@ -65,6 +65,7 @@ __decorate([
         type: String,
         default: "doe",
     }),
+    class_validator_1.IsOptional(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
 ], Lead.prototype, "lastName", void 0);

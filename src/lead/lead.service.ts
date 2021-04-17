@@ -237,6 +237,7 @@ export class LeadService {
     const matchQuery = { organization, archived: {$ne: true} };
 
     if(showArchived) {
+      delete matchQuery.archived.$ne;
       matchQuery.archived["$eq"] = true;
     }
 
@@ -970,12 +971,14 @@ export class LeadService {
 
     /** Only call lead history if there is a lead with the applied filters */
     let leadHistory = [];
-    if (lead) {
-      leadHistory = await this.leadHistoryModel
-        .find({ lead: lead._id })
-        .limit(5);
+    
+    if(!lead) {
+      return { lead: null, leadHistory, isInjectableLead: false };
     }
 
+    leadHistory = await this.leadHistoryModel
+      .find({ lead: lead._id })
+      .limit(5);
 
     // before sending the lead, assign this lead to the user who is going to view it; do not change the timestamp
     // this operation is performed by the system internally.
