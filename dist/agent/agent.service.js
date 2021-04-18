@@ -56,6 +56,7 @@ let AgentService = class AgentService {
                 email: "$userdetails.email",
                 savedOn: "$userdetails.savedOn",
                 filePath: "$filePath",
+                fileType: "$fileType",
                 actionType: "$actionType",
                 createdAt: "$createdAt",
                 label: "$label",
