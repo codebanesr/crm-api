@@ -219,17 +219,27 @@ export class LeadService {
     roleType: string,
     organization: string,
     typeDict,
-    campaignId: string
+    campaignId: string,
+    userId
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
     const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, showClosed, handlers,...otherFilters } = filters;
     const [startDate, endDate] = dateRange || [];
 
+    // find list of campaigns which this is user is assigned to
+    const acio = await this.campaignModel.find({organization, assignees: userId}, {_id: 1}).lean().exec();
+    const assignedCampaigIds = acio.map(cido => cido._id);
+
     const leadAgg = this.leadModel.aggregate();
     // match with text is only allowed as the first pipeline stage
     if (searchTerm) {
       leadAgg.match({ $text: { $search: searchTerm } });
+    }
+
+    // filter only leads from campaigns user is assigned to, this will include unassigned leads from those campaigns as well
+    if(roleType!==RoleType.admin) {
+      leadAgg.match({campaignId: {$in: assignedCampaigIds}});
     }
 
     // this will check if the value is non existent, false or null, all of which are possible depending on 
