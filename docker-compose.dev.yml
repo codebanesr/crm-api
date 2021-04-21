@@ -59,12 +59,15 @@ services:
       # target: production
     user: "node"
     working_dir: /usr/src/app
+    volumes:
+      - ../molecule_bull_microservice/.:/usr/src/app
+      - /usr/app/node_modules
     environment:
       - NODE_ENV=production
       - VERSION=1.0
 
     tty: true
-    command: "yarn start:prod"
+    command: "yarn start:dev"
     env_file:
       - '../molecule_bull_microservice/local.env'
     networks:

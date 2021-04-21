@@ -86,8 +86,8 @@ let LeadController = class LeadController {
     }
     findAll(body, user) {
         const { page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, typeDict, campaignId } = body;
-        const { email, roleType, organization } = user;
-        return this.leadService.findAll(page, perPage, sortBy, showCols, searchTerm, filters, email, roleType, organization, typeDict, campaignId);
+        const { email, roleType, organization, _id } = user;
+        return this.leadService.findAll(page, perPage, sortBy, showCols, searchTerm, filters, email, roleType, organization, typeDict, campaignId, _id);
     }
     addGeoLocation(body, user) {
         const { lat, lng } = body;

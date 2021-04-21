@@ -151,7 +151,7 @@ export class LeadController {
       campaignId
     } = body;
 
-    const { email, roleType, organization } = user;
+    const { email, roleType, organization, _id } = user;
     return this.leadService.findAll(
       page,
       perPage,
@@ -163,7 +163,8 @@ export class LeadController {
       roleType,
       organization,
       typeDict,
-      campaignId
+      campaignId,
+      _id
     );
   }
 

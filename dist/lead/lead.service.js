@@ -166,16 +166,21 @@ let LeadService = LeadService_1 = class LeadService {
             return { result, total };
         });
     }
-    findAll(page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, activeUserEmail, roleType, organization, typeDict, campaignId) {
+    findAll(page, perPage, sortBy = "createdAt", showCols, searchTerm, filters, activeUserEmail, roleType, organization, typeDict, campaignId, userId) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function* () {
             const limit = Number(perPage);
             const skip = Number((+page - 1) * limit);
             const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, showClosed, handlers } = filters, otherFilters = __rest(filters, ["assigned", "selectedCampaign", "dateRange", "leadStatusKeys", "showArchived", "showClosed", "handlers"]);
             const [startDate, endDate] = dateRange || [];
+            const acio = yield this.campaignModel.find({ organization, assignees: userId }, { _id: 1 }).lean().exec();
+            const assignedCampaigIds = acio.map(cido => cido._id);
             const leadAgg = this.leadModel.aggregate();
             if (searchTerm) {
                 leadAgg.match({ $text: { $search: searchTerm } });
+            }
+            if (roleType !== role_type_enum_1.RoleType.admin) {
+                leadAgg.match({ campaignId: { $in: assignedCampaigIds } });
             }
             const matchQuery = { organization, archived: { $ne: true } };
             if (showArchived) {
