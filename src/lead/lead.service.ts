@@ -61,8 +61,7 @@ export class LeadService {
     @InjectModel("Alarm")
     private readonly alarmModel: Model<Alarm>,
 
-
-    @InjectQueue('leadQ') 
+    @InjectQueue("leadQ")
     private leadUploadQueue: Queue,
 
     private readonly ruleService: RulesService,
@@ -77,12 +76,13 @@ export class LeadService {
     return files;
   }
 
-
   /** @Todo these logs should also be recorded */
   async reassignBulkLead(user: User, newUserEmail: string, leadIds: string[]) {
-    return this.leadModel.updateMany({_id: {$in: leadIds}}, {email: newUserEmail});
+    return this.leadModel.updateMany(
+      { _id: { $in: leadIds } },
+      { email: newUserEmail }
+    );
   }
-
 
   async reassignLead(
     activeUserEmail: string,
@@ -98,33 +98,38 @@ export class LeadService {
       notes = `Lead ${assigned} to ${newUserEmail} by ${activeUserEmail}`;
     }
 
-    const history: Pick<LeadHistory, 'oldUser'|'newUser'|'notes'|'lead'|'campaign'|'campaignName'|'organization' | 'geoLocation'> = {
+    const history: Pick<
+      LeadHistory,
+      | "oldUser"
+      | "newUser"
+      | "notes"
+      | "lead"
+      | "campaign"
+      | "campaignName"
+      | "organization"
+      | "geoLocation"
+    > = {
       oldUser: oldUserEmail,
       newUser: newUserEmail,
       notes,
       lead: lead._id,
       campaign: lead.campaignId,
-      campaignName: lead.campaign, 
+      campaignName: lead.campaign,
       organization: lead.organization,
       geoLocation: {
-        coordinates: null
-      }
+        coordinates: null,
+      },
     };
 
     const result = await this.leadModel
-      .updateOne(
-        { _id: lead._id },
-        { email: newUserEmail }
-      )
+      .updateOne({ _id: lead._id }, { email: newUserEmail })
       .lean()
       .exec();
-
 
     /** @Todo check for better types */
     const leadHistory = await this.leadHistoryModel.create(history as any);
     return { result, leadHistory };
   }
-
 
   async createEmailTemplate(
     userEmail: string,
@@ -224,12 +229,24 @@ export class LeadService {
   ) {
     const limit = Number(perPage);
     const skip = Number((+page - 1) * limit);
-    const { assigned, selectedCampaign, dateRange, leadStatusKeys, showArchived, showClosed, handlers,...otherFilters } = filters;
+    const {
+      assigned,
+      selectedCampaign,
+      dateRange,
+      leadStatusKeys,
+      showArchived,
+      showClosed,
+      handlers,
+      ...otherFilters
+    } = filters;
     const [startDate, endDate] = dateRange || [];
 
     // find list of campaigns which this is user is assigned to
-    const acio = await this.campaignModel.find({organization, assignees: userId}, {_id: 1}).lean().exec();
-    const assignedCampaigIds = acio.map(cido => cido._id);
+    const acio = await this.campaignModel
+      .find({ organization, assignees: userId }, { _id: 1 })
+      .lean()
+      .exec();
+    const assignedCampaigIds = acio.map((cido) => cido._id);
 
     const leadAgg = this.leadModel.aggregate();
     // match with text is only allowed as the first pipeline stage
@@ -238,38 +255,38 @@ export class LeadService {
     }
 
     // filter only leads from campaigns user is assigned to, this will include unassigned leads from those campaigns as well
-    if(roleType!==RoleType.admin) {
-      leadAgg.match({campaignId: {$in: assignedCampaigIds}});
+    if (roleType !== RoleType.admin) {
+      leadAgg.match({ campaignId: { $in: assignedCampaigIds } });
     }
 
-    // this will check if the value is non existent, false or null, all of which are possible depending on 
+    // this will check if the value is non existent, false or null, all of which are possible depending on
     // whether the field has been touched or not
-    const matchQuery = { organization, archived: {$ne: true} };
+    const matchQuery = { organization, archived: { $ne: true } };
 
-    if(showArchived) {
+    if (showArchived) {
       delete matchQuery.archived.$ne;
       matchQuery.archived["$eq"] = true;
     }
 
-    if(showClosed) {
-      matchQuery['nextAction'] = '__closed__'
+    if (showClosed) {
+      matchQuery["nextAction"] = "__closed__";
     }
 
-    if(handlers) {
-      matchQuery["email"] = {$in: handlers};
+    if (handlers) {
+      matchQuery["email"] = { $in: handlers };
     }
 
-    if(campaignId!=='all') {
-      matchQuery['campaignId'] = Types.ObjectId(campaignId);
-    }else {
+    if (campaignId !== "all") {
+      matchQuery["campaignId"] = Types.ObjectId(campaignId);
+    } else {
       /**  a lead cannot be present without a campaignId, if a campaignId was passed use that campaign id to filter leads. nahi to a lead 
       must atleast have a campaignId, use a worker process to delete leads that dont belong to a campaign and log those leads that were
       deleted. @Todo remove this check when everything works fine, we should not have this situation in the first place */
-      matchQuery['campaignId'] = { $exists: true }
+      matchQuery["campaignId"] = { $exists: true };
     }
 
-    if(leadStatusKeys?.length > 0) {
-      matchQuery["leadStatusKeys"] = {$in: leadStatusKeys};
+    if (leadStatusKeys?.length > 0) {
+      matchQuery["leadStatusKeys"] = { $in: leadStatusKeys };
     }
 
     Object.keys(otherFilters).forEach((k) => {
@@ -314,7 +331,6 @@ export class LeadService {
       //   email: { $in: [...subordinateEmails, activeUserEmail] },
       // });
 
-
       /** @Todo this should be changed to use userid and not email */
       leadAgg.match({
         $or: [
@@ -346,7 +362,7 @@ export class LeadService {
       leadAgg.match({ campaign: campaign.campaignName });
     }
 
-    leadAgg.sort({updatedAt: -1})
+    leadAgg.sort({ updatedAt: -1 });
     let flds;
     if (showCols && showCols.length > 0) {
       flds = showCols;
@@ -360,7 +376,7 @@ export class LeadService {
     }
 
     const projectQ = {} as any;
-    flds.push('campaignId'); // this is used for browsing through different campaigns when all campaigns is selected
+    flds.push("campaignId"); // this is used for browsing through different campaigns when all campaigns is selected
 
     flds.forEach((fld: string) => {
       // projectQ[fld] = { $ifNull: [`$${fld}`, "---"] };
@@ -389,7 +405,10 @@ export class LeadService {
 
   async getLeadColumns(campaignId, removeFields) {
     const project = {};
-    const paths = await this.campaignConfigModel.find({campaignId, internalField: {$nin: removeFields}});
+    const paths = await this.campaignConfigModel.find({
+      campaignId,
+      internalField: { $nin: removeFields },
+    });
     return { paths: paths };
   }
 
@@ -412,31 +431,28 @@ export class LeadService {
     return result;
   }
 
-
   /** next action should never be fetched, it should not be carried forward to the next transaction */
   async findOneById(leadId: string, email: string, roleType: string) {
     /**  */
-    const lead = await this.leadModel
-      .findById(leadId)
-      .lean()
-      .exec();
+    const lead = await this.leadModel.findById(leadId).lean().exec();
 
-
-    if(!lead.email && roleType!== RoleType.frontline) {
-      await this.leadModel.findOneAndUpdate({_id: leadId}, {email}, {timestamps: false}).lean().exec();
+    if (!lead.email && roleType !== RoleType.frontline) {
+      await this.leadModel
+        .findOneAndUpdate({ _id: leadId }, { email }, { timestamps: false })
+        .lean()
+        .exec();
       lead.email = email;
     }
 
-
-    let leadHistory = []
-    if(lead) {
+    let leadHistory = [];
+    if (lead) {
       leadHistory = await this.leadHistoryModel
-      .find({ lead: lead._id}, { nextAction: 0 })
-      .limit(5)
-      .lean()
-      .exec();
+        .find({ lead: lead._id }, { nextAction: 0 })
+        .limit(5)
+        .lean()
+        .exec();
     }
-    return {lead: LeadService.postProcessLead(lead), leadHistory};
+    return { lead: LeadService.postProcessLead(lead), leadHistory };
   }
 
   async patch(productId: string, body: any[]) {
@@ -461,24 +477,26 @@ export class LeadService {
 
     /** lead gets assigned to whoever creates it, he can go back and reassign the lead if he wishes to */
     lead.email = email;
-    lead.firstName = lead.firstName || 'Undefined';
+    lead.firstName = lead.firstName || "Undefined";
 
-    if(!lead.fullName) {
+    if (!lead.fullName) {
       lead.fullName = `${lead.firstName} ${lead.lastName}`;
     }
-    
-    return this.leadModel.create({
-      ...lead,
-      campaignId,
-      campaign: campaignName,
-      organization,
-      contact,
-      isPristine: true // setting pristine flag to true for newly created lead
-    }).catch((e)=>{
-        if(e.code === 11000) {
+
+    return this.leadModel
+      .create({
+        ...lead,
+        campaignId,
+        campaign: campaignName,
+        organization,
+        contact,
+        isPristine: true, // setting pristine flag to true for newly created lead
+      })
+      .catch((e) => {
+        if (e.code === 11000) {
           throw new ConflictException("Mobile number must be unique");
         }
-    });
+      });
   }
 
   async deleteOne(leadId: string, activeUserEmail: string) {
@@ -517,7 +535,12 @@ export class LeadService {
     emails = isArray(emails) ? emails : [emails];
     const sepEmails = emails.join(",");
     try {
-      this.notificationService.sendMail({ subject, text, attachments, to: sepEmails });
+      this.notificationService.sendMail({
+        subject,
+        text,
+        attachments,
+        to: sepEmails,
+      });
       return { success: true };
     } catch (e) {
       this.logger.error(
@@ -573,13 +596,20 @@ export class LeadService {
     campaignId: string
   ) {
     this.logger.log("Sending file to worker for processing");
-    const result = await this.leadUploadQueue.add({ files, campaignName, uploader, organization, userId, pushtoken, campaignId });
+    const result = await this.leadUploadQueue.add({
+      files,
+      campaignName,
+      uploader,
+      organization,
+      userId,
+      pushtoken,
+      campaignId,
+    });
     this.logger.log(result);
 
     return result;
   }
 
-  
   async addGeolocation(
     activeUserId: string,
     lat: number,
@@ -658,14 +688,13 @@ export class LeadService {
 
     if (!reassignToUser) {
       // assign to logged in user and notes will be lead was created by
-      // we are not changing old user and new user, call duration calculation will always be done on 
+      // we are not changing old user and new user, call duration calculation will always be done on
       // old user, agar agent call karke reassign kiya to bhi call duration uske me hi count hoga.
       nextEntryInHistory.oldUser = handlerEmail;
       nextEntryInHistory.newUser = handlerEmail;
     }
 
-
-    if(lead.documentLinks?.length>0) {
+    if (lead.documentLinks?.length > 0) {
       nextEntryInHistory.documentLinks = lead.documentLinks;
     }
 
@@ -679,8 +708,9 @@ export class LeadService {
       nextEntryInHistory.notes = `${oldLead.leadStatus} to ${lead.leadStatus} by ${handlerName}`;
     }
 
-    if(lead.notes) {
-      nextEntryInHistory.notes = (nextEntryInHistory.notes || '') + `\n User Note: ${lead.notes}`;
+    if (lead.notes) {
+      nextEntryInHistory.notes =
+        (nextEntryInHistory.notes || "") + `\n User Note: ${lead.notes}`;
     }
 
     nextEntryInHistory.geoLocation = geoLocation;
@@ -696,10 +726,10 @@ export class LeadService {
     nextEntryInHistory.followUp = lead.followUp?.toString();
     nextEntryInHistory.organization = organization;
     nextEntryInHistory.campaign = campaignId;
-    
+
     nextEntryInHistory.nextAction = lead.nextAction;
 
-    /** Do not update contact, there will be a separate api for adding contact information, we dont want to set the 
+    /** Do not update contact, there will be a separate api for adding contact information, we dont want to set the
      * value of transaction count it has to be incremented
      */
     let { contact, transactionCount, ...filteredObj } = obj;
@@ -709,36 +739,45 @@ export class LeadService {
       obj.email = reassignToUser;
     }
 
-
-    await this.ruleService.applyRules(campaignId, oldLead, lead, nextEntryInHistory);
+    await this.ruleService.applyRules(
+      campaignId,
+      oldLead,
+      lead,
+      nextEntryInHistory
+    );
 
     filteredObj.isPristine = false;
 
     let result = {};
 
     try {
-      if(!lead.nextAction) {
-        filteredObj.nextAction = '__closed__';
+      if (!lead.nextAction) {
+        filteredObj.nextAction = "__closed__";
       }
 
       // if frontend doesnot send followup, the previous followup should be erased
-      if(!filteredObj.followUp) {
+      if (!filteredObj.followUp) {
         filteredObj.followUp = null;
       }
 
-      result = await this.leadModel.findOneAndUpdate(
-        { _id: leadId, organization },
-        { $inc: { transactionCount: 1 }, $set: filteredObj },
-        {new: true} //set it to false for performance boost
-      ).lean().exec();
-    }catch(e) {
-      if(e.code === 11000) {
+      result = await this.leadModel
+        .findOneAndUpdate(
+          { _id: leadId, organization },
+          { $inc: { transactionCount: 1 }, $set: filteredObj },
+          { new: true } //set it to false for performance boost
+        )
+        .lean()
+        .exec();
+    } catch (e) {
+      if (e.code === 11000) {
         throw new ConflictException("Mobile number must be unique");
       }
     }
 
-
-    await this.leadHistoryModel.create({...nextEntryInHistory, ...callRecord });
+    await this.leadHistoryModel.create({
+      ...nextEntryInHistory,
+      ...callRecord,
+    });
     if (!values(emailForm).every(isEmpty)) {
       const { subject, attachments, content, overwriteEmail } = emailForm;
       this.sendEmailToLead({
@@ -799,22 +838,39 @@ export class LeadService {
     return uq;
   }
 
-  async findInjectableLeads(organization: string, email: string, campaignId: string, projection) {
-    const fifteenMinsAgo = moment().subtract(15, 'minutes').toDate();
+  async findInjectableLeads(
+    organization: string,
+    email: string,
+    campaignId: string,
+    projection
+  ):Promise<Lead> {
+    const fifteenMinsAgo = moment().subtract(15, "minutes").toDate();
     const now = moment().toDate();
+
+    /** all leads from <campaign`campaignId`> that match the following criteria,
+     * 1. either it is unassigned
+     * 2. or is assigned to the current user
+     * 3. and is not a closed lead
+     * */
     const lead = await this.leadModel
-      .findOne({ campaignId, organization, email, followUp: {$lte: now, $gte: fifteenMinsAgo} })
+      .findOne({
+        campaignId,
+        organization,
+        email: { $in: [null, email] },
+        followUp: { $lte: now, $gte: fifteenMinsAgo },
+        leadStatus: { $ne: "__closed__" },
+      })
       .lean()
       .exec();
 
     this.logger.debug({ injectableLead: lead });
-    return lead;
+    return <Lead>lead;
   }
 
   static postProcessLead(lead: DocumentDefinition<Lead>) {
     lead.notes = "";
     lead.nextAction = null;
-    
+
     // if this lead gets updated we don't want previous followup
     lead.followUp = null;
     return lead;
@@ -830,12 +886,12 @@ export class LeadService {
     organization,
     typeDict,
     roleType,
-    nonKeyFilters
+    nonKeyFilters,
   }: FetchNextLeadDto & {
     campaignId: string;
     email: string;
     organization: string;
-    roleType: string
+    roleType: string;
   }) {
     // Null value removal
     Object.keys(filters).forEach((k) => {
@@ -853,10 +909,9 @@ export class LeadService {
       throw new UnprocessableEntityException();
     }
 
-
     // this should always be fetched ...
     let projection = {
-      documentLinks: 1
+      documentLinks: 1,
     };
 
     campaign.browsableCols.forEach((c) => {
@@ -869,21 +924,32 @@ export class LeadService {
     // projection["nextAction"] = 1;
     projection["email"] = 1;
 
-
-    const injectableLead = await this.findInjectableLeads(organization, email, campaign._id, projection);
-    if(injectableLead) {
+    const injectableLead = await this.findInjectableLeads(
+      organization,
+      email,
+      campaign._id,
+      projection
+    );
+    // if the injectable lead was unassigned
+    if (!injectableLead.email) {
+      this.preassignLead(injectableLead, roleType, email);
+    }
+    if (injectableLead) {
       this.logger.debug("Injectable lead found, returning it");
       const leadHistory = await this.leadHistoryModel
-      .find({ lead: injectableLead._id })
-      .limit(5)
-      .lean()
-      .exec();
-      return { lead: LeadService.postProcessLead(injectableLead), leadHistory, isInjectableLead: true };
+        .find({ lead: injectableLead._id })
+        .limit(5)
+        .lean()
+        .exec();
+      return {
+        lead: LeadService.postProcessLead(injectableLead),
+        leadHistory,
+        isInjectableLead: true,
+      };
     }
 
     const singleLeadAgg = this.leadModel.aggregate();
     singleLeadAgg.match({ campaignId: campaign._id });
-
 
     /** @Todo Try to cache this call */
     const subordinateEmails = await this.userService.getSubordinates(
@@ -892,29 +958,26 @@ export class LeadService {
       organization
     );
 
-
     singleLeadAgg.match({
       $or: [
         { email: { $in: [...subordinateEmails, email] } },
         { email: { $exists: false } },
-        { archived: false }
+        { archived: false },
       ],
-    })
+    });
 
-
-    if(nonKeyFilters) {
+    if (nonKeyFilters) {
       var todayStart = new Date();
       todayStart.setHours(0);
       todayStart.setMinutes(0);
       todayStart.setSeconds(1);
-  
+
       var todayEnd = new Date();
       todayEnd.setHours(23);
       todayEnd.setMinutes(59);
       todayEnd.setSeconds(59);
 
-
-      switch(nonKeyFilters.typeOfLead) {
+      switch (nonKeyFilters.typeOfLead) {
         case TypeOfLead.followUp: {
           singleLeadAgg.match({
             followUp: {
@@ -926,7 +989,7 @@ export class LeadService {
         }
 
         case TypeOfLead.fresh: {
-          singleLeadAgg.match({isPristine: true})
+          singleLeadAgg.match({ isPristine: true });
           break;
         }
 
@@ -973,7 +1036,6 @@ export class LeadService {
     singleLeadAgg.sort({ updatedAt: 1 });
     singleLeadAgg.limit(1);
 
-
     // other information that should always show up, one is history
 
     singleLeadAgg.project(projection);
@@ -981,26 +1043,37 @@ export class LeadService {
 
     /** Only call lead history if there is a lead with the applied filters */
     let leadHistory = [];
-    
-    if(!lead) {
+
+    if (!lead) {
       return { lead: null, leadHistory, isInjectableLead: false };
     }
 
-    leadHistory = await this.leadHistoryModel
-      .find({ lead: lead._id })
-      .limit(5);
+    leadHistory = await this.leadHistoryModel.find({ lead: lead._id }).limit(5);
 
-    // before sending the lead, assign this lead to the user who is going to view it; do not change the timestamp
-    // this operation is performed by the system internally.
-    // If this lead was not already assigned to a user, it should be assigned to the user who is going to 
-    // see this lead.
-    if(!lead.email && roleType === RoleType.frontline) {
+    this.preassignLead(lead, roleType, email);
+
+    return {
+      lead: LeadService.postProcessLead(lead),
+      leadHistory,
+      isInjectableLead: false,
+    };
+  }
+
+  /**     before sending the lead, assign this lead to the user who is going to view it; do not change the timestamp
+   * this operation is performed by the system internally.
+   * If this lead was not already assigned to a user, it should be assigned to the user who is going to
+   * see this lead.
+   */
+  async preassignLead(lead: Lead, roleType: string, email: string) {
+    if (!lead.email && roleType === RoleType.frontline) {
       lead.email = email;
-      await this.leadModel.findOneAndUpdate({_id: lead._id}, {email}, {timestamps: false});
+      await this.leadModel.findOneAndUpdate(
+        { _id: lead._id },
+        { email },
+        { timestamps: false }
+      );
       this.logger.debug(`Assigned lead ${lead._id} to ${email}`);
     }
-
-    return { lead: LeadService.postProcessLead(lead), leadHistory, isInjectableLead: false };
   }
 
   getSaleAmountByLeadStatus(campaignName?: string) {
@@ -1018,66 +1091,71 @@ export class LeadService {
   }
 
   async getTransactions(
-      organization: string, 
-      email: string, 
-      roleType: string, 
-      payload: GetTransactionDto, 
-      isStreamable: boolean
-    ): Promise<{ response: Partial<LeadHistory>[], total: number }> {
+    organization: string,
+    email: string,
+    roleType: string,
+    payload: GetTransactionDto,
+    isStreamable: boolean
+  ): Promise<{ response: Partial<LeadHistory>[]; total: number }> {
     // get email ids of users after him
     let conditionalQueries = {};
 
     // if the user only wants to see results for some subordinates this will filter it out
-    if(payload.filters?.handler?.length > 0) {
+    if (payload.filters?.handler?.length > 0) {
       // subordinateEmails = intersection(payload.filters?.handler, subordinateEmails)
       conditionalQueries["newUser"] = { $in: payload.filters.handler };
-    };
-
-    if(payload.filters?.leadId) {
-      conditionalQueries['lead'] = payload.filters.leadId;
     }
 
-    if(payload.filters?.prospectName) {
-      /** @Todo to be filled later, we have firstname, lastname, fullName, these should be combined in a text index for search */ 
+    if (payload.filters?.leadId) {
+      conditionalQueries["lead"] = payload.filters.leadId;
+    }
+
+    if (payload.filters?.prospectName) {
+      /** @Todo to be filled later, we have firstname, lastname, fullName, these should be combined in a text index for search */
       const expr = new RegExp(payload.filters.prospectName);
-      conditionalQueries['prospectName'] = { $regex: expr, $options: "i" }
+      conditionalQueries["prospectName"] = { $regex: expr, $options: "i" };
     }
 
-    if(payload.filters?.campaign) {
+    if (payload.filters?.campaign) {
       conditionalQueries["campaign"] = payload.filters.campaign;
     }
 
-    if(payload.filters?.startDate) {
+    if (payload.filters?.startDate) {
       conditionalQueries["createdAt"] = {};
-      conditionalQueries["createdAt"]["$gte"] = new Date(payload.filters.startDate);
+      conditionalQueries["createdAt"]["$gte"] = new Date(
+        payload.filters.startDate
+      );
     }
 
-    if(payload.filters?.endDate) {
-      conditionalQueries["createdAt"]["$lte"] = new Date(payload.filters.endDate);
+    if (payload.filters?.endDate) {
+      conditionalQueries["createdAt"]["$lte"] = new Date(
+        payload.filters.endDate
+      );
     }
 
     const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
 
     const query = {
-      organization, 
+      organization,
       // newUser: {$in: subordinateEmails},
-      ...conditionalQueries
+      ...conditionalQueries,
     };
     const result = this.leadHistoryModel
       .find(query)
       .sort({ [payload.pagination.sortBy]: sortOrder });
 
-
     let count = 0;
-    if(!isStreamable) {
-      result.limit(payload.pagination.perPage).skip((payload.pagination.page-1) * payload.pagination.perPage);
+    if (!isStreamable) {
+      result
+        .limit(payload.pagination.perPage)
+        .skip((payload.pagination.page - 1) * payload.pagination.perPage);
       count = await this.leadHistoryModel.countDocuments(query);
     }
 
     const response = await result.lean().exec();
     return { response, total: count };
   }
-  // date will always be greater than today, 
+  // date will always be greater than today,
   // problem is similar to get upcoming birthday from mongodb
   async getFollowUps({
     interval,
@@ -1129,10 +1207,12 @@ export class LeadService {
     return leadAgg.exec();
   }
 
-
   async checkPrecondition(user: User, subordinateEmail: string) {
-
-    const subordinates = await this.userService.getSubordinates(user.email, user.roleType, user.organization);
+    const subordinates = await this.userService.getSubordinates(
+      user.email,
+      user.roleType,
+      user.organization
+    );
 
     if (!subordinates.indexOf(subordinateEmail) && user.roleType !== "admin") {
       throw new PreconditionFailedException(
@@ -1141,7 +1221,6 @@ export class LeadService {
       );
     }
   }
-
 
   async getAllAlarms(body, organization) {
     const { page = 1, perPage = 20, filters = {}, sortBy = "createdAt" } = body;
@@ -1188,24 +1267,44 @@ export class LeadService {
   }
 
   async archiveLead(leadId: string) {
-    return this.leadModel.findOneAndUpdate({_id: leadId}, {$set: {archived: true}});
+    return this.leadModel.findOneAndUpdate(
+      { _id: leadId },
+      { $set: { archived: true } }
+    );
   }
 
   async archiveLeads(leadIds: string[]) {
-    return this.leadModel.updateMany({_id: {$in: leadIds}}, {$set: {archived: true}});
+    return this.leadModel.updateMany(
+      { _id: { $in: leadIds } },
+      { $set: { archived: true } }
+    );
   }
 
   async unarchiveLeads(leadIds: string[]) {
-    return this.leadModel.updateMany({_id: {$in: leadIds}}, {$set: { archived: false }});
+    return this.leadModel.updateMany(
+      { _id: { $in: leadIds } },
+      { $set: { archived: false } }
+    );
   }
 
   async transferLeads(leadIds: string[], toCampaignId: string) {
-    const {campaignName, _id} = await this.campaignModel.findOne({_id: toCampaignId}, {campaignName: 1}).lean().exec();
-    return this.leadModel.updateMany({_id: {$in: leadIds}}, {$set: {campaignId: _id, campaign: campaignName}}).lean().exec();
+    const { campaignName, _id } = await this.campaignModel
+      .findOne({ _id: toCampaignId }, { campaignName: 1 })
+      .lean()
+      .exec();
+    return this.leadModel
+      .updateMany(
+        { _id: { $in: leadIds } },
+        { $set: { campaignId: _id, campaign: campaignName } }
+      )
+      .lean()
+      .exec();
   }
 
-
   async openClosedLeads(leadIds: string[]) {
-    return this.leadModel.updateMany({_id: {$in: leadIds}}, {$set: {nextAction: '__open__'}});
+    return this.leadModel.updateMany(
+      { _id: { $in: leadIds } },
+      { $set: { nextAction: "__open__" } }
+    );
   }
 }
