@@ -96,9 +96,9 @@ export declare class LeadService {
             $gt: Date;
         };
     }>;
-    findInjectableLeads(organization: string, email: string, campaignId: string, projection: any): Promise<Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "notes" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">>;
+    findInjectableLeads(organization: string, email: string, campaignId: string, projection: any): Promise<Lead>;
     static postProcessLead(lead: DocumentDefinition<Lead>): Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "notes" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
-    fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters }: FetchNextLeadDto & {
+    fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters, }: FetchNextLeadDto & {
         campaignId: string;
         email: string;
         organization: string;
@@ -108,6 +108,7 @@ export declare class LeadService {
         leadHistory: any[];
         isInjectableLead: boolean;
     }>;
+    preassignLead(lead: Lead, roleType: string, email: string): Promise<void>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
     getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto, isStreamable: boolean): Promise<{
         response: Partial<LeadHistory>[];
