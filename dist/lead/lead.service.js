@@ -635,10 +635,10 @@ let LeadService = LeadService_1 = class LeadService {
             projection["contact"] = 1;
             projection["email"] = 1;
             const injectableLead = yield this.findInjectableLeads(organization, email, campaign._id, projection);
-            if (!injectableLead.email) {
-                this.preassignLead(injectableLead, roleType, email);
-            }
             if (injectableLead) {
+                if (!injectableLead.email) {
+                    this.preassignLead(injectableLead, roleType, email);
+                }
                 this.logger.debug("Injectable lead found, returning it");
                 const leadHistory = yield this.leadHistoryModel
                     .find({ lead: injectableLead._id })

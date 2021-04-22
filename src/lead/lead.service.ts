@@ -930,11 +930,13 @@ export class LeadService {
       campaign._id,
       projection
     );
-    // if the injectable lead was unassigned
-    if (!injectableLead.email) {
-      this.preassignLead(injectableLead, roleType, email);
-    }
+
     if (injectableLead) {
+      // if the injectable lead was unassigned
+      if (!injectableLead.email) {
+        this.preassignLead(injectableLead, roleType, email);
+      }
+      
       this.logger.debug("Injectable lead found, returning it");
       const leadHistory = await this.leadHistoryModel
         .find({ lead: injectableLead._id })
