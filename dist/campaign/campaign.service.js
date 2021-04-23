@@ -282,19 +282,21 @@ let CampaignService = class CampaignService {
                 _id: { campaign: "$campaign" },
                 followUp: {
                     $sum: {
-                        $cond: [{ $gt: ["$followUp", currentDate] }, 1, 0],
+                        $cond: [{ $and: [{ $gt: ["$followUp", currentDate] }, { $ne: ["$nextAction", "__closed__"] }] }, 1, 0],
                     },
                 },
                 overdue: {
                     $sum: {
-                        $cond: [{ $lt: ["$followUp", currentDate] }, 1, 0],
+                        $cond: [{ $and: [{ $lt: ["$followUp", currentDate] }, { $ne: ["$nextAction", "__closed__"] }] }, 1, 0],
                     },
                 },
+                total: { $sum: 1 }
             });
             quickStatsAgg.project({
                 campaign: "$_id.campaign",
                 followUp: "$followUp",
                 overdue: "$overdue",
+                total: "$total",
                 _id: 0,
             });
             const quickStatsArr = yield quickStatsAgg.exec();
