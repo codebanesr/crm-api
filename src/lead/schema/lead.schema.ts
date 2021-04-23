@@ -42,8 +42,6 @@ export const LeadSchema = new Schema(
     documentLinks: [String],
     mobilePhone: {
       type: String,
-      unique: true,
-      validate: validator.isMobilePhone,
     },
     isPristine: {
       type: Boolean,
