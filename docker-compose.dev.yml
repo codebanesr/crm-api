@@ -21,7 +21,7 @@ services:
       - /usr/app/node_modules
     ports:
       - "3000:3000"
-      # - "9229:9229"
+      - "9229:9229"
     tty: true
     command: "yarn start:debug"
     env_file:
@@ -74,7 +74,7 @@ services:
       - webnet
     ports:
       - 9999:3333
-      - 9229:9229
+      # - 9229:9229
     restart: always
     
   redis:
