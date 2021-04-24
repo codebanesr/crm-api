@@ -94,7 +94,8 @@ db.getCollection('leadhistories').aggregate([
 ```
 
 
-
+`docker-compose up -d --build --no-deps main` -> build and restart main server
+`docker-compose up -d --build --no-deps main` -> Build and restart worker
 
 
 
