@@ -963,9 +963,8 @@ export class LeadService {
 
     singleLeadAgg.match({
       $or: [
-        { email: { $in: [...subordinateEmails, email] } },
-        { email: { $exists: false } },
-        { archived: false },
+        { email: { $in: [...subordinateEmails, email] }, archived: {$in: [null, false]} },
+        { email: { $exists: false }, archived: {$in: [null, false]} },
       ],
     });
 

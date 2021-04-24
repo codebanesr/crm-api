@@ -657,9 +657,8 @@ let LeadService = LeadService_1 = class LeadService {
             const subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
             singleLeadAgg.match({
                 $or: [
-                    { email: { $in: [...subordinateEmails, email] } },
-                    { email: { $exists: false } },
-                    { archived: false },
+                    { email: { $in: [...subordinateEmails, email] }, archived: { $in: [null, false] } },
+                    { email: { $exists: false }, archived: { $in: [null, false] } },
                 ],
             });
             if (nonKeyFilters) {
