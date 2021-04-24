@@ -332,12 +332,13 @@ export class LeadService {
       // });
 
       /** @Todo this should be changed to use userid and not email */
-      leadAgg.match({
-        $or: [
-          { email: { $in: [...subordinateEmails, activeUserEmail] } },
-          { email: { $exists: false } },
-        ],
-      });
+      if(roleType!==RoleType.admin) {
+        leadAgg.match({ email: { $in: [...subordinateEmails, activeUserEmail] } });
+      }else {
+        leadAgg.match({email: {$exists: true}});
+      }
+    }else {
+      leadAgg.match({ email: { $exists: false } })
     }
 
     if (startDate) {
@@ -963,10 +964,12 @@ export class LeadService {
 
     singleLeadAgg.match({
       $or: [
-        { email: { $in: [...subordinateEmails, email] }, archived: {$in: [null, false]} },
-        { email: { $exists: false }, archived: {$in: [null, false]} },
+        { email: { $in: [...subordinateEmails, email] } },
+        { email: { $exists: false } },
       ],
     });
+
+    singleLeadAgg.match({ archived: { $in: [null, false] } });
 
     if (nonKeyFilters) {
       var todayStart = new Date();

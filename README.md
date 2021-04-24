@@ -93,7 +93,7 @@ db.getCollection('leadhistories').aggregate([
  ])
 ```
 
-
+`docker system prune` -> Delete prev images
 `docker-compose up -d --build --no-deps main` -> build and restart main server
 `docker-compose up -d --build --no-deps worker` -> Build and restart worker
 

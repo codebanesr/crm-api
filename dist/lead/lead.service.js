@@ -234,12 +234,15 @@ let LeadService = LeadService_1 = class LeadService {
             leadAgg.match(matchQuery);
             if (assigned) {
                 const subordinateEmails = yield this.userService.getSubordinates(activeUserEmail, roleType, organization);
-                leadAgg.match({
-                    $or: [
-                        { email: { $in: [...subordinateEmails, activeUserEmail] } },
-                        { email: { $exists: false } },
-                    ],
-                });
+                if (roleType !== role_type_enum_1.RoleType.admin) {
+                    leadAgg.match({ email: { $in: [...subordinateEmails, activeUserEmail] } });
+                }
+                else {
+                    leadAgg.match({ email: { $exists: true } });
+                }
+            }
+            else {
+                leadAgg.match({ email: { $exists: false } });
             }
             if (startDate) {
                 leadAgg.match({
@@ -657,10 +660,11 @@ let LeadService = LeadService_1 = class LeadService {
             const subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
             singleLeadAgg.match({
                 $or: [
-                    { email: { $in: [...subordinateEmails, email] }, archived: { $in: [null, false] } },
-                    { email: { $exists: false }, archived: { $in: [null, false] } },
+                    { email: { $in: [...subordinateEmails, email] } },
+                    { email: { $exists: false } },
                 ],
             });
+            singleLeadAgg.match({ archived: { $in: [null, false] } });
             if (nonKeyFilters) {
                 var todayStart = new Date();
                 todayStart.setHours(0);
