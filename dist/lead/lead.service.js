@@ -433,7 +433,7 @@ let LeadService = LeadService_1 = class LeadService {
                 pushtoken,
                 campaignId,
             });
-            this.logger.log(result);
+            this.logger.log({ completed: result.isCompleted, failed: result.isFailed, log: result.log });
             return result;
         });
     }
@@ -634,6 +634,7 @@ let LeadService = LeadService_1 = class LeadService {
             });
             projection["contact"] = 1;
             projection["email"] = 1;
+            projection["transactionCount"] = 1;
             const injectableLead = yield this.findInjectableLeads(organization, email, campaign._id, projection);
             if (injectableLead) {
                 if (!injectableLead.email) {
@@ -652,7 +653,7 @@ let LeadService = LeadService_1 = class LeadService {
                 };
             }
             const singleLeadAgg = this.leadModel.aggregate();
-            singleLeadAgg.match({ campaignId: campaign._id });
+            singleLeadAgg.match({ campaignId: campaign._id, leadStatus: { $ne: "__closed__" } });
             const subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
             singleLeadAgg.match({
                 $or: [

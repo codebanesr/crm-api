@@ -605,7 +605,7 @@ export class LeadService {
       pushtoken,
       campaignId,
     });
-    this.logger.log(result);
+    this.logger.log({completed: result.isCompleted, failed: result.isFailed, log: result.log});
 
     return result;
   }
@@ -923,6 +923,7 @@ export class LeadService {
     // next action should not be carried forward
     // projection["nextAction"] = 1;
     projection["email"] = 1;
+    projection["transactionCount"] = 1;
 
     const injectableLead = await this.findInjectableLeads(
       organization,
@@ -951,7 +952,7 @@ export class LeadService {
     }
 
     const singleLeadAgg = this.leadModel.aggregate();
-    singleLeadAgg.match({ campaignId: campaign._id });
+    singleLeadAgg.match({ campaignId: campaign._id, leadStatus: {$ne: "__closed__"} });
 
     /** @Todo Try to cache this call */
     const subordinateEmails = await this.userService.getSubordinates(
