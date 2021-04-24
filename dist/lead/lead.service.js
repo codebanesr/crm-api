@@ -598,7 +598,7 @@ let LeadService = LeadService_1 = class LeadService {
                 organization,
                 email: { $in: [null, email] },
                 followUp: { $lte: now, $gte: fifteenMinsAgo },
-                leadStatus: { $ne: "__closed__" },
+                nextAction: { $ne: "__closed__" },
             })
                 .lean()
                 .exec();
@@ -653,7 +653,7 @@ let LeadService = LeadService_1 = class LeadService {
                 };
             }
             const singleLeadAgg = this.leadModel.aggregate();
-            singleLeadAgg.match({ campaignId: campaign._id, leadStatus: { $ne: "__closed__" } });
+            singleLeadAgg.match({ campaignId: campaign._id, nextAction: { $ne: "__closed__" } });
             const subordinateEmails = yield this.userService.getSubordinates(email, roleType, organization);
             singleLeadAgg.match({
                 $or: [

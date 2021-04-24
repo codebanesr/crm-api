@@ -858,7 +858,7 @@ export class LeadService {
         organization,
         email: { $in: [null, email] },
         followUp: { $lte: now, $gte: fifteenMinsAgo },
-        leadStatus: { $ne: "__closed__" },
+        nextAction: { $ne: "__closed__" },
       })
       .lean()
       .exec();
@@ -952,7 +952,7 @@ export class LeadService {
     }
 
     const singleLeadAgg = this.leadModel.aggregate();
-    singleLeadAgg.match({ campaignId: campaign._id, leadStatus: {$ne: "__closed__"} });
+    singleLeadAgg.match({ campaignId: campaign._id, nextAction: {$ne: "__closed__"} });
 
     /** @Todo Try to cache this call */
     const subordinateEmails = await this.userService.getSubordinates(
