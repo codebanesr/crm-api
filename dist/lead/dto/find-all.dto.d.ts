@@ -1,7 +1,8 @@
+import { AssignmentEnum } from "../enum/generic.enum";
 export declare class FiltersDto {
     showArchived?: boolean;
     showClosed?: boolean;
-    assigned: boolean;
+    assigned: AssignmentEnum;
     dateRange: string[];
     selectedCampaign: string;
     leadStatusKeys: string[];

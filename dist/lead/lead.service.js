@@ -48,6 +48,7 @@ const role_type_enum_1 = require("../shared/role-type.enum");
 const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 const moment = require("moment");
 const nestjs_pino_1 = require("nestjs-pino");
+const generic_enum_1 = require("./enum/generic.enum");
 let LeadService = LeadService_1 = class LeadService {
     constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService, logger) {
         this.leadModel = leadModel;
@@ -232,7 +233,7 @@ let LeadService = LeadService_1 = class LeadService {
                 }
             });
             leadAgg.match(matchQuery);
-            if (assigned) {
+            if (assigned === generic_enum_1.AssignmentEnum.assigned) {
                 const subordinateEmails = yield this.userService.getSubordinates(activeUserEmail, roleType, organization);
                 if (roleType !== role_type_enum_1.RoleType.admin) {
                     leadAgg.match({ email: { $in: [...subordinateEmails, activeUserEmail] } });
@@ -241,8 +242,10 @@ let LeadService = LeadService_1 = class LeadService {
                     leadAgg.match({ email: { $exists: true } });
                 }
             }
-            else {
+            else if (assigned === generic_enum_1.AssignmentEnum.unassigned) {
                 leadAgg.match({ email: { $exists: false } });
+            }
+            else {
             }
             if (startDate) {
                 leadAgg.match({

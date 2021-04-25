@@ -20,7 +20,10 @@ import {
   IsMongoId,
   IsPositive,
   IsNotEmpty,
+  IsIn,
+  IsEnum,
 } from "class-validator";
+import { AssignmentEnum } from "../enum/generic.enum";
 
 export class FiltersDto {
   @IsBoolean()
@@ -29,8 +32,8 @@ export class FiltersDto {
   @IsBoolean()
   showClosed?: boolean;
 
-  @IsBoolean()
-  assigned: boolean;
+  @IsEnum(AssignmentEnum)
+  assigned: AssignmentEnum;
 
   @IsArray()
   dateRange: string[] = [];

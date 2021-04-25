@@ -34,6 +34,7 @@ import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import moment = require("moment");
 import { Logger } from "nestjs-pino";
+import { AssignmentEnum } from "./enum/generic.enum";
 @Injectable()
 export class LeadService {
   constructor(
@@ -320,7 +321,7 @@ export class LeadService {
 
     leadAgg.match(matchQuery);
 
-    if (assigned) {
+    if (assigned === AssignmentEnum.assigned) {
       const subordinateEmails = await this.userService.getSubordinates(
         activeUserEmail,
         roleType,
@@ -337,8 +338,10 @@ export class LeadService {
       }else {
         leadAgg.match({email: {$exists: true}});
       }
-    }else {
+    } else if(assigned === AssignmentEnum.unassigned) {
       leadAgg.match({ email: { $exists: false } })
+    } else {
+      // dont apply this filter, we need all leads whether or not assigned
     }
 
     if (startDate) {
