@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FindAllDto = exports.FiltersDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
+const generic_enum_1 = require("../enum/generic.enum");
 class FiltersDto {
     constructor() {
         this.dateRange = [];
@@ -27,8 +28,8 @@ __decorate([
     __metadata("design:type", Boolean)
 ], FiltersDto.prototype, "showClosed", void 0);
 __decorate([
-    class_validator_1.IsBoolean(),
-    __metadata("design:type", Boolean)
+    class_validator_1.IsEnum(generic_enum_1.AssignmentEnum),
+    __metadata("design:type", String)
 ], FiltersDto.prototype, "assigned", void 0);
 __decorate([
     class_validator_1.IsArray(),
