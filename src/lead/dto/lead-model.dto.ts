@@ -43,7 +43,7 @@ export class Lead {
       type: String,
       default: "john",
     })
-    @IsString()
+    @IsString({message: "First Name is required"})
     firstName: string;
   
     @ApiProperty({
@@ -117,7 +117,7 @@ export class Lead {
       }
       return "+91"+mobileNumber
     })
-    @IsMobilePhone()
+    @IsMobilePhone('en-IN', {}, {message: "Please enter a valid mobile number"})
     mobilePhone: string;
   
     @ApiProperty({

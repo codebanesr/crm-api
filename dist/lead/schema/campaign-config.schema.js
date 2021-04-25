@@ -15,8 +15,10 @@ exports.CampaignConfigSchema = new mongoose_1.Schema({
     },
     campaignId: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: "Campaign"
+        ref: "Campaign",
+        index: true
     }
 });
 exports.CampaignConfigSchema.index({ campaignId: 1, internalField: 1 }, { unique: true });
+exports.CampaignConfigSchema.index({ campaignId: 1, readableField: 1 }, { unique: true });
 //# sourceMappingURL=campaign-config.schema.js.map

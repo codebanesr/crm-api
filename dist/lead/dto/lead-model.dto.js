@@ -55,7 +55,7 @@ __decorate([
         type: String,
         default: "john",
     }),
-    class_validator_1.IsString(),
+    class_validator_1.IsString({ message: "First Name is required" }),
     __metadata("design:type", String)
 ], Lead.prototype, "firstName", void 0);
 __decorate([
@@ -136,7 +136,7 @@ __decorate([
         }
         return "+91" + mobileNumber;
     }),
-    class_validator_1.IsMobilePhone(),
+    class_validator_1.IsMobilePhone('en-IN', {}, { message: "Please enter a valid mobile number" }),
     __metadata("design:type", String)
 ], Lead.prototype, "mobilePhone", void 0);
 __decorate([

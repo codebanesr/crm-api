@@ -14,9 +14,11 @@ export const CampaignConfigSchema = new Schema({
   },
   campaignId: {
     type: Schema.Types.ObjectId,
-    ref: "Campaign"
+    ref: "Campaign",
+    index: true
   }
 });
 
 
 CampaignConfigSchema.index({ campaignId: 1, internalField: 1 }, { unique: true });
+CampaignConfigSchema.index({ campaignId: 1, readableField: 1 }, { unique: true });
