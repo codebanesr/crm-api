@@ -8,6 +8,7 @@ import { CampaignForm } from "./interfaces/campaign-form.interface";
 import { Lead } from "../lead/interfaces/lead.interface";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
 import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
+import { DeleteCampaignConfigDto } from "./dto/delete-campaignConfig.dto";
 export declare class CampaignService {
     private readonly campaignModel;
     private readonly campaignConfigModel;
@@ -73,11 +74,8 @@ export declare class CampaignService {
     getQuickStatsForCampaigns(campaignIds: string[], organization: string): Promise<import("lodash").Dictionary<any>>;
     updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string): Promise<Pick<CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "campaignId" | "internalField" | "checked">>;
     createCampaignConfigs(): void;
-    deleteConfig(_id: string): import("mongoose").Query<{
-        ok?: number;
-        n?: number;
-    } & {
-        deletedCount?: number;
+    deleteConfig(deleteConfigDto: DeleteCampaignConfigDto): Promise<{
+        status: boolean;
     }>;
     cloneCampaign(campaignId: string): Promise<void>;
 }

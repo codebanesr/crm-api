@@ -282,15 +282,33 @@ let CampaignService = class CampaignService {
                 _id: { campaign: "$campaign" },
                 followUp: {
                     $sum: {
-                        $cond: [{ $and: [{ $gt: ["$followUp", currentDate] }, { $ne: ["$nextAction", "__closed__"] }] }, 1, 0],
+                        $cond: [
+                            {
+                                $and: [
+                                    { $gt: ["$followUp", currentDate] },
+                                    { $ne: ["$nextAction", "__closed__"] },
+                                ],
+                            },
+                            1,
+                            0,
+                        ],
                     },
                 },
                 overdue: {
                     $sum: {
-                        $cond: [{ $and: [{ $lt: ["$followUp", currentDate] }, { $ne: ["$nextAction", "__closed__"] }] }, 1, 0],
+                        $cond: [
+                            {
+                                $and: [
+                                    { $lt: ["$followUp", currentDate] },
+                                    { $ne: ["$nextAction", "__closed__"] },
+                                ],
+                            },
+                            1,
+                            0,
+                        ],
                     },
                 },
-                total: { $sum: 1 }
+                total: { $sum: 1 },
             });
             quickStatsAgg.project({
                 campaign: "$_id.campaign",
@@ -322,8 +340,30 @@ let CampaignService = class CampaignService {
         });
     }
     createCampaignConfigs() { }
-    deleteConfig(_id) {
-        return this.campaignConfigModel.deleteOne({ _id });
+    deleteConfig(deleteConfigDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let status = false;
+            const session = yield this.campaignConfigModel.db.startSession();
+            try {
+                yield this.campaignConfigModel.deleteOne({ _id: deleteConfigDto._id });
+                yield this.campaignModel.findOneAndUpdate({ _id: deleteConfigDto.campaignId }, {
+                    $pull: {
+                        browsableCols: deleteConfigDto.internalField,
+                        editableCols: deleteConfigDto.internalField,
+                    },
+                });
+                session.commitTransaction();
+                status = true;
+            }
+            catch (e) {
+                session.abortTransaction();
+                status = false;
+            }
+            finally {
+                session.endSession();
+            }
+            return { status };
+        });
     }
     cloneCampaign(campaignId) {
         return __awaiter(this, void 0, void 0, function* () {

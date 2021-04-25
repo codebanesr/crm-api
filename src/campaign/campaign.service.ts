@@ -16,6 +16,7 @@ import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-dispositi
 import { coreConfig } from "./core-config";
 import * as moment from "moment";
 import { RoleType } from "../shared/role-type.enum";
+import { DeleteCampaignConfigDto } from "./dto/delete-campaignConfig.dto";
 
 
 @Injectable()
@@ -35,7 +36,7 @@ export class CampaignService {
     private readonly campaignFormModel: Model<CampaignForm>,
 
     @InjectModel("Lead")
-    private readonly leadModel: Model<Lead>,
+    private readonly leadModel: Model<Lead>
   ) {}
 
   // sort by default handler
@@ -52,9 +53,9 @@ export class CampaignService {
     const skip = Number((page - 1) * limit);
 
     const campaignAgg = this.campaignModel.aggregate();
-    
+
     // dont fetch any archived campaign
-    campaignAgg.match({organization, archived: {$ne: true}});
+    campaignAgg.match({ organization, archived: { $ne: true } });
     const { campaigns = [], select = [] } = filters;
 
     // if the admin wants to see the campaign list we dont
@@ -379,15 +380,33 @@ export class CampaignService {
       _id: { campaign: "$campaign" },
       followUp: {
         $sum: {
-          $cond: [{$and: [{ $gt: ["$followUp", currentDate] }, {$ne: ["$nextAction", "__closed__"]}]}, 1, 0],
+          $cond: [
+            {
+              $and: [
+                { $gt: ["$followUp", currentDate] },
+                { $ne: ["$nextAction", "__closed__"] },
+              ],
+            },
+            1,
+            0,
+          ],
         },
       },
       overdue: {
         $sum: {
-          $cond: [{$and: [{ $lt: ["$followUp", currentDate] }, {$ne: ["$nextAction", "__closed__"]}]}, 1, 0],
+          $cond: [
+            {
+              $and: [
+                { $lt: ["$followUp", currentDate] },
+                { $ne: ["$nextAction", "__closed__"] },
+              ],
+            },
+            1,
+            0,
+          ],
         },
       },
-      total: {$sum: 1}
+      total: { $sum: 1 },
     });
 
     quickStatsAgg.project({
@@ -436,8 +455,31 @@ export class CampaignService {
 
   createCampaignConfigs() {}
 
-  deleteConfig(_id: string) {
-    return this.campaignConfigModel.deleteOne({ _id });
+  async deleteConfig(deleteConfigDto: DeleteCampaignConfigDto) {
+    let status = false;
+    const session = await this.campaignConfigModel.db.startSession();
+    try {
+      await this.campaignConfigModel.deleteOne({ _id: deleteConfigDto._id });
+      await this.campaignModel.findOneAndUpdate(
+        { _id: deleteConfigDto.campaignId },
+        {
+          $pull: {
+            browsableCols: deleteConfigDto.internalField,
+            editableCols: deleteConfigDto.internalField,
+          },
+        }
+      );
+      session.commitTransaction();
+      status = true;
+    } catch (e) {
+      session.abortTransaction();
+      status = false;
+    } finally {
+      session.endSession();
+    }
+
+
+    return {status}
   }
 
   async cloneCampaign(campaignId: string) {

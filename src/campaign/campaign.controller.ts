@@ -25,6 +25,7 @@ import { UpdateConfigsDto } from "./dto/update-configs.dto";
 import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
 import { Roles } from "../auth/decorators/roles.decorator";
 import { RoleType } from "../shared/role-type.enum";
+import { DeleteCampaignConfigDto } from "./dto/delete-campaignConfig.dto";
 
 @ApiTags("Campaign")
 @Controller("campaign")
@@ -163,13 +164,13 @@ export class CampaignController {
     return this.campaignService.updateConfigs(configs, organization, campaignId, campaignName);
   }
 
-  @Delete(":configId")
+  @Post("delete/config")
   @ApiOperation({ summary: "Deletes single config from campaign configs schema" })
   @UseGuards(AuthGuard("jwt"))
   @Roles("admin")
   @HttpCode(HttpStatus.ACCEPTED)
-  deleteConfig(@Param('configId') configId: string) {
-    return this.campaignService.deleteConfig(configId);
+  deleteConfig(@Body() deleteConfigDto: DeleteCampaignConfigDto) {
+    return this.campaignService.deleteConfig(deleteConfigDto);
   }
 
   @Post("clone")

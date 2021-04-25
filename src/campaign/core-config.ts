@@ -72,7 +72,7 @@ export const coreConfig = [
     readableField: "Mobile Phone",
     internalField: "mobilePhone",
     group: "contact",
-    type: "string",
+    type: "tel",
     checked: true,
   },
   {

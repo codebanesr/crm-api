@@ -1,10 +1,10 @@
 /// <reference types="lodash" />
-/// <reference types="mongoose" />
 import { CampaignService } from "./campaign.service";
 import { FindCampaignsDto } from "./dto/find-campaigns.dto";
 import { User } from "../user/interfaces/user.interface";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
 import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
+import { DeleteCampaignConfigDto } from "./dto/delete-campaignConfig.dto";
 export declare class CampaignController {
     private campaignService;
     constructor(campaignService: CampaignService);
@@ -31,11 +31,8 @@ export declare class CampaignController {
     }>;
     archiveCampaign(user: User, campaignId: string): Promise<import("./interfaces/campaign.interface").Campaign>;
     updateConfigs(user: User, configs: UpdateConfigsDto, campaignId: string, campaignName: string): Promise<Pick<import("../lead/interfaces/campaign-config.interface").CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "campaignId" | "internalField" | "checked">>;
-    deleteConfig(configId: string): import("mongoose").Query<{
-        ok?: number;
-        n?: number;
-    } & {
-        deletedCount?: number;
+    deleteConfig(deleteConfigDto: DeleteCampaignConfigDto): Promise<{
+        status: boolean;
     }>;
     cloneCampaign(user: any, body: {
         campaignId: string;

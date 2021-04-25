@@ -24,6 +24,7 @@ const update_configs_dto_1 = require("./dto/update-configs.dto");
 const create_campaign_disposition_dto_1 = require("./dto/create-campaign-disposition.dto");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const role_type_enum_1 = require("../shared/role-type.enum");
+const delete_campaignConfig_dto_1 = require("./dto/delete-campaignConfig.dto");
 let CampaignController = class CampaignController {
     constructor(campaignService) {
         this.campaignService = campaignService;
@@ -78,8 +79,8 @@ let CampaignController = class CampaignController {
         const { organization } = user;
         return this.campaignService.updateConfigs(configs, organization, campaignId, campaignName);
     }
-    deleteConfig(configId) {
-        return this.campaignService.deleteConfig(configId);
+    deleteConfig(deleteConfigDto) {
+        return this.campaignService.deleteConfig(deleteConfigDto);
     }
     cloneCampaign(user, body) {
         const { campaignId } = body;
@@ -195,14 +196,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "updateConfigs", null);
 __decorate([
-    common_1.Delete(":configId"),
+    common_1.Post("delete/config"),
     swagger_1.ApiOperation({ summary: "Deletes single config from campaign configs schema" }),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     roles_decorator_1.Roles("admin"),
     common_1.HttpCode(common_1.HttpStatus.ACCEPTED),
-    __param(0, common_1.Param('configId')),
+    __param(0, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [delete_campaignConfig_dto_1.DeleteCampaignConfigDto]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "deleteConfig", null);
 __decorate([
