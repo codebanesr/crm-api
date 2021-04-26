@@ -17,6 +17,7 @@ import { coreConfig } from "./core-config";
 import * as moment from "moment";
 import { RoleType } from "../shared/role-type.enum";
 import { DeleteCampaignConfigDto } from "./dto/delete-campaignConfig.dto";
+import { DcaeDto } from "./dto/dcae.dto";
 
 
 @Injectable()
@@ -514,5 +515,28 @@ export class CampaignService {
     } finally {
       session.endSession();
     }
+  }
+
+
+  async deleteCampaignAndAllAssociatedEntities(dcAE: DcaeDto) {
+    if(!(dcAE.superAdminKey === process.env.SUPERADMIN_API_KEY)) {
+      throw new BadRequestException("You are not authorized to perform this action");
+    }
+    const session = await this.campaignConfigModel.db.startSession();
+
+    session.startTransaction();
+    let leads, campaign, campaignConfig;
+    try {
+      leads = await this.leadModel.deleteMany({campaignId: dcAE.campaignId});
+      campaignConfig = await this.campaignConfigModel.deleteMany({campaignId: dcAE.campaignId});
+      campaign = await this.campaignModel.findByIdAndDelete(dcAE.campaignId);
+      session.commitTransaction();
+    } catch (e) {
+      session.abortTransaction();
+    } finally {
+      session.endSession();
+    }
+
+    return { leads, campaign, campaignConfig };
   }
 }

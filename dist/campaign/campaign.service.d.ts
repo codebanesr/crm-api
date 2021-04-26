@@ -9,6 +9,7 @@ import { Lead } from "../lead/interfaces/lead.interface";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
 import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
 import { DeleteCampaignConfigDto } from "./dto/delete-campaignConfig.dto";
+import { DcaeDto } from "./dto/dcae.dto";
 export declare class CampaignService {
     private readonly campaignModel;
     private readonly campaignConfigModel;
@@ -78,4 +79,9 @@ export declare class CampaignService {
         status: boolean;
     }>;
     cloneCampaign(campaignId: string): Promise<void>;
+    deleteCampaignAndAllAssociatedEntities(dcAE: DcaeDto): Promise<{
+        leads: any;
+        campaign: any;
+        campaignConfig: any;
+    }>;
 }

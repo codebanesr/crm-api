@@ -5,6 +5,7 @@ import { User } from "../user/interfaces/user.interface";
 import { UpdateConfigsDto } from "./dto/update-configs.dto";
 import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-disposition.dto";
 import { DeleteCampaignConfigDto } from "./dto/delete-campaignConfig.dto";
+import { DcaeDto } from "./dto/dcae.dto";
 export declare class CampaignController {
     private campaignService;
     constructor(campaignService: CampaignService);
@@ -37,4 +38,9 @@ export declare class CampaignController {
     cloneCampaign(user: any, body: {
         campaignId: string;
     }): Promise<void>;
+    deleteCampaignAndAllAssociatedEntities(dcAE: DcaeDto): Promise<{
+        leads: any;
+        campaign: any;
+        campaignConfig: any;
+    }>;
 }

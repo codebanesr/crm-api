@@ -394,6 +394,29 @@ let CampaignService = class CampaignService {
             }
         });
     }
+    deleteCampaignAndAllAssociatedEntities(dcAE) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!(dcAE.superAdminKey === process.env.SUPERADMIN_API_KEY)) {
+                throw new common_1.BadRequestException("You are not authorized to perform this action");
+            }
+            const session = yield this.campaignConfigModel.db.startSession();
+            session.startTransaction();
+            let leads, campaign, campaignConfig;
+            try {
+                leads = yield this.leadModel.deleteMany({ campaignId: dcAE.campaignId });
+                campaignConfig = yield this.campaignConfigModel.deleteMany({ campaignId: dcAE.campaignId });
+                campaign = yield this.campaignModel.findByIdAndDelete(dcAE.campaignId);
+                session.commitTransaction();
+            }
+            catch (e) {
+                session.abortTransaction();
+            }
+            finally {
+                session.endSession();
+            }
+            return { leads, campaign, campaignConfig };
+        });
+    }
 };
 CampaignService = __decorate([
     common_1.Injectable(),

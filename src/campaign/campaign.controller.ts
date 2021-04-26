@@ -26,6 +26,7 @@ import { CreateCampaignAndDispositionDto } from "./dto/create-campaign-dispositi
 import { Roles } from "../auth/decorators/roles.decorator";
 import { RoleType } from "../shared/role-type.enum";
 import { DeleteCampaignConfigDto } from "./dto/delete-campaignConfig.dto";
+import { DcaeDto } from "./dto/dcae.dto";
 
 @ApiTags("Campaign")
 @Controller("campaign")
@@ -181,6 +182,15 @@ export class CampaignController {
   cloneCampaign(@CurrentUser() user, @Body() body: {campaignId: string}) {
     const { campaignId } = body;
     return this.campaignService.cloneCampaign(campaignId);
+  }
+
+
+  @Post("deleteCampaignAndAllAssociatedEntities")
+  @ApiOperation({ summary: "Deletes campaign and all associated attributes of campaign" })
+  @HttpCode(HttpStatus.OK)
+  // @Roles(RoleType.superAdmin)
+  deleteCampaignAndAllAssociatedEntities(@Body() dcAE: DcaeDto) {
+    return this.campaignService.deleteCampaignAndAllAssociatedEntities(dcAE);
   }
 }
 // PATCH /campaign/addConfigs/5f49637c37c8e231c6711b36/spec-v4
