@@ -273,7 +273,7 @@ export class LeadService {
       matchQuery["nextAction"] = "__closed__";
     }
 
-    if (handlers) {
+    if (handlers && handlers.length > 0) {
       matchQuery["email"] = { $in: handlers };
     }
 
