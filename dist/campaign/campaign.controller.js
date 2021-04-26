@@ -25,6 +25,7 @@ const create_campaign_disposition_dto_1 = require("./dto/create-campaign-disposi
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const delete_campaignConfig_dto_1 = require("./dto/delete-campaignConfig.dto");
+const dcae_dto_1 = require("./dto/dcae.dto");
 let CampaignController = class CampaignController {
     constructor(campaignService) {
         this.campaignService = campaignService;
@@ -85,6 +86,9 @@ let CampaignController = class CampaignController {
     cloneCampaign(user, body) {
         const { campaignId } = body;
         return this.campaignService.cloneCampaign(campaignId);
+    }
+    deleteCampaignAndAllAssociatedEntities(dcAE) {
+        return this.campaignService.deleteCampaignAndAllAssociatedEntities(dcAE);
     }
 };
 __decorate([
@@ -217,6 +221,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "cloneCampaign", null);
+__decorate([
+    common_1.Post("deleteCampaignAndAllAssociatedEntities"),
+    swagger_1.ApiOperation({ summary: "Deletes campaign and all associated attributes of campaign" }),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    __param(0, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dcae_dto_1.DcaeDto]),
+    __metadata("design:returntype", void 0)
+], CampaignController.prototype, "deleteCampaignAndAllAssociatedEntities", null);
 CampaignController = __decorate([
     swagger_1.ApiTags("Campaign"),
     common_1.Controller("campaign"),
