@@ -97,7 +97,7 @@ let AuthService = class AuthService {
                 token = cryptr.decrypt(token);
             }
             catch (err) {
-                throw new common_1.BadRequestException('Bad request.');
+                throw new common_1.BadRequestException('LOGOUT');
             }
         }
         return token;
