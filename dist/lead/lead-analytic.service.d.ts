@@ -11,6 +11,7 @@ export declare class LeadAnalyticService {
     }>;
     getLeadStatusDataForLineGraph(email: string, organization: string, year: string): Promise<any>;
     getLeadStatusCountForTelecallers(email: string, organization: string): Promise<{
+        totalLeadsInOrg: Pick<any, string | number | symbol>;
         items: any;
         total_count: any;
     }>;

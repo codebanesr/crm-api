@@ -30,7 +30,6 @@ export class OrganizationService {
     @InjectModel("Organization")
     private readonly organizationalModel: Model<Organization>,
 
-
     @InjectModel("ResellerOrganization")
     private readonly resellerOrganizationModel: Model<ResellerOrganization>,
 
