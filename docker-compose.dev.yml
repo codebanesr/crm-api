@@ -30,6 +30,23 @@ services:
       - webnet
     restart: always
 
+  metabase-app:
+    image: metabase/metabase
+    restart: always
+    ports:
+      - 3001:3000
+    volumes:
+      # declare your mount volume /host/dir:/container/dir
+      - /home/app/metabase-data:/metabase-data
+    # env_file:
+    #   - .env
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: aotocyla
+      MB_DB_PORT: 5432
+      MB_DB_USER: aotocyla
+      MB_DB_PASS: 8zLQ1t3VdTluHgfzsLmtu4Aq5K0vgYvK
+      MB_DB_HOST: john.db.elephantsql.com
 
   portainerservice:
     image: portainer/portainer
