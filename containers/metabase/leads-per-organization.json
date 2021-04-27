@@ -1,0 +1,28 @@
+[
+  {
+    "$group": {
+      "_id": "$organization",
+      "total": {
+        "$sum": 1
+      }
+    }
+  },
+  {
+    "$lookup": {
+      "from": "organizations",
+      "localField": "_id",
+      "foreignField": "_id",
+      "as": "orgDetails"
+    }
+  },
+  {
+    "$unwind": "$orgDetails"
+  },
+  {
+    "$project": {
+      "organizationId": "$orgDetails._id",
+      "total": "$total",
+      "name": "$orgDetails.name"
+    }
+  }
+]
