@@ -186,7 +186,9 @@ export class LeadAnalyticService {
     });
 
     const items = await pipeline.exec();
+    const totalLeadsInOrg = await this.leadModel.countDocuments().lean().exec();
     return {
+      totalLeadsInOrg,
       items,
       total_count: items.length,
     };

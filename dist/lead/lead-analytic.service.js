@@ -173,7 +173,9 @@ let LeadAnalyticService = class LeadAnalyticService {
                 _id: 0,
             });
             const items = yield pipeline.exec();
+            const totalLeadsInOrg = yield this.leadModel.countDocuments().lean().exec();
             return {
+                totalLeadsInOrg,
                 items,
                 total_count: items.length,
             };
