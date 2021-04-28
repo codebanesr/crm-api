@@ -39,6 +39,11 @@ let OrganizationController = class OrganizationController {
         this.organizationService = organizationService;
         this.logger = logger;
     }
+    getAllOrganizations() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.organizationService.getAllOrganizations();
+        });
+    }
     register(createOrganizationDto, user) {
         return __awaiter(this, void 0, void 0, function* () {
             this.logger.debug(createOrganizationDto);
@@ -73,6 +78,18 @@ let OrganizationController = class OrganizationController {
         });
     }
 };
+__decorate([
+    common_1.Get(),
+    common_1.HttpCode(common_1.HttpStatus.CREATED),
+    swagger_1.ApiOperation({
+        summary: "Get all organizations",
+    }),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles("reseller", "superAdmin"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], OrganizationController.prototype, "getAllOrganizations", null);
 __decorate([
     common_1.Post(),
     common_1.HttpCode(common_1.HttpStatus.CREATED),

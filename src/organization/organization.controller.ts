@@ -31,6 +31,20 @@ export class OrganizationController {
   ) {
   }
 
+
+  @Get()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary:
+      "Get all organizations",
+  })
+  @UseGuards(AuthGuard("jwt"))
+  @Roles("reseller", "superAdmin")
+  public async getAllOrganizations() {
+    return this.organizationService.getAllOrganizations();
+  }
+
+  
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({

@@ -132,6 +132,11 @@ let OrganizationService = class OrganizationService {
             return this.transactionModel.find({ organization }).sort({ _id: 1 }).limit(15);
         });
     }
+    getAllOrganizations() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.organizationalModel.find().lean().exec();
+        });
+    }
 };
 OrganizationService = __decorate([
     common_1.Injectable(),
