@@ -9,6 +9,7 @@ export declare class OrganizationController {
     private organizationService;
     private logger;
     constructor(organizationService: OrganizationService, logger: Logger);
+    getAllOrganizations(): Promise<Pick<import("./interface/organization.interface").Organization, "_id" | "size" | "name" | "email" | "phoneNumber" | "accountType" | "phoneNumberPrefix" | "lastActive" | "organizationImage" | "startDate" | "endDate" | "currentSize">[]>;
     register(createOrganizationDto: CreateOrganizationDto, user: User): Promise<void>;
     getAllResellerOrganizations(user: User): Promise<import("./interface/reseller-organization.interface").ResellerOrganization[]>;
     generateToken(generateTokenDto: GenerateTokenDto): Promise<import("twilio/lib/rest/api/v2010/account/message").MessageInstance>;

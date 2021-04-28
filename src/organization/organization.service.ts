@@ -158,4 +158,9 @@ export class OrganizationService {
   async getAllPayments(organization) {
     return this.transactionModel.find({organization}).sort({_id: 1}).limit(15);
   }
+
+
+  async getAllOrganizations() {
+    return this.organizationalModel.find().lean().exec();
+  }
 }

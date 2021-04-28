@@ -28,4 +28,5 @@ export declare class OrganizationService {
     isOrganizationalPayloadValid(createOrganizationDto: CreateOrganizationDto): Promise<boolean>;
     createOrUpdateUserQuota(obj: UpdateQuotaDto): Promise<Transaction>;
     getAllPayments(organization: any): Promise<Transaction[]>;
+    getAllOrganizations(): Promise<Pick<Organization, "_id" | "size" | "name" | "email" | "phoneNumber" | "accountType" | "phoneNumberPrefix" | "lastActive" | "organizationImage" | "startDate" | "endDate" | "currentSize">[]>;
 }
