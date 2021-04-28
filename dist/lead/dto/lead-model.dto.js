@@ -55,7 +55,8 @@ __decorate([
         type: String,
         default: "john",
     }),
-    class_validator_1.IsString({ message: "First Name is required" }),
+    class_validator_1.ValidateIf(o => !(o.fullName || o.lastName)),
+    class_validator_1.IsString({ message: "One of First, Last or Full Name is required" }),
     __metadata("design:type", String)
 ], Lead.prototype, "firstName", void 0);
 __decorate([
@@ -79,6 +80,11 @@ __decorate([
     class_validator_1.IsOptional(),
     class_validator_1.IsString(),
     __metadata("design:type", String)
+], Lead.prototype, "fullName", void 0);
+__decorate([
+    class_validator_1.IsOptional(),
+    class_validator_1.IsString(),
+    __metadata("design:type", String)
 ], Lead.prototype, "source", void 0);
 __decorate([
     swagger_1.ApiProperty({
@@ -87,11 +93,6 @@ __decorate([
         type: String,
         default: 1,
     }),
-    class_validator_1.IsOptional(),
-    class_validator_1.IsString(),
-    __metadata("design:type", String)
-], Lead.prototype, "fullName", void 0);
-__decorate([
     swagger_1.ApiProperty({
         example: 1000,
         description: "Lead amount",

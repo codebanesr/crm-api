@@ -5,8 +5,8 @@ export declare class Lead {
     campaign: string;
     firstName: string;
     lastName: string;
-    source: string;
     fullName: string;
+    source: string;
     amount: number;
     customerEmail: string;
     phoneNumberPrefix?: string;
