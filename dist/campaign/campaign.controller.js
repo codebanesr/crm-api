@@ -68,6 +68,9 @@ let CampaignController = class CampaignController {
     findOneByIdOrName(campaignId) {
         return this.campaignService.findOneByIdOrName(campaignId);
     }
+    getCampaignsForOrganization(organizationId) {
+        return this.campaignService.getCampaignsForOrganization(organizationId);
+    }
     createCampaignAndDisposition(currrentUser, body) {
         const { id: activeUserId, organization } = currrentUser;
         return this.campaignService.createCampaignAndDisposition(Object.assign(Object.assign({}, body), { activeUserId, organization }));
@@ -163,6 +166,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CampaignController.prototype, "findOneByIdOrName", null);
 __decorate([
+    roles_decorator_1.Roles("superAdmin"),
+    common_1.Get("organization/:organizationId"),
+    __param(0, common_1.Param('organizationId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CampaignController.prototype, "getCampaignsForOrganization", null);
+__decorate([
     common_1.Post("createCampaignAndDisposition"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     common_1.UseInterceptors(platform_express_1.FileInterceptor("campaignFile")),
@@ -223,6 +234,8 @@ __decorate([
 ], CampaignController.prototype, "cloneCampaign", null);
 __decorate([
     common_1.Post("deleteCampaignAndAllAssociatedEntities"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles(role_type_enum_1.RoleType.superAdmin),
     swagger_1.ApiOperation({ summary: "Deletes campaign and all associated attributes of campaign" }),
     common_1.HttpCode(common_1.HttpStatus.OK),
     __param(0, common_1.Body()),

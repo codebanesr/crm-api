@@ -18,9 +18,5 @@ __decorate([
     class_validator_1.IsMongoId(),
     __metadata("design:type", String)
 ], DcaeDto.prototype, "campaignId", void 0);
-__decorate([
-    class_validator_1.IsString(),
-    __metadata("design:type", String)
-], DcaeDto.prototype, "superAdminKey", void 0);
 exports.DcaeDto = DcaeDto;
 //# sourceMappingURL=dcae.dto.js.map

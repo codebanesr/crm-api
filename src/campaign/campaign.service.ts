@@ -519,9 +519,9 @@ export class CampaignService {
 
 
   async deleteCampaignAndAllAssociatedEntities(dcAE: DcaeDto) {
-    if(!(dcAE.superAdminKey === process.env.SUPERADMIN_API_KEY)) {
-      throw new BadRequestException("You are not authorized to perform this action");
-    }
+    // if(!(dcAE.superAdminKey === process.env.SUPERADMIN_API_KEY)) {
+    //   throw new BadRequestException("You are not authorized to perform this action");
+    // }
     const session = await this.campaignConfigModel.db.startSession();
 
     session.startTransaction();
@@ -538,5 +538,16 @@ export class CampaignService {
     }
 
     return { leads, campaign, campaignConfig };
+  }
+
+
+  getCampaignsForOrganization(organization: string) {
+    return this.campaignModel.find({organization}, {
+      campaignName: 1,
+      createdBy: 1,
+      startDate: 1,
+      endDate: 1,
+      comment: 1
+    }).lean().exec();
   }
 }

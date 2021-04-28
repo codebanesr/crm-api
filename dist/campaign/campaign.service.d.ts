@@ -84,4 +84,5 @@ export declare class CampaignService {
         campaign: any;
         campaignConfig: any;
     }>;
+    getCampaignsForOrganization(organization: string): Promise<Pick<Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "startDate" | "endDate" | "campaignName" | "archived" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo" | "autodialSettings">[]>;
 }

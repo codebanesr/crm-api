@@ -6,6 +6,6 @@ export class DcaeDto {
     campaignId: string;
 
 
-    @IsString()
-    superAdminKey: string;
+    // @IsString()
+    // superAdminKey: string;
 }

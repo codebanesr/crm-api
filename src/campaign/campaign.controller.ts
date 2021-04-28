@@ -112,6 +112,12 @@ export class CampaignController {
     return this.campaignService.findOneByIdOrName(campaignId);
   }
 
+  @Roles("superAdmin")
+  @Get("organization/:organizationId")
+  getCampaignsForOrganization(@Param('organizationId') organizationId: string) {
+    return this.campaignService.getCampaignsForOrganization(organizationId);
+  }
+
   @Post("createCampaignAndDisposition")
   @UseGuards(AuthGuard("jwt"))
   @UseInterceptors(FileInterceptor("campaignFile"))
@@ -186,6 +192,8 @@ export class CampaignController {
 
 
   @Post("deleteCampaignAndAllAssociatedEntities")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles(RoleType.superAdmin)
   @ApiOperation({ summary: "Deletes campaign and all associated attributes of campaign" })
   @HttpCode(HttpStatus.OK)
   // @Roles(RoleType.superAdmin)

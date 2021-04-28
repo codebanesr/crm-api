@@ -54,9 +54,9 @@ export class UserService {
     @InjectModel("AdminAction")
     private readonly adminActionModel: Model<AdminAction>,
 
-    @InjectModel("Organization") 
+    @InjectModel("Organization")
     private readonly organizationModel: Model<Organization>,
-    
+
     private readonly authService: AuthService
   ) {}
 
@@ -65,8 +65,12 @@ export class UserService {
   // └─┘┴└─└─┘┴ ┴ ┴ └─┘  └─┘└─┘└─┘┴└─
   // to call from api use this
   // if we have the organiztion then we call this function directly, to call from some other service
-  async create(createUserDto: CreateUserDto, organization: string, isFirstUser: boolean = false) {
-    !isFirstUser && await this.checkHierarchyPreconditions(createUserDto);
+  async create(
+    createUserDto: CreateUserDto,
+    organization: string,
+    isFirstUser: boolean = false
+  ) {
+    !isFirstUser && (await this.checkHierarchyPreconditions(createUserDto));
 
     /** @Todo this should be handled inside a transaction */
     await this.checkAndUpdateUserQuota(organization);
@@ -85,50 +89,67 @@ export class UserService {
     return this.buildRegistrationInfo(user);
   }
 
-
   async checkAndUpdateUserQuota(organizationId: string) {
-    const {currentSize, size} = await this.organizationModel.findById(organizationId, {
-      size: 1,
-      currentSize: 1
-    }).lean().exec();
+    const { currentSize, size } = await this.organizationModel
+      .findById(organizationId, {
+        size: 1,
+        currentSize: 1,
+      })
+      .lean()
+      .exec();
 
-    if(currentSize >= size) {
+    if (currentSize >= size) {
       throw new BadRequestException("User quota size exceeded");
     }
 
-
-    await this.organizationModel.findByIdAndUpdate(organizationId, { $inc: { currentSize: 1 }});
+    await this.organizationModel.findByIdAndUpdate(organizationId, {
+      $inc: { currentSize: 1 },
+    });
   }
 
   async checkHierarchyPreconditions(createUserDto: CreateUserDto) {
-    const {reportsTo, roleType: userRoleType} = createUserDto;
-    const manager = await this.userModel.findOne({email: reportsTo}, {roleType: 1}).lean().exec();
+    const { reportsTo, roleType: userRoleType } = createUserDto;
+    const manager = await this.userModel
+      .findOne({ email: reportsTo }, { roleType: 1 })
+      .lean()
+      .exec();
 
-    if(manager.roleType === RoleType.frontline) {
-      throw new PreconditionFailedException('Cannot report to a frontline');
-    }
-    else if(userRoleType === RoleType.frontline) {
+    if (manager.roleType === RoleType.frontline) {
+      throw new PreconditionFailedException("Cannot report to a frontline");
+    } else if (userRoleType === RoleType.frontline) {
       return true;
-    } else if(userRoleType === RoleType.manager && manager.roleType === RoleType.manager) {
-      throw new PreconditionFailedException('manager cannot report to a manager');
-    } else if(userRoleType === RoleType.seniorManager && [RoleType.manager, RoleType.seniorManager].includes(manager.roleType)) {
-      throw new PreconditionFailedException('Senior manager can only report to admin');
-    } else if(userRoleType === RoleType.admin && !!manager.roleType) {
-      throw new PreconditionFailedException('Admin cannot report to anyone');
+    } else if (
+      userRoleType === RoleType.manager &&
+      manager.roleType === RoleType.manager
+    ) {
+      throw new PreconditionFailedException(
+        "manager cannot report to a manager"
+      );
+    } else if (
+      userRoleType === RoleType.seniorManager &&
+      [RoleType.manager, RoleType.seniorManager].includes(manager.roleType)
+    ) {
+      throw new PreconditionFailedException(
+        "Senior manager can only report to admin"
+      );
+    } else if (userRoleType === RoleType.admin && !!manager.roleType) {
+      throw new PreconditionFailedException("Admin cannot report to anyone");
     }
   }
 
-
   async getSuperiorRoleTypes(email: string) {
-    const {roleType} = await this.userModel.findOne({email}, {roleType: 1}).lean().exec();
-    if(roleType === RoleType.admin) {
-      return []
-    }else if(roleType === RoleType.seniorManager) {
-      return [RoleType.admin]
-    }else if(roleType === RoleType.manager) {
-      return [RoleType.seniorManager, RoleType.admin]
-    }else if(roleType === RoleType.frontline) {
-      return [RoleType.seniorManager, RoleType.admin, RoleType.manager]
+    const { roleType } = await this.userModel
+      .findOne({ email }, { roleType: 1 })
+      .lean()
+      .exec();
+    if (roleType === RoleType.admin) {
+      return [];
+    } else if (roleType === RoleType.seniorManager) {
+      return [RoleType.admin];
+    } else if (roleType === RoleType.manager) {
+      return [RoleType.seniorManager, RoleType.admin];
+    } else if (roleType === RoleType.frontline) {
+      return [RoleType.seniorManager, RoleType.admin, RoleType.manager];
     }
   }
 
@@ -137,7 +158,7 @@ export class UserService {
       ...createResellerDto,
       verified: true,
       roles: ["reseller"],
-      roleType: 'reseller'
+      roleType: "reseller",
     });
     await this.isEmailUnique(user.email);
     this.setRegistrationInfo(user);
@@ -155,7 +176,10 @@ export class UserService {
     return {
       fullName: user.fullName,
       email: user.email,
-      accessToken: await this.authService.createAccessToken(user._id, singleLoginKey),
+      accessToken: await this.authService.createAccessToken(
+        user._id,
+        singleLoginKey
+      ),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
     };
   }
@@ -175,10 +199,13 @@ export class UserService {
 
     return {
       fullName: user.fullName,
-      organization: user.get('organization.name'),
+      organization: user.get("organization.name"),
       email: user.email,
       roleType: user.roleType,
-      accessToken: await this.authService.createAccessToken(user._id, singleLoginKey),
+      accessToken: await this.authService.createAccessToken(
+        user._id,
+        singleLoginKey
+      ),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
     };
   }
@@ -196,7 +223,10 @@ export class UserService {
       throw new BadRequestException("Bad request");
     }
     return {
-      accessToken: await this.authService.createAccessToken(user._id, singleLoginKey),
+      accessToken: await this.authService.createAccessToken(
+        user._id,
+        singleLoginKey
+      ),
     };
   }
 
@@ -265,48 +295,79 @@ export class UserService {
     const { filters, page, perPage, searchTerm, showCols, sortBy } = findAllDto;
     const skip = page * perPage;
 
-    const { email, roleType} = user;
-    const subordinates = await this.getSubordinates(email, roleType, organization);
-    
-    const matchQuery = { email: {$in: subordinates} };
+    const { email, roleType } = user;
+    const subordinates = await this.getSubordinates(
+      email,
+      roleType,
+      organization
+    );
+
+    const matchQuery = { email: { $in: subordinates } };
 
     // doing it in separate query instead of lookup because lookup will consume a lot of memory, it will fetch
     // all userTrack data and try to fix it in pipeline
-    const users = await this.userModel.find(matchQuery, {
-       email: 1,
-       fullName: 1,
-       manages: 1,
-       roles: 1,  
-       roleType: 1,
-       reportsTo: 1
-    }).skip(skip).limit(perPage).lean().exec();
+    const users = await this.userModel
+      .find(matchQuery, {
+        email: 1,
+        fullName: 1,
+        manages: 1,
+        roles: 1,
+        roleType: 1,
+        reportsTo: 1,
+      })
+      .skip(skip)
+      .limit(perPage)
+      .lean()
+      .exec();
 
-    const userCount = await this.userModel.countDocuments(matchQuery).lean().exec();
-    
-    return { users, total: userCount};
+    const userCount = await this.userModel
+      .countDocuments(matchQuery)
+      .lean()
+      .exec();
+
+    return { users, total: userCount };
   }
 
   async getAllManagers(organization: string, userEmail?: string) {
-    if(userEmail) {
+    if (userEmail) {
       const superiorRoleTypes = await this.getSuperiorRoleTypes(userEmail);
-      return this.userModel.find({organization, roleType: {$in: superiorRoleTypes}}, {email: 1, fullName: 1}).lean().exec();
-    }else {
-      return this.userModel.find({organization, roleType: {$ne: RoleType.frontline}}, {email: 1, fullName: 1}).lean().exec();
+      return this.userModel
+        .find(
+          { organization, roleType: { $in: superiorRoleTypes } },
+          { email: 1, fullName: 1 }
+        )
+        .lean()
+        .exec();
+    } else {
+      return this.userModel
+        .find(
+          { organization, roleType: { $ne: RoleType.frontline } },
+          { email: 1, fullName: 1 }
+        )
+        .lean()
+        .exec();
     }
   }
 
   /** @Todo replace getSubordinates in user.service with this one, checked: true is missing over there, and this should be
    * moved into a shared service
    */
-  async getSubordinates(email: string, roleType: string, organization: string): Promise<string[]> {
+  async getSubordinates(
+    email: string,
+    roleType: string,
+    organization: string
+  ): Promise<string[]> {
     if (roleType === "frontline") {
       return [email];
     }
 
     // admin should have access to all users regardless, there can be a frontline who reports to noone
-    if(roleType === 'admin') {
-      const usrs = await this.userModel.find({organization}, {email: 1}).lean().exec();
-      const emails = usrs.map(u => u.email);
+    if (roleType === "admin") {
+      const usrs = await this.userModel
+        .find({ organization }, { email: 1 })
+        .lean()
+        .exec();
+      const emails = usrs.map((u) => u.email);
       return emails;
     }
 
@@ -319,8 +380,8 @@ export class UserService {
           connectFromField: "email", // key name
           connectToField: "reportsTo", // key name
           as: "subordinates",
-          maxDepth: 5
-        }
+          maxDepth: 5,
+        },
       },
       {
         $project: {
@@ -388,8 +449,9 @@ export class UserService {
   }
 
   private async findUserByEmail(email: string): Promise<User> {
-    const user = await this.userModel.findOne({ email, verified: true })
-      .populate('organization');
+    const user = await this.userModel
+      .findOne({ email, verified: true })
+      .populate("organization");
     if (!user) {
       throw new UnauthorizedException("Wrong email or password.");
     }
@@ -411,17 +473,21 @@ export class UserService {
     }
   }
 
-
   private async isOrganizationActive(org: Organization) {
     const today = moment().toDate();
-    const organization = await this.organizationModel.findOne({
-      _id: org._id,
-      startDate: { $lte: today },
-      endDate: { $gte: today },
-    }).lean().exec();
+    const organization = await this.organizationModel
+      .findOne({
+        _id: org._id,
+        startDate: { $lte: today },
+        endDate: { $gte: today },
+      })
+      .lean()
+      .exec();
 
-    if(!organization) {
-      throw new NotAcceptableException("Validity expired, please contact admin");
+    if (!organization) {
+      throw new NotAcceptableException(
+        "Validity expired, please contact admin"
+      );
     }
   }
 
@@ -605,7 +671,11 @@ export class UserService {
     }
   }
 
-  async managersForReassignment(email: string, roleType: string, organization: string) {
+  async managersForReassignment(
+    email: string,
+    roleType: string,
+    organization: string
+  ) {
     const emails = await this.getSubordinates(email, roleType, organization);
 
     return emails;
@@ -673,26 +743,30 @@ export class UserService {
     }
   }
 
-
   async updateProfile(user: User, updateProfileDto: UpdateProfileDto) {
-    const { fullName, password, confirmNewPassword, newPassword, phoneNumber } = updateProfileDto;
+    const {
+      fullName,
+      password,
+      confirmNewPassword,
+      newPassword,
+      phoneNumber,
+    } = updateProfileDto;
     await this.checkPassword(password, user);
 
     user.fullName = fullName;
     user.password = newPassword;
     user.phoneNumber = phoneNumber;
 
-
     await user.save();
 
-    return {status: "success"};
+    return { status: "success" };
   }
 
   async getUserProfile(email) {
     return this.userModel
       .findOne({ email }, { email: 1, fullName: 1, phoneNumber: 1 })
       .lean()
-      .exec(); 
+      .exec();
   }
 
   async getAllUsersHack(organization: string) {
@@ -721,14 +795,20 @@ export class UserService {
   }
 
   async getUserById(userId: string, organization) {
-    const user = await this.userModel.findOne({ _id: userId }, { password: 0 }).lean().exec();
+    const user = await this.userModel
+      .findOne({ _id: userId }, { password: 0 })
+      .lean()
+      .exec();
 
     return user;
   }
 
   async updateUser(userid: string, user: CreateUserDto) {
     user.password = await hashPassword(user.password);
-    return this.userModel.updateOne({ _id: userid }, {...user, roles: [user.roleType]});
+    return this.userModel.updateOne(
+      { _id: userid },
+      { ...user, roles: [user.roleType] }
+    );
   }
 
   async subscribeToPushNotification(
@@ -741,5 +821,15 @@ export class UserService {
 
   async sendPushNotification() {
     throw new MethodNotAllowedException();
+  }
+
+  async getAllUsersForOrganization(organization: string) {
+    return this.userModel
+      .find(
+        { organization },
+        { phoneNumber: 1, blockExpires: 1, email: 1, verified: 1, fullName: 1 }
+      )
+      .lean()
+      .exec();
   }
 }
