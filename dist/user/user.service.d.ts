@@ -103,4 +103,5 @@ export declare class UserService {
         message: string;
     }>;
     sendPushNotification(): Promise<void>;
+    getAllUsersForOrganization(organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
 }

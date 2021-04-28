@@ -396,9 +396,6 @@ let CampaignService = class CampaignService {
     }
     deleteCampaignAndAllAssociatedEntities(dcAE) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!(dcAE.superAdminKey === process.env.SUPERADMIN_API_KEY)) {
-                throw new common_1.BadRequestException("You are not authorized to perform this action");
-            }
             const session = yield this.campaignConfigModel.db.startSession();
             session.startTransaction();
             let leads, campaign, campaignConfig;
@@ -416,6 +413,15 @@ let CampaignService = class CampaignService {
             }
             return { leads, campaign, campaignConfig };
         });
+    }
+    getCampaignsForOrganization(organization) {
+        return this.campaignModel.find({ organization }, {
+            campaignName: 1,
+            createdBy: 1,
+            startDate: 1,
+            endDate: 1,
+            comment: 1
+        }).lean().exec();
     }
 };
 CampaignService = __decorate([

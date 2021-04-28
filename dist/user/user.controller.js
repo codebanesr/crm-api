@@ -62,6 +62,11 @@ let UserController = class UserController {
             return this.userService.getAllUsersHack(organization);
         });
     }
+    getUsersForOrga(organizationId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.userService.getAllUsersForOrganization(organizationId);
+        });
+    }
     getUserProfile(user) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email } = user;
@@ -178,6 +183,16 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getAllUsersHack", null);
+__decorate([
+    common_1.Get(':organizationId'),
+    roles_decorator_1.Roles("superAdmin"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOperation({ summary: "Gets users for organization" }),
+    __param(0, common_1.Param('organizationId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getUsersForOrga", null);
 __decorate([
     common_1.Get('profile'),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
