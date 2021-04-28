@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsString, IsOptional, IsEmail, IsNumber, Min, IsDateString, ValidateNested, IsPhoneNumber, IsMobilePhone } from "class-validator";
+import { IsString, IsOptional, IsEmail, IsNumber, Min, IsDateString, ValidateNested, IsPhoneNumber, IsMobilePhone, ValidateIf } from "class-validator";
 import { GeoLocation } from "../interfaces/geo-location.interface";
 
 export class Lead {
@@ -43,7 +43,8 @@ export class Lead {
       type: String,
       default: "john",
     })
-    @IsString({message: "First Name is required"})
+    @ValidateIf(o => !(o.fullName || o.lastName))
+    @IsString({message: "One of First, Last or Full Name is required"})
     firstName: string;
   
     @ApiProperty({
@@ -55,17 +56,7 @@ export class Lead {
     @IsOptional()
     @IsString()
     lastName: string;
-  
-    @ApiProperty({
-      example: "1",
-      description: "Source of lead",
-      type: String,
-      default: 1,
-    })
-    @IsOptional()
-    @IsString()
-    source: string;
-  
+
     @ApiProperty({
       example: "1",
       description: "Source of lead",
@@ -75,6 +66,19 @@ export class Lead {
     @IsOptional()
     @IsString()
     fullName: string;
+
+
+    @IsOptional()
+    @IsString()
+    source: string;
+  
+  
+    @ApiProperty({
+      example: "1",
+      description: "Source of lead",
+      type: String,
+      default: 1,
+    })
   
   
     @ApiProperty({
