@@ -208,7 +208,7 @@ export class UserController {
   }
 
   @Get("managers")
-  // @UseGuards(AuthGuard("jwt"))
+  @Roles("admin")
   getAllManagers(@CurrentUser() user: User, @Query('userEmail') userEmail: string) {
     const { organization } = user;
     return this.userService.getAllManagers(organization, userEmail);
