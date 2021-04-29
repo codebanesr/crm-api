@@ -309,7 +309,6 @@ __decorate([
 ], UserController.prototype, "findAll", null);
 __decorate([
     common_1.Get("managers"),
-    common_1.UseGuards(passport_1.AuthGuard("jwt")),
     __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Query('userEmail')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
