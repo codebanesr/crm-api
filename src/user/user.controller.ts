@@ -44,6 +44,7 @@ import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
+import { RoleType } from "../shared/role-type.enum";
 
 @ApiTags("User")
 @Controller("user")
@@ -92,13 +93,13 @@ export class UserController {
     return this.userService.getAllUsersHack(organization);
   }
 
-  @Get(':organizationId')
-  @Roles("superAdmin")
-  @UseGuards(AuthGuard("jwt"))
-  @ApiOperation({ summary: "Gets users for organization" })
-  async getUsersForOrga(@Param('organizationId') organizationId: string) {
-    return this.userService.getAllUsersForOrganization(organizationId);
-  }
+  // @Get(':organizationId')
+  // @Roles("superAdmin")
+  // @UseGuards(AuthGuard("jwt"))
+  // @ApiOperation({ summary: "Gets users for organization" })
+  // async getUsersForOrga(@Param('organizationId') organizationId: string) {
+  //   return this.userService.getAllUsersForOrganization(organizationId);
+  // }
 
   @Get('profile')
   @UseGuards(AuthGuard("jwt"))
@@ -208,7 +209,7 @@ export class UserController {
   }
 
   @Get("managers")
-  @Roles("admin")
+  @Roles(RoleType.admin)
   getAllManagers(@CurrentUser() user: User, @Query('userEmail') userEmail: string) {
     const { organization } = user;
     return this.userService.getAllManagers(organization, userEmail);
