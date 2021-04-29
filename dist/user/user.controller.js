@@ -309,6 +309,7 @@ __decorate([
 ], UserController.prototype, "findAll", null);
 __decorate([
     common_1.Get("managers"),
+    roles_decorator_1.Roles("admin"),
     __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Query('userEmail')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
