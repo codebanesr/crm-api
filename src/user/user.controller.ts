@@ -92,7 +92,7 @@ export class UserController {
     return this.userService.getAllUsersHack(organization);
   }
 
-  @Get(':organizationId')
+  @Get('organization/:organizationId')
   @Roles("superAdmin")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Gets users for organization" })

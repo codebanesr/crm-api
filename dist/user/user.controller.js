@@ -184,7 +184,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getAllUsersHack", null);
 __decorate([
-    common_1.Get(':organizationId'),
+    common_1.Get('organization/:organizationId'),
     roles_decorator_1.Roles("superAdmin"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Gets users for organization" }),
