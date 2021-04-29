@@ -41,6 +41,7 @@ const create_forgot_password_dto_1 = require("./dto/create-forgot-password.dto")
 const push_notification_dto_1 = require("./dto/push-notification.dto");
 const create_reseller_dto_1 = require("./dto/create-reseller.dto");
 const updateProfile_dto_1 = require("./dto/updateProfile.dto");
+const role_type_enum_1 = require("../shared/role-type.enum");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
@@ -60,11 +61,6 @@ let UserController = class UserController {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization } = user;
             return this.userService.getAllUsersHack(organization);
-        });
-    }
-    getUsersForOrga(organizationId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.userService.getAllUsersForOrganization(organizationId);
         });
     }
     getUserProfile(user) {
@@ -184,16 +180,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getAllUsersHack", null);
 __decorate([
-    common_1.Get(':organizationId'),
-    roles_decorator_1.Roles("superAdmin"),
-    common_1.UseGuards(passport_1.AuthGuard("jwt")),
-    swagger_1.ApiOperation({ summary: "Gets users for organization" }),
-    __param(0, common_1.Param('organizationId')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "getUsersForOrga", null);
-__decorate([
     common_1.Get('profile'),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     swagger_1.ApiOperation({ summary: "Gets Logged in users profile information" }),
@@ -309,7 +295,7 @@ __decorate([
 ], UserController.prototype, "findAll", null);
 __decorate([
     common_1.Get("managers"),
-    roles_decorator_1.Roles("admin"),
+    roles_decorator_1.Roles(role_type_enum_1.RoleType.admin),
     __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Query('userEmail')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),

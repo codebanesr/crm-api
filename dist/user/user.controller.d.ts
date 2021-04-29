@@ -11,13 +11,13 @@ import { CreateForgotPasswordDto } from "./dto/create-forgot-password.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
+import { RoleType } from "../shared/role-type.enum";
 export declare class UserController {
     private readonly userService;
     constructor(userService: UserService);
     register(createUserDto: CreateUserDto, user: User): Promise<any>;
     registerReseller(createResellerDto: CreateResellerDto, user: User): Promise<any>;
     getAllUsersHack(user: User): Promise<any>;
-    getUsersForOrga(organizationId: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     getUserProfile(user: User): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
     updateUserProfile(user: User, updateProfileDto: UpdateProfileDto): Promise<{
         status: string;
@@ -33,7 +33,7 @@ export declare class UserController {
         fullName: string;
         organization: any;
         email: string;
-        roleType: import("../shared/role-type.enum").RoleType;
+        roleType: RoleType;
         accessToken: string;
         refreshToken: string;
     }>;
