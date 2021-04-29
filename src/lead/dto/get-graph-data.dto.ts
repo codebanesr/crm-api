@@ -6,9 +6,8 @@ export class GetGraphDataDto {
     // private startDate = moment().startOf('month').subtract(2,'month').toDate();
     // private endDate = moment().endOf('month').toDate();
   
-    @IsOptional()
     @IsMongoId()
-    campaign?: string;
+    campaign: string;
 
     @IsOptional()
     @Transform(v => new Date(v))

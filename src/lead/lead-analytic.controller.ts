@@ -19,8 +19,7 @@ export class LeadAnalyticController {
     @UseGuards(AuthGuard("jwt"))
     async getGraphData(@CurrentUser() user: User, @Body() graphInput: GetGraphDataDto) {
         const { organization } = user;
-        const { handler } = graphInput;
-        return this.analyticService.getGraphData(organization, handler);
+        return this.analyticService.getGraphData(organization, graphInput);
     }
 
 

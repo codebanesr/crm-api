@@ -4,10 +4,10 @@ export declare class LeadAnalyticService {
     private readonly leadModel;
     private readonly leadHistoryModel;
     attachCommonGraphFilters(pipeline: Aggregate<any[]>, organization: string, filter: GetGraphDataDto): void;
-    getGraphData(organization: string, userList: string[]): Promise<{
-        pieData: any[];
-        barData: any[];
-        stackData: any[];
+    getGraphData(organization: string, getGraphDto: GetGraphDataDto): Promise<{
+        pieData: any;
+        barData: any;
+        stackData: any;
     }>;
     getLeadStatusDataForLineGraph(email: string, organization: string, year: string): Promise<any>;
     getLeadStatusCountForTelecallers(email: string, organization: string): Promise<{

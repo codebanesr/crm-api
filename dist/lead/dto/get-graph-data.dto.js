@@ -15,7 +15,6 @@ const class_validator_1 = require("class-validator");
 class GetGraphDataDto {
 }
 __decorate([
-    class_validator_1.IsOptional(),
     class_validator_1.IsMongoId(),
     __metadata("design:type", String)
 ], GetGraphDataDto.prototype, "campaign", void 0);

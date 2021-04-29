@@ -5,9 +5,9 @@ export declare class LeadAnalyticController {
     private analyticService;
     constructor(analyticService: LeadAnalyticService);
     getGraphData(user: User, graphInput: GetGraphDataDto): Promise<{
-        pieData: any[];
-        barData: any[];
-        stackData: any[];
+        pieData: any;
+        barData: any;
+        stackData: any;
     }>;
     getLeadStatusDataForLineGraph(user: User, graphFilter: GetGraphDataDto, year: string): Promise<any>;
     getLeadStatusCountForTelecallers(user: User): Promise<{

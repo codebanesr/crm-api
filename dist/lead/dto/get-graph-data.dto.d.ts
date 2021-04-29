@@ -1,5 +1,5 @@
 export declare class GetGraphDataDto {
-    campaign?: string;
+    campaign: string;
     endDate?: Date;
     startDate?: Date;
     handler?: string[];

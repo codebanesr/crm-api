@@ -36,8 +36,7 @@ let LeadAnalyticController = class LeadAnalyticController {
     getGraphData(user, graphInput) {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization } = user;
-            const { handler } = graphInput;
-            return this.analyticService.getGraphData(organization, handler);
+            return this.analyticService.getGraphData(organization, graphInput);
         });
     }
     getLeadStatusDataForLineGraph(user, graphFilter, year) {

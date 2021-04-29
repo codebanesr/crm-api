@@ -37,44 +37,60 @@ let LeadAnalyticService = class LeadAnalyticService {
             pipeline.match({ campaignId: mongoose_2.Types.ObjectId(filter.campaign) });
         }
     }
-    getGraphData(organization, userList) {
+    getGraphData(organization, getGraphDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const barAgg = this.leadModel.aggregate();
-            let fltrs = { organization };
-            if ((userList === null || userList === void 0 ? void 0 : userList.length) > 0) {
-                fltrs["email"] = { $in: userList };
+            const { handler: userList, campaign, endDate, startDate } = getGraphDto;
+            const pieAgg = this.leadModel.aggregate();
+            const pieFilters = {
+                campaignId: mongoose_2.Types.ObjectId(campaign),
+                organization,
+                email: { $in: userList },
+                updatedAt: { $gte: startDate, $lte: endDate },
+            };
+            if (!userList || userList.length === 0) {
+                delete pieFilters.email;
             }
-            barAgg.match(fltrs);
-            barAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
-            barAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
-            const pieAgg = this.leadHistoryModel.aggregate();
-            pieAgg.match({ organization });
+            pieAgg.match(pieFilters);
             pieAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
             pieAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
             pieAgg.sort({ value: 1 });
             const stackBarData = this.leadHistoryModel.aggregate();
-            stackBarData.match({ organization, email: { $in: userList } });
+            const stackFilters = {
+                campaign: mongoose_2.Types.ObjectId(campaign),
+                organization,
+                newUser: { $in: userList },
+                createdAt: { $gte: startDate, $lte: endDate },
+            };
+            if (!userList || userList.length === 0) {
+                delete stackFilters.newUser;
+            }
+            stackBarData.match(stackFilters);
             stackBarData.project({
                 month: { $month: "$createdAt" },
                 year: { $year: "$createdAt" },
-                callStatus: "$callStatus",
+                leadStatus: "$leadStatus",
             });
             stackBarData.group({
-                _id: { month: "$month", year: "$year", callStatus: "$callStatus" },
+                _id: { month: "$month", year: "$year", leadStatus: "$leadStatus" },
                 NOC: { $sum: 1 },
             });
             stackBarData.project({
-                month: { $concat: ["$year", " - ", "$month"] },
-                NOC: "$_id.NOC",
-                type: "$_id.callStatus",
+                month: {
+                    $concat: [
+                        { $toString: "$_id.year" },
+                        " - ",
+                        { $toString: "$_id.month" },
+                    ],
+                },
+                NOC: "$NOC",
+                type: "$_id.leadStatus",
             });
-            let [pieData, barData, stackData] = yield Promise.all([
-                pieAgg,
-                barAgg,
-                stackBarData,
+            let [pieData, stackData] = yield Promise.all([
+                pieAgg.exec(),
+                stackBarData.exec(),
             ]);
-            pieData = pieData.filter(d => d.type !== null);
-            return { pieData, barData, stackData };
+            pieData = pieData.filter(p => !!p.type);
+            return { pieData, barData: pieData, stackData };
         });
     }
     getLeadStatusDataForLineGraph(email, organization, year) {

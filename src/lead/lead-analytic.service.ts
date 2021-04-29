@@ -33,48 +33,87 @@ export class LeadAnalyticService {
   
 
 
-  async getGraphData(organization: string, userList: string[]) {
-    const barAgg = this.leadModel.aggregate();
-    let fltrs = { organization };
+  async getGraphData(organization: string, getGraphDto: GetGraphDataDto) {
+    const { handler: userList, campaign, endDate, startDate } = getGraphDto;
     
-    if(userList?.length > 0) {
-      fltrs["email"] = { $in: userList }
-    }
-    barAgg.match(fltrs);
-    barAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
-    barAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
+    /** @Todo use same aggregation for both queries */
+    // const barAgg = this.leadModel.aggregate();
+    // barAgg.match({
+    //   organization,
+    //   email: { $in: userList },
+    //   updatedAt: { $gte: startDate, $lte: endDate },
+    // });
+    // barAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
+    // barAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
 
-    const pieAgg = this.leadHistoryModel.aggregate();
-    pieAgg.match({ organization });
+    const pieAgg = this.leadModel.aggregate();
+    const pieFilters = {
+      campaignId: Types.ObjectId(campaign),
+      organization,
+      email: { $in: userList },
+      updatedAt: { $gte: startDate, $lte: endDate },
+    };
+
+    if(!userList || userList.length === 0) {
+      delete pieFilters.email;
+    }
+    
+    pieAgg.match(pieFilters);
     pieAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
     pieAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
     pieAgg.sort({value: 1});
 
     const stackBarData = this.leadHistoryModel.aggregate();
-    stackBarData.match({ organization, email: { $in: userList } });
+    const stackFilters = {
+      campaign: Types.ObjectId(campaign),
+      organization,
+
+      /** @Todo this is slightly wrong since in case of old use we should only consider old user */
+      newUser: { $in: userList },
+      createdAt: { $gte: startDate, $lte: endDate },
+    };
+
+    if(!userList || userList.length === 0) {
+      delete stackFilters.newUser;
+    }
+    stackBarData.match(stackFilters);
     stackBarData.project({
       month: { $month: "$createdAt" },
       year: { $year: "$createdAt" },
-      callStatus: "$callStatus",
+      leadStatus: "$leadStatus",
     });
     stackBarData.group({
-      _id: { month: "$month", year: "$year", callStatus: "$callStatus" },
+      _id: { month: "$month", year: "$year", leadStatus: "$leadStatus" },
       NOC: { $sum: 1 },
     });
     stackBarData.project({
-      month: { $concat: ["$year", " - ", "$month"] },
-      NOC: "$_id.NOC",
-      type: "$_id.callStatus",
+      month: {
+        $concat: [
+          { $toString: "$_id.year" },
+          " - ",
+          { $toString: "$_id.month" },
+        ],
+      },
+      NOC: "$NOC",
+      type: "$_id.leadStatus",
     });
 
-    let [pieData, barData, stackData] = await Promise.all([
-      pieAgg,
-      barAgg,
-      stackBarData,
+    let [pieData, stackData] = await Promise.all([
+      pieAgg.exec(),
+      stackBarData.exec(),
     ]);
 
-    pieData = pieData.filter(d => d.type !== null);
-    return { pieData, barData, stackData };
+    // pieData.forEach(d => {
+    //   if(d.type === null) {
+    //     d.type = 'None';
+    //   }
+    // });
+
+
+    pieData = pieData.filter(p=>!!p.type)
+
+    /** @Todo send the same data for both pie and chart and consume on the frontend */ 
+    return { pieData, barData: pieData, stackData };
   }
 
   async getLeadStatusDataForLineGraph(
