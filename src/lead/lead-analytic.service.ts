@@ -6,6 +6,7 @@ import { GetGraphDataDto } from "./dto/get-graph-data.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { Lead } from "./interfaces/lead.interface";
 import * as moment from "moment";
+import { TellecallerCallDetailsResponse } from "./interfaces/telecallerDetails-response.dto";
 
 @Injectable()
 export class LeadAnalyticService {
@@ -15,27 +16,28 @@ export class LeadAnalyticService {
   @InjectModel("LeadHistory")
   private readonly leadHistoryModel: Model<LeadHistory>;
 
-
-  attachCommonGraphFilters(pipeline: Aggregate<any[]>, organization: string, filter: GetGraphDataDto) {
+  attachCommonGraphFilters(
+    pipeline: Aggregate<any[]>,
+    organization: string,
+    filter: GetGraphDataDto
+  ) {
     pipeline.match({
       organization,
-      updatedAt: {$gte: filter.startDate, $lt: filter.endDate}
+      updatedAt: { $gte: filter.startDate, $lt: filter.endDate },
     });
 
-    if(filter.handler?.length > 0) {
-      pipeline.match({email: {$in: filter.handler}});
+    if (filter.handler?.length > 0) {
+      pipeline.match({ email: { $in: filter.handler } });
     }
 
-    if(filter.campaign) {
-      pipeline.match({campaignId: Types.ObjectId(filter.campaign)})
+    if (filter.campaign) {
+      pipeline.match({ campaignId: Types.ObjectId(filter.campaign) });
     }
   }
-  
-
 
   async getGraphData(organization: string, getGraphDto: GetGraphDataDto) {
     const { handler: userList, campaign, endDate, startDate } = getGraphDto;
-    
+
     /** @Todo use same aggregation for both queries */
     // const barAgg = this.leadModel.aggregate();
     // barAgg.match({
@@ -54,14 +56,14 @@ export class LeadAnalyticService {
       updatedAt: { $gte: startDate, $lte: endDate },
     };
 
-    if(!userList || userList.length === 0) {
+    if (!userList || userList.length === 0) {
       delete pieFilters.email;
     }
-    
+
     pieAgg.match(pieFilters);
     pieAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
     pieAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
-    pieAgg.sort({value: 1});
+    pieAgg.sort({ value: 1 });
 
     const stackBarData = this.leadHistoryModel.aggregate();
     const stackFilters = {
@@ -73,7 +75,7 @@ export class LeadAnalyticService {
       createdAt: { $gte: startDate, $lte: endDate },
     };
 
-    if(!userList || userList.length === 0) {
+    if (!userList || userList.length === 0) {
       delete stackFilters.newUser;
     }
     stackBarData.match(stackFilters);
@@ -109,11 +111,11 @@ export class LeadAnalyticService {
     //   }
     // });
 
+    pieData = pieData.filter((p) => !!p.type);
+    const callDetails = await this.getTellecallerCallDetails(campaign, startDate, endDate);
 
-    pieData = pieData.filter(p=>!!p.type)
-
-    /** @Todo send the same data for both pie and chart and consume on the frontend */ 
-    return { pieData, barData: pieData, stackData };
+    /** @Todo send the same data for both pie and chart and consume on the frontend */
+    return { pieData, barData: pieData, stackData, callDetails };
   }
 
   async getLeadStatusDataForLineGraph(
@@ -171,7 +173,7 @@ export class LeadAnalyticService {
             },
           },
         },
-        { $sort : { "_id.month" : 1 } },
+        { $sort: { "_id.month": 1 } },
         {
           $project: {
             total: "$total",
@@ -186,7 +188,7 @@ export class LeadAnalyticService {
 
   async getLeadStatusCountForTelecallers(email: string, organization: string) {
     const pipeline = this.leadModel.aggregate();
-    pipeline.match({organization});
+    pipeline.match({ organization });
 
     // adds another field called nextActionExists, every record will now have this field based on which we can calculate
     // leads for every user
@@ -233,39 +235,49 @@ export class LeadAnalyticService {
     };
   }
 
-  async getCampaignWiseLeadCount(email: string, organization: string, filters: GetGraphDataDto) {
-    const pipeline = this.leadModel.aggregate()
+  async getCampaignWiseLeadCount(
+    email: string,
+    organization: string,
+    filters: GetGraphDataDto
+  ) {
+    const pipeline = this.leadModel.aggregate();
     this.attachCommonGraphFilters(pipeline, organization, filters);
     pipeline.group({
       _id: "$campaign",
       total: { $sum: 1 },
     });
-    pipeline.project({type: "$_id", "value": "$total", percentage: "1" });
+    pipeline.project({ type: "$_id", value: "$total", percentage: "1" });
     return pipeline.exec();
   }
 
-
-  async getCampaignWiseLeadCountPerLeadCategory(email: string, organization: string, filter: GetGraphDataDto) {
-    const XAxisLabel = 'Campaign Name';
-    const YAxisLabel = 'Total Leads';
+  async getCampaignWiseLeadCountPerLeadCategory(
+    email: string,
+    organization: string,
+    filter: GetGraphDataDto
+  ) {
+    const XAxisLabel = "Campaign Name";
+    const YAxisLabel = "Total Leads";
 
     const pipeline = this.leadModel.aggregate();
 
     this.attachCommonGraphFilters(pipeline, organization, filter);
 
     pipeline.group({
-        _id: { campaign: "$campaign", leadStatus: "$leadStatus"},
-        total: { $sum: 1 },
+      _id: { campaign: "$campaign", leadStatus: "$leadStatus" },
+      total: { $sum: 1 },
     });
 
     pipeline.project({
-      _id:0, type: "$_id.leadStatus", [YAxisLabel]: "$total", [XAxisLabel]: "$_id.campaign"
-    })
-    
+      _id: 0,
+      type: "$_id.leadStatus",
+      [YAxisLabel]: "$total",
+      [XAxisLabel]: "$_id.campaign",
+    });
+
     const stackBarData = await pipeline.exec();
     let max = 10;
 
-    if(stackBarData.length > 0) {
+    if (stackBarData.length > 0) {
       max = maxBy(stackBarData, (o) => o[YAxisLabel])[YAxisLabel];
     }
 
@@ -273,40 +285,78 @@ export class LeadAnalyticService {
       XAxisLabel,
       YAxisLabel,
       stackBarData,
-      max: max*2 // this is just a quick fix, we need to find the max height of the bar, not max of entries individually
-    }
+      max: max * 2, // this is just a quick fix, we need to find the max height of the bar, not max of entries individually
+    };
   }
 
-  async getUserTalktime(email: string, organization: string, filter: GetGraphDataDto) {
+  async getUserTalktime(
+    email: string,
+    organization: string,
+    filter: GetGraphDataDto
+  ) {
     const pipeline = this.leadHistoryModel.aggregate();
-    
+
     pipeline.match({
       organization,
-      createdAt: {$gte: filter.startDate, $lt: filter.endDate}
+      createdAt: { $gte: filter.startDate, $lt: filter.endDate },
     });
 
-    if(filter.handler?.length > 0) {
-      pipeline.match({email: {$in: filter.handler}});
+    if (filter.handler?.length > 0) {
+      pipeline.match({ email: { $in: filter.handler } });
     }
 
-
-    // this is wrong and was done willfully so, change this to old user, because if reassignment was done, talktime should go to the 
+    // this is wrong and was done willfully so, change this to old user, because if reassignment was done, talktime should go to the
     // previous user
     pipeline.group({
-      _id: {"email": "$newUser"},
-      talktime: {$sum: "$duration"},
-      totalCalls: {$sum: 1}
+      _id: { email: "$newUser" },
+      talktime: { $sum: "$duration" },
+      totalCalls: { $sum: 1 },
     });
 
     pipeline.project({
       value: "$talktime",
-      averageValue: {$divide: ["$talktime", "$totalCalls"]},
+      averageValue: { $divide: ["$talktime", "$totalCalls"] },
       type: "$_id.email",
-      _id: 0
-    })
+      _id: 0,
+    });
 
     const result = await pipeline.exec();
 
     return result;
+  }
+
+  getTellecallerCallDetails(
+    campaign: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<TellecallerCallDetailsResponse> {
+
+    // startDate and endDate have to converted to string
+    return this.leadHistoryModel.aggregate([
+      {
+        $match: {
+          campaign: Types.ObjectId(campaign),
+          createdAt: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $addFields: {
+          isAnswered: { $cond: [{ $gt: ["$duration", 0] }, 1, 0] },
+          isUnanswered: { $cond: [{ $lte: ["$duration", 0] }, 1, 0] },
+        },
+      },
+      {
+        $group: {
+          _id: { email: "$newUser" },
+          total: { $sum: 1 },
+          totalTalktime: {$sum: "$duration"},
+          answered: { $sum: "$isAnswered" },
+          unAnswered: { $sum: "$isUnanswered" },
+        },
+      },
+      {
+        $project: {email: "$_id.email", total: "$total", answered: "$answered", unAnswered: "$unAnswered", totalTalktime: "$totalTalktime"}
+      }
+    ]).exec();
   }
 }

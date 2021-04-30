@@ -1,5 +1,6 @@
 import { Aggregate } from "mongoose";
 import { GetGraphDataDto } from "./dto/get-graph-data.dto";
+import { TellecallerCallDetailsResponse } from "./interfaces/telecallerDetails-response.dto";
 export declare class LeadAnalyticService {
     private readonly leadModel;
     private readonly leadHistoryModel;
@@ -8,6 +9,7 @@ export declare class LeadAnalyticService {
         pieData: any;
         barData: any;
         stackData: any;
+        callDetails: TellecallerCallDetailsResponse;
     }>;
     getLeadStatusDataForLineGraph(email: string, organization: string, year: string): Promise<any>;
     getLeadStatusCountForTelecallers(email: string, organization: string): Promise<{
@@ -23,4 +25,5 @@ export declare class LeadAnalyticService {
         max: number;
     }>;
     getUserTalktime(email: string, organization: string, filter: GetGraphDataDto): Promise<any>;
+    getTellecallerCallDetails(campaign: string, startDate: Date, endDate: Date): Promise<TellecallerCallDetailsResponse>;
 }

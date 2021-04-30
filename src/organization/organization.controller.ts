@@ -20,6 +20,7 @@ import { OrganizationService } from "./organization.service";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Logger } from "nestjs-pino";
+import { RoleType } from "src/shared/role-type.enum";
 
 @Controller("organization")
 @ApiTags("organization")
@@ -123,4 +124,5 @@ export class OrganizationController {
   async getPayments(@Query("organization") organization: string) {
     return this.organizationService.getAllPayments(organization);
   }
+
 }
