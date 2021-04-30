@@ -1,5 +1,5 @@
 import { Aggregate } from "mongoose";
-import { GetGraphDataDto } from "./dto/get-graph-data.dto";
+import { GetGraphDataDto, GetGraphDataDto2 } from "./dto/get-graph-data.dto";
 import { TellecallerCallDetailsResponse } from "./interfaces/telecallerDetails-response.dto";
 export declare class LeadAnalyticService {
     private readonly leadModel;
@@ -12,18 +12,17 @@ export declare class LeadAnalyticService {
         callDetails: TellecallerCallDetailsResponse;
     }>;
     getLeadStatusDataForLineGraph(email: string, organization: string, year: string): Promise<any>;
-    getLeadStatusCountForTelecallers(email: string, organization: string): Promise<{
+    getLeadStatusCountForTelecallers(email: string, organization: string, startDate: Date, endDate: Date, campaign: string[], handler: string[]): Promise<{
         totalLeadsInOrg: Pick<any, string | number | symbol>;
         items: any;
         total_count: any;
     }>;
-    getCampaignWiseLeadCount(email: string, organization: string, filters: GetGraphDataDto): Promise<any>;
-    getCampaignWiseLeadCountPerLeadCategory(email: string, organization: string, filter: GetGraphDataDto): Promise<{
+    getCampaignWiseLeadCount(email: string, organization: string, filters: GetGraphDataDto2): Promise<any>;
+    getCampaignWiseLeadCountPerLeadCategory(email: string, organization: string, filter: GetGraphDataDto2): Promise<{
         XAxisLabel: string;
         YAxisLabel: string;
         stackBarData: any;
         max: number;
     }>;
-    getUserTalktime(email: string, organization: string, filter: GetGraphDataDto): Promise<any>;
     getTellecallerCallDetails(campaign: string, startDate: Date, endDate: Date): Promise<TellecallerCallDetailsResponse>;
 }

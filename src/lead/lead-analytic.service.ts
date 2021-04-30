@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { maxBy } from "lodash";
 import { Aggregate, Model, Types, Schema } from "mongoose";
-import { GetGraphDataDto } from "./dto/get-graph-data.dto";
+import { GetGraphDataDto, GetGraphDataDto2 } from "./dto/get-graph-data.dto";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { Lead } from "./interfaces/lead.interface";
 import * as moment from "moment";
@@ -186,9 +186,28 @@ export class LeadAnalyticService {
       .exec();
   }
 
-  async getLeadStatusCountForTelecallers(email: string, organization: string) {
+  async getLeadStatusCountForTelecallers(
+    email: string, 
+    organization: string,
+    startDate: Date,
+    endDate: Date,
+    campaign: string[],
+    handler: string[]
+  ) {
     const pipeline = this.leadModel.aggregate();
-    pipeline.match({ organization });
+    const matchQuery = { organization };
+    if(handler?.length > 0) {
+      matchQuery["email"] = {$in: handler};
+    }
+
+    if(campaign && campaign.length > 0) {
+      matchQuery["campaignId"] = {$in: campaign.map(c=>Types.ObjectId(c))};
+    }
+
+    if(startDate && endDate) {
+      matchQuery["updatedAt"] = {$lte: endDate, $gte: startDate}
+    }
+    pipeline.match(matchQuery);
 
     // adds another field called nextActionExists, every record will now have this field based on which we can calculate
     // leads for every user
@@ -238,10 +257,24 @@ export class LeadAnalyticService {
   async getCampaignWiseLeadCount(
     email: string,
     organization: string,
-    filters: GetGraphDataDto
+    filters: GetGraphDataDto2
   ) {
     const pipeline = this.leadModel.aggregate();
-    this.attachCommonGraphFilters(pipeline, organization, filters);
+    
+    pipeline.match({
+      organization,
+      updatedAt: { $gte: filters.startDate, $lt: filters.endDate },
+    });
+
+    if (filters.handler?.length > 0) {
+      pipeline.match({ email: { $in: filters.handler } });
+    }
+
+    if (filters.campaign) {
+      pipeline.match({ campaignId: {$in: filters.campaign.map(c=>Types.ObjectId(c))} });
+    }
+
+
     pipeline.group({
       _id: "$campaign",
       total: { $sum: 1 },
@@ -253,14 +286,25 @@ export class LeadAnalyticService {
   async getCampaignWiseLeadCountPerLeadCategory(
     email: string,
     organization: string,
-    filter: GetGraphDataDto
+    filter: GetGraphDataDto2
   ) {
     const XAxisLabel = "Campaign Name";
     const YAxisLabel = "Total Leads";
 
     const pipeline = this.leadModel.aggregate();
+    
+    pipeline.match({
+      organization,
+      updatedAt: { $gte: filter.startDate, $lt: filter.endDate },
+    });
 
-    this.attachCommonGraphFilters(pipeline, organization, filter);
+    if (filter.handler?.length > 0) {
+      pipeline.match({ email: { $in: filter.handler } });
+    }
+
+    if (filter.campaign) {
+      pipeline.match({ campaignId: {$in: filter.campaign.map(c=>Types.ObjectId(c))}});
+    }
 
     pipeline.group({
       _id: { campaign: "$campaign", leadStatus: "$leadStatus" },
@@ -287,42 +331,6 @@ export class LeadAnalyticService {
       stackBarData,
       max: max * 2, // this is just a quick fix, we need to find the max height of the bar, not max of entries individually
     };
-  }
-
-  async getUserTalktime(
-    email: string,
-    organization: string,
-    filter: GetGraphDataDto
-  ) {
-    const pipeline = this.leadHistoryModel.aggregate();
-
-    pipeline.match({
-      organization,
-      createdAt: { $gte: filter.startDate, $lt: filter.endDate },
-    });
-
-    if (filter.handler?.length > 0) {
-      pipeline.match({ email: { $in: filter.handler } });
-    }
-
-    // this is wrong and was done willfully so, change this to old user, because if reassignment was done, talktime should go to the
-    // previous user
-    pipeline.group({
-      _id: { email: "$newUser" },
-      talktime: { $sum: "$duration" },
-      totalCalls: { $sum: 1 },
-    });
-
-    pipeline.project({
-      value: "$talktime",
-      averageValue: { $divide: ["$talktime", "$totalCalls"] },
-      type: "$_id.email",
-      _id: 0,
-    });
-
-    const result = await pipeline.exec();
-
-    return result;
   }
 
   getTellecallerCallDetails(

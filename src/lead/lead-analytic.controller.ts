@@ -4,7 +4,7 @@ import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Roles } from "../auth/decorators/roles.decorator";
 import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import { User } from "../user/interfaces/user.interface";
-import { GetGraphDataDto } from "./dto/get-graph-data.dto";
+import { GetGraphDataDto, GetGraphDataDto2 } from "./dto/get-graph-data.dto";
 import { LeadAnalyticService } from "./lead-analytic.service";
 @ApiTags("Lead Analytic")
 @Controller("lead-analytic")
@@ -42,18 +42,26 @@ export class LeadAnalyticController {
     );
   }
 
-  @Get("openClosedLeadCount")
+  @Post("openClosedLeadCount")
   @ApiOperation({
     summary:
       "Fetches total lead count in terms of open and closed lead for every user, this will be shown on a table",
   })
   @UseGuards(AuthGuard("jwt"))
   @Roles("admin", "superAdmin")
-  async getLeadStatusCountForTelecallers(@CurrentUser() user: User) {
+  async getLeadStatusCountForTelecallers(
+    @CurrentUser() user: User,
+    @Body() filters: GetGraphDataDto2
+  ) {
     const { email, organization } = user;
+    const { startDate, endDate, campaign, handler } = filters;
     return this.analyticService.getLeadStatusCountForTelecallers(
       email,
-      organization
+      organization,
+      startDate,
+      endDate,
+      campaign,
+      handler
     );
   }
 
@@ -65,7 +73,7 @@ export class LeadAnalyticController {
   @Roles("admin", "superAdmin")
   async getCampaignWiseLeadCount(
     @CurrentUser() user: User,
-    @Body() graphFilter: GetGraphDataDto
+    @Body() graphFilter: GetGraphDataDto2
   ) {
     const { email, organization } = user;
     return this.analyticService.getCampaignWiseLeadCount(
@@ -84,29 +92,10 @@ export class LeadAnalyticController {
   @Roles("admin", "superAdmin")
   async getCampaignWiseLeadCountPerLeadCategory(
     @CurrentUser() user: User,
-    @Body() graphFilter: GetGraphDataDto
+    @Body() graphFilter: GetGraphDataDto2
   ) {
     const { email, organization } = user;
     return this.analyticService.getCampaignWiseLeadCountPerLeadCategory(
-      email,
-      organization,
-      graphFilter
-    );
-  }
-
-  @Post("userTalktime")
-  @ApiOperation({
-    summary:
-      "Fetches individual users talktime and represents it in a bar graph",
-  })
-  @UseGuards(AuthGuard("jwt"))
-  @Roles("admin", "superAdmin")
-  async getUserTalktime(
-    @CurrentUser() user: User,
-    @Body() graphFilter: GetGraphDataDto
-  ) {
-    const { email, organization } = user;
-    return this.analyticService.getUserTalktime(
       email,
       organization,
       graphFilter

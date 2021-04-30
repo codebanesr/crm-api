@@ -158,10 +158,20 @@ let LeadAnalyticService = class LeadAnalyticService {
                 .exec();
         });
     }
-    getLeadStatusCountForTelecallers(email, organization) {
+    getLeadStatusCountForTelecallers(email, organization, startDate, endDate, campaign, handler) {
         return __awaiter(this, void 0, void 0, function* () {
             const pipeline = this.leadModel.aggregate();
-            pipeline.match({ organization });
+            const matchQuery = { organization };
+            if ((handler === null || handler === void 0 ? void 0 : handler.length) > 0) {
+                matchQuery["email"] = { $in: handler };
+            }
+            if (campaign && campaign.length > 0) {
+                matchQuery["campaignId"] = { $in: campaign.map(c => mongoose_2.Types.ObjectId(c)) };
+            }
+            if (startDate && endDate) {
+                matchQuery["updatedAt"] = { $lte: endDate, $gte: startDate };
+            }
+            pipeline.match(matchQuery);
             pipeline.addFields({
                 nextActionExists: {
                     $cond: [
@@ -199,9 +209,19 @@ let LeadAnalyticService = class LeadAnalyticService {
         });
     }
     getCampaignWiseLeadCount(email, organization, filters) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const pipeline = this.leadModel.aggregate();
-            this.attachCommonGraphFilters(pipeline, organization, filters);
+            pipeline.match({
+                organization,
+                updatedAt: { $gte: filters.startDate, $lt: filters.endDate },
+            });
+            if (((_a = filters.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                pipeline.match({ email: { $in: filters.handler } });
+            }
+            if (filters.campaign) {
+                pipeline.match({ campaignId: { $in: filters.campaign.map(c => mongoose_2.Types.ObjectId(c)) } });
+            }
             pipeline.group({
                 _id: "$campaign",
                 total: { $sum: 1 },
@@ -211,11 +231,21 @@ let LeadAnalyticService = class LeadAnalyticService {
         });
     }
     getCampaignWiseLeadCountPerLeadCategory(email, organization, filter) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const XAxisLabel = "Campaign Name";
             const YAxisLabel = "Total Leads";
             const pipeline = this.leadModel.aggregate();
-            this.attachCommonGraphFilters(pipeline, organization, filter);
+            pipeline.match({
+                organization,
+                updatedAt: { $gte: filter.startDate, $lt: filter.endDate },
+            });
+            if (((_a = filter.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                pipeline.match({ email: { $in: filter.handler } });
+            }
+            if (filter.campaign) {
+                pipeline.match({ campaignId: { $in: filter.campaign.map(c => mongoose_2.Types.ObjectId(c)) } });
+            }
             pipeline.group({
                 _id: { campaign: "$campaign", leadStatus: "$leadStatus" },
                 total: { $sum: 1 },
@@ -237,32 +267,6 @@ let LeadAnalyticService = class LeadAnalyticService {
                 stackBarData,
                 max: max * 2,
             };
-        });
-    }
-    getUserTalktime(email, organization, filter) {
-        var _a;
-        return __awaiter(this, void 0, void 0, function* () {
-            const pipeline = this.leadHistoryModel.aggregate();
-            pipeline.match({
-                organization,
-                createdAt: { $gte: filter.startDate, $lt: filter.endDate },
-            });
-            if (((_a = filter.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-                pipeline.match({ email: { $in: filter.handler } });
-            }
-            pipeline.group({
-                _id: { email: "$newUser" },
-                talktime: { $sum: "$duration" },
-                totalCalls: { $sum: 1 },
-            });
-            pipeline.project({
-                value: "$talktime",
-                averageValue: { $divide: ["$talktime", "$totalCalls"] },
-                type: "$_id.email",
-                _id: 0,
-            });
-            const result = yield pipeline.exec();
-            return result;
         });
     }
     getTellecallerCallDetails(campaign, startDate, endDate) {

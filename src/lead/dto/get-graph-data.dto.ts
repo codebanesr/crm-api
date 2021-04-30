@@ -28,3 +28,28 @@ export class GetGraphDataDto {
     @IsString()
     prospectName: null;
 }
+
+
+export class GetGraphDataDto2 {
+    @IsMongoId({each: true})
+    campaign: string[];
+
+    @IsOptional()
+    @Transform(v => new Date(v))
+    @IsDate()
+    endDate?: Date;
+
+
+    @IsOptional()
+    @Transform(v => new Date(v))
+    @IsDate()
+    startDate?: Date;
+
+    @IsOptional()
+    @IsEmail({}, {each: true})
+    handler?: string[];
+
+    @IsOptional()
+    @IsString()
+    prospectName: null;
+}

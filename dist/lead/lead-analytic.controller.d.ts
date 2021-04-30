@@ -1,5 +1,5 @@
 import { User } from "../user/interfaces/user.interface";
-import { GetGraphDataDto } from "./dto/get-graph-data.dto";
+import { GetGraphDataDto, GetGraphDataDto2 } from "./dto/get-graph-data.dto";
 import { LeadAnalyticService } from "./lead-analytic.service";
 export declare class LeadAnalyticController {
     private analyticService;
@@ -11,17 +11,16 @@ export declare class LeadAnalyticController {
         callDetails: import("./interfaces/telecallerDetails-response.dto").TellecallerCallDetailsResponse;
     }>;
     getLeadStatusDataForLineGraph(user: User, graphFilter: GetGraphDataDto, year: string): Promise<any>;
-    getLeadStatusCountForTelecallers(user: User): Promise<{
+    getLeadStatusCountForTelecallers(user: User, filters: GetGraphDataDto2): Promise<{
         totalLeadsInOrg: Pick<any, string | number | symbol>;
         items: any;
         total_count: any;
     }>;
-    getCampaignWiseLeadCount(user: User, graphFilter: GetGraphDataDto): Promise<any>;
-    getCampaignWiseLeadCountPerLeadCategory(user: User, graphFilter: GetGraphDataDto): Promise<{
+    getCampaignWiseLeadCount(user: User, graphFilter: GetGraphDataDto2): Promise<any>;
+    getCampaignWiseLeadCountPerLeadCategory(user: User, graphFilter: GetGraphDataDto2): Promise<{
         XAxisLabel: string;
         YAxisLabel: string;
         stackBarData: any;
         max: number;
     }>;
-    getUserTalktime(user: User, graphFilter: GetGraphDataDto): Promise<any>;
 }
