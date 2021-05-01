@@ -30,6 +30,7 @@ export declare class UserController {
         refreshToken: string;
     }>;
     login(req: IRequest, loginUserDto: LoginUserDto): Promise<{
+        _id: any;
         fullName: string;
         organization: any;
         email: string;

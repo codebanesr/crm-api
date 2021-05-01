@@ -156,6 +156,7 @@ let UserService = class UserService {
             const singleLoginKey = this.setSingleLoginKey(user);
             yield this.passwordsAreMatch(user);
             return {
+                _id: user._id,
                 fullName: user.fullName,
                 organization: user.get("organization.name"),
                 email: user.email,

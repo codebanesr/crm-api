@@ -38,6 +38,7 @@ export declare class UserService {
         refreshToken: string;
     }>;
     login(req: Request, loginUserDto: LoginUserDto): Promise<{
+        _id: any;
         fullName: string;
         organization: any;
         email: string;
