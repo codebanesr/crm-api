@@ -10,6 +10,7 @@ export declare class LeadAnalyticService {
         barData: any;
         stackData: any;
         callDetails: TellecallerCallDetailsResponse;
+        userCallDurationTransposed: any;
     }>;
     getLeadStatusDataForLineGraph(email: string, organization: string, year: string): Promise<any>;
     getLeadStatusCountForTelecallers(email: string, organization: string, startDate: Date, endDate: Date, campaign: string[], handler: string[]): Promise<{

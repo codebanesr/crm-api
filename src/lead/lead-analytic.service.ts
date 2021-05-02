@@ -66,7 +66,7 @@ export class LeadAnalyticService {
     pieAgg.sort({ value: 1 });
 
     const stackBarData = this.leadHistoryModel.aggregate();
-    const stackFilters = {
+    const leadHistoryFilters = {
       campaign: Types.ObjectId(campaign),
       organization,
 
@@ -76,9 +76,9 @@ export class LeadAnalyticService {
     };
 
     if (!userList || userList.length === 0) {
-      delete stackFilters.newUser;
+      delete leadHistoryFilters.newUser;
     }
-    stackBarData.match(stackFilters);
+    stackBarData.match(leadHistoryFilters);
     stackBarData.project({
       month: { $month: "$createdAt" },
       year: { $year: "$createdAt" },
@@ -100,9 +100,37 @@ export class LeadAnalyticService {
       type: "$_id.leadStatus",
     });
 
-    let [pieData, stackData] = await Promise.all([
+
+    const userCallDurationData = this.leadHistoryModel.aggregate();
+    userCallDurationData.match(leadHistoryFilters);
+    userCallDurationData.group({
+      "_id": "$newUser",
+      "duration": { "$sum": "$duration" },
+      "callCount": {
+        "$sum": {
+          "$switch": {
+            "branches": [
+              {
+                "case": { "$gt": ["$duration", 0] },
+                "then": 1
+              }
+            ],
+            "default": 0
+          }
+        }
+      }
+    });
+
+    userCallDurationData.project({
+      "email": "$_id",
+      "duration": "$duration",
+      "callCount": "$callCount"
+    });
+
+    let [pieData, stackData, userCallDurationTransposed] = await Promise.all([
       pieAgg.exec(),
       stackBarData.exec(),
+      userCallDurationData.exec()
     ]);
 
     // pieData.forEach(d => {
@@ -115,7 +143,7 @@ export class LeadAnalyticService {
     const callDetails = await this.getTellecallerCallDetails(campaign, startDate, endDate);
 
     /** @Todo send the same data for both pie and chart and consume on the frontend */
-    return { pieData, barData: pieData, stackData, callDetails };
+    return { pieData, barData: pieData, stackData, callDetails, userCallDurationTransposed };
   }
 
   async getLeadStatusDataForLineGraph(

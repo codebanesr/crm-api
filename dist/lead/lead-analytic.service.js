@@ -55,16 +55,16 @@ let LeadAnalyticService = class LeadAnalyticService {
             pieAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
             pieAgg.sort({ value: 1 });
             const stackBarData = this.leadHistoryModel.aggregate();
-            const stackFilters = {
+            const leadHistoryFilters = {
                 campaign: mongoose_2.Types.ObjectId(campaign),
                 organization,
                 newUser: { $in: userList },
                 createdAt: { $gte: startDate, $lte: endDate },
             };
             if (!userList || userList.length === 0) {
-                delete stackFilters.newUser;
+                delete leadHistoryFilters.newUser;
             }
-            stackBarData.match(stackFilters);
+            stackBarData.match(leadHistoryFilters);
             stackBarData.project({
                 month: { $month: "$createdAt" },
                 year: { $year: "$createdAt" },
@@ -85,13 +85,38 @@ let LeadAnalyticService = class LeadAnalyticService {
                 NOC: "$NOC",
                 type: "$_id.leadStatus",
             });
-            let [pieData, stackData] = yield Promise.all([
+            const userCallDurationData = this.leadHistoryModel.aggregate();
+            userCallDurationData.match(leadHistoryFilters);
+            userCallDurationData.group({
+                "_id": "$newUser",
+                "duration": { "$sum": "$duration" },
+                "callCount": {
+                    "$sum": {
+                        "$switch": {
+                            "branches": [
+                                {
+                                    "case": { "$gt": ["$duration", 0] },
+                                    "then": 1
+                                }
+                            ],
+                            "default": 0
+                        }
+                    }
+                }
+            });
+            userCallDurationData.project({
+                "email": "$_id",
+                "duration": "$duration",
+                "callCount": "$callCount"
+            });
+            let [pieData, stackData, userCallDurationTransposed] = yield Promise.all([
                 pieAgg.exec(),
                 stackBarData.exec(),
+                userCallDurationData.exec()
             ]);
             pieData = pieData.filter((p) => !!p.type);
             const callDetails = yield this.getTellecallerCallDetails(campaign, startDate, endDate);
-            return { pieData, barData: pieData, stackData, callDetails };
+            return { pieData, barData: pieData, stackData, callDetails, userCallDurationTransposed };
         });
     }
     getLeadStatusDataForLineGraph(email, organization, year) {

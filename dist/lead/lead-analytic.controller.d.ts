@@ -9,6 +9,7 @@ export declare class LeadAnalyticController {
         barData: any;
         stackData: any;
         callDetails: import("./interfaces/telecallerDetails-response.dto").TellecallerCallDetailsResponse;
+        userCallDurationTransposed: any;
     }>;
     getLeadStatusDataForLineGraph(user: User, graphFilter: GetGraphDataDto, year: string): Promise<any>;
     getLeadStatusCountForTelecallers(user: User, filters: GetGraphDataDto2): Promise<{
