@@ -14,14 +14,17 @@ import { SharedModule } from "./shared/shared.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { UploadService } from "./upload/upload.service";
 import { PushNotificationService } from "./push-notification/push-notification.service";
-import Config from "./config";
-import { RulesModule } from './rules/rules.module';
+import { RulesModule } from "./rules/rules.module";
 import { LoggerModule } from "nestjs-pino";
 import { stdSerializers } from "pino";
-
+import { OrderModule } from "./order/order.module";
+import { RazorpayModule } from "./razorpay/razorpay.module";
+import config from "./config/config";
+import { ConfigModule, ConfigService } from "nestjs-config";
 
 @Module({
   imports: [
+    ConfigModule.load("./config/config"),
     LoggerModule.forRoot({
       pinoHttp: {
         serializers: {
@@ -32,17 +35,21 @@ import { stdSerializers } from "pino";
               id: req.id,
               url: req.url,
               body: req.body,
-              method: req.method
-            }
+              method: req.method,
+            };
           },
           res: stdSerializers.res,
           err: stdSerializers.err,
-        }
-      }
+        },
+      },
     }),
     CacheModule.register(),
     // { useNewUrlParser: true } -> for atlas connection
-    MongooseModule.forRoot(Config.MONGODB_URI, { useNewUrlParser: true }),
+    MongooseModule.forRootAsync({
+      useFactory: () => ({
+        uri: config.MONGODB_URI,
+      }),
+    }),
     UserModule,
     AuthModule,
     ArticleModule,
@@ -53,6 +60,8 @@ import { stdSerializers } from "pino";
     SharedModule,
     DashboardModule,
     RulesModule,
+    OrderModule,
+    RazorpayModule,
   ],
   controllers: [AppController],
   providers: [

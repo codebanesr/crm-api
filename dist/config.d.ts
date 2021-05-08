@@ -1,4 +1,8 @@
 declare const _default: {
+    razorpay: {
+        username: string;
+        password: string;
+    };
     s3: {
         accessKeyId: string;
         secretAccessKey: string;

@@ -21,7 +21,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadService = void 0;
 const common_1 = require("@nestjs/common");
 const aws_sdk_1 = require("aws-sdk");
-const config_1 = require("../config");
+const config_1 = require("../config/config");
 let UploadService = class UploadService {
     constructor() {
         this.bucket = new aws_sdk_1.S3({

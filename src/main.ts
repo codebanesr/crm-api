@@ -25,14 +25,14 @@ async function bootstrap() {
     })
   );
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix("api");
 
   const options = new DocumentBuilder()
-  .setTitle("API")
-  .setDescription("API description")
-  .setVersion("1.0")
-  .addTag("API")
-  .build();
+    .setTitle("API")
+    .setDescription("API description")
+    .setVersion("1.0")
+    .addTag("API")
+    .build();
   const document = SwaggerModule.createDocument(app, options, {
     include: [
       UserModule,
@@ -46,6 +46,7 @@ async function bootstrap() {
   SwaggerModule.setup("api/swagger", app, document);
 
   const PORT = process.env.PORT || 3000;
+  console.log({ PORT });
   await app.listen(PORT);
   warn(`APP IS LISTENING TO PORT ${PORT}`);
 }

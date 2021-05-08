@@ -28,7 +28,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const shared_service_1 = require("../shared/shared.service");
 const nestjs_redis_1 = require("nestjs-redis");
-const config_1 = require("../config");
+const config_1 = require("../config/config");
 const user_service_1 = require("../user/user.service");
 const moment = require("moment");
 const role_type_enum_1 = require("../shared/role-type.enum");
@@ -53,7 +53,7 @@ let OrganizationService = class OrganizationService {
                 orgId: result._id,
                 orgName: result.name,
                 resellerId,
-                resellerName
+                resellerName,
             });
             yield this.userService.create({
                 email,
@@ -111,25 +111,28 @@ let OrganizationService = class OrganizationService {
     }
     createOrUpdateUserQuota(obj) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { discount, months, perUserRate, seats, total: UITotal, organization } = obj;
+            const { discount, months, perUserRate, seats, total: UITotal, organization, } = obj;
             const total = perUserRate * (1 - 0.01 * discount) * seats * months;
             if (total !== UITotal) {
                 throw new common_1.PreconditionFailedException();
             }
-            const expiresOn = moment().add(months, 'M');
+            const expiresOn = moment().add(months, "M");
             return this.transactionModel.create({
                 discount,
                 perUserRate,
                 seats,
                 total,
                 expiresOn: expiresOn.toDate(),
-                organization
+                organization,
             });
         });
     }
     getAllPayments(organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.transactionModel.find({ organization }).sort({ _id: 1 }).limit(15);
+            return this.transactionModel
+                .find({ organization })
+                .sort({ _id: 1 })
+                .limit(15);
         });
     }
     getAllOrganizations() {

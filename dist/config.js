@@ -1,8 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = require("dotenv");
-dotenv_1.config();
+dotenv_1.config({ path: "local.env" });
 exports.default = {
+    razorpay: {
+        username: process.env.RAZORPAY_USERNAME,
+        password: process.env.RAZORPAY_PASSWORD,
+    },
     s3: {
         accessKeyId: process.env.accessKeyId,
         secretAccessKey: process.env.secretAccessKey,
@@ -51,6 +55,6 @@ exports.default = {
         REDIS_PASSWORD: process.env.BULL_REDIS_PASSWORD,
         REDIS_URL: process.env.BULL_REDIS_URL,
         REDIS_PORT: process.env.BULL_REDIS_PORT,
-    }
+    },
 };
 //# sourceMappingURL=config.js.map

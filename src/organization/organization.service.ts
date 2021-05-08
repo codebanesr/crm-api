@@ -15,7 +15,7 @@ import { CreateOrganizationDto } from "./dto/create-organization.dto";
 import { GenerateTokenDto } from "./dto/generate-token.dto";
 import { Organization } from "./interface/organization.interface";
 import { RedisService } from "nestjs-redis";
-import config from "../config";
+import config from "../config/config";
 import { ValidateNewOrganizationDto } from "./dto/validation.dto";
 import { UserService } from "../user/user.service";
 import { ResellerOrganization } from "../organization/interface/reseller-organization.interface";
@@ -43,7 +43,11 @@ export class OrganizationService {
   ) {}
 
   /** @Todo everything should happen in a transaction */
-  async createOrganization(createOrganizationDto: CreateOrganizationDto, resellerId: string, resellerName: string) {
+  async createOrganization(
+    createOrganizationDto: CreateOrganizationDto,
+    resellerId: string,
+    resellerName: string
+  ) {
     const { email, fullName, password, phoneNumber } = createOrganizationDto;
     await this.isOrganizationalPayloadValid(createOrganizationDto);
     // now save organization information in the user schema...
@@ -55,23 +59,24 @@ export class OrganizationService {
       orgId: result._id,
       orgName: result.name,
       resellerId,
-      resellerName
+      resellerName,
     });
 
-    await this.userService.create({
-      email,
-      fullName,
-      password,
-      roleType: RoleType.admin,
-      phoneNumber,
-    }, result._id, true);
+    await this.userService.create(
+      {
+        email,
+        fullName,
+        password,
+        roleType: RoleType.admin,
+        phoneNumber,
+      },
+      result._id,
+      true
+    );
   }
 
-
-
-
   async getAllResellerOrganization(id: string) {
-    return this.resellerOrganizationModel.find({resellerId: id});
+    return this.resellerOrganizationModel.find({ resellerId: id });
   }
 
   async generateToken(generateTokenDto: GenerateTokenDto) {
@@ -130,35 +135,41 @@ export class OrganizationService {
     //   throw new ConflictException();
     // }
 
-
     return true;
   }
 
-
   async createOrUpdateUserQuota(obj: UpdateQuotaDto) {
-    const { discount, months, perUserRate, seats, total: UITotal, organization } = obj;
-    const total = perUserRate * (1-0.01*discount) * seats * months;
-    
-    if( total!== UITotal ) {
+    const {
+      discount,
+      months,
+      perUserRate,
+      seats,
+      total: UITotal,
+      organization,
+    } = obj;
+    const total = perUserRate * (1 - 0.01 * discount) * seats * months;
+
+    if (total !== UITotal) {
       throw new PreconditionFailedException();
     }
 
-    const expiresOn = moment().add(months, 'M');
+    const expiresOn = moment().add(months, "M");
     return this.transactionModel.create({
       discount,
       perUserRate,
       seats,
       total,
       expiresOn: expiresOn.toDate(),
-      organization
+      organization,
     });
   }
 
-
   async getAllPayments(organization) {
-    return this.transactionModel.find({organization}).sort({_id: 1}).limit(15);
+    return this.transactionModel
+      .find({ organization })
+      .sort({ _id: 1 })
+      .limit(15);
   }
-
 
   async getAllOrganizations() {
     return this.organizationalModel.find().lean().exec();

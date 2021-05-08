@@ -13,7 +13,7 @@ const organization_controller_1 = require("./organization.controller");
 const mongoose_1 = require("@nestjs/mongoose");
 const organization_schema_1 = require("./schema/organization.schema");
 const twilio_nestjs_1 = require("@lkaric/twilio-nestjs");
-const config_1 = require("../config");
+const config_1 = require("../config/config");
 const nestjs_redis_1 = require("nestjs-redis");
 const shared_module_1 = require("../shared/shared.module");
 const user_module_1 = require("../user/user.module");
@@ -34,11 +34,11 @@ OrganizationModule = __decorate([
             mongoose_1.MongooseModule.forFeature([
                 { name: "Organization", schema: organization_schema_1.OrganizationSchema },
                 { name: "ResellerOrganization", schema: reseller_organization_schema_1.ResellerOrganizationSchema },
-                { name: "Transaction", schema: transaction_schema_1.TransactionSchema }
+                { name: "Transaction", schema: transaction_schema_1.TransactionSchema },
             ]),
         ],
         providers: [organization_service_1.OrganizationService],
-        controllers: [organization_controller_1.OrganizationController]
+        controllers: [organization_controller_1.OrganizationController],
     })
 ], OrganizationModule);
 exports.OrganizationModule = OrganizationModule;

@@ -30,7 +30,7 @@ function bootstrap() {
         app.useGlobalPipes(new common_1.ValidationPipe({
             transform: true,
         }));
-        app.setGlobalPrefix('api');
+        app.setGlobalPrefix("api");
         const options = new swagger_1.DocumentBuilder()
             .setTitle("API")
             .setDescription("API description")
@@ -49,6 +49,7 @@ function bootstrap() {
         });
         swagger_1.SwaggerModule.setup("api/swagger", app, document);
         const PORT = process.env.PORT || 3000;
+        console.log({ PORT });
         yield app.listen(PORT);
         console_1.warn(`APP IS LISTENING TO PORT ${PORT}`);
     });

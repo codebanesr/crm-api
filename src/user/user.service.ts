@@ -29,7 +29,7 @@ import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { FindAllDto } from "../lead/dto/find-all.dto";
 import { writeFile, utils } from "xlsx";
 import { join } from "path";
-import { default as config } from "../config";
+import { default as config } from "../config/config";
 import { createTransport } from "nodemailer";
 import { getForgotPasswordTemplate } from "../utils/forgot-password-template";
 import { PushNotificationDto } from "./dto/push-notification.dto";
