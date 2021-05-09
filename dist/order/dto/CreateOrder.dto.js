@@ -12,6 +12,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateOrderDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
+class OrderMeta {
+}
+__decorate([
+    class_transformer_1.Transform((v) => +v),
+    class_validator_1.IsNumber(),
+    __metadata("design:type", Number)
+], OrderMeta.prototype, "perUserRate", void 0);
+__decorate([
+    class_transformer_1.Transform((v) => +v),
+    class_validator_1.IsNumber(),
+    __metadata("design:type", Number)
+], OrderMeta.prototype, "discount", void 0);
+__decorate([
+    class_transformer_1.Transform((v) => +v),
+    class_validator_1.IsNumber(),
+    __metadata("design:type", Number)
+], OrderMeta.prototype, "seats", void 0);
+__decorate([
+    class_transformer_1.Transform((v) => +v),
+    class_validator_1.IsNumber(),
+    __metadata("design:type", Number)
+], OrderMeta.prototype, "total", void 0);
+__decorate([
+    class_transformer_1.Transform((v) => +v),
+    class_validator_1.IsNumber(),
+    __metadata("design:type", Number)
+], OrderMeta.prototype, "months", void 0);
 class CreateOrderDto {
 }
 __decorate([
@@ -24,8 +51,8 @@ __decorate([
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "currency", void 0);
 __decorate([
-    class_validator_1.IsString(),
-    __metadata("design:type", String)
-], CreateOrderDto.prototype, "receipt", void 0);
+    class_validator_1.ValidateNested(),
+    __metadata("design:type", OrderMeta)
+], CreateOrderDto.prototype, "notes", void 0);
 exports.CreateOrderDto = CreateOrderDto;
 //# sourceMappingURL=CreateOrder.dto.js.map

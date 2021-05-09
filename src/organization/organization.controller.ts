@@ -20,6 +20,7 @@ import { OrganizationService } from "./organization.service";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Logger } from "nestjs-pino";
+import { RoleType } from "../shared/role-type.enum";
 
 @Controller("organization")
 @ApiTags("organization")
@@ -27,16 +28,13 @@ import { Logger } from "nestjs-pino";
 export class OrganizationController {
   constructor(
     private organizationService: OrganizationService,
-    private logger: Logger  
-  ) {
-  }
-
+    private logger: Logger
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary:
-      "Get all organizations",
+    summary: "Get all organizations",
   })
   @UseGuards(AuthGuard("jwt"))
   @Roles("reseller", "superAdmin")
@@ -44,7 +42,6 @@ export class OrganizationController {
     return this.organizationService.getAllOrganizations();
   }
 
-  
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -122,5 +119,13 @@ export class OrganizationController {
   @ApiCreatedResponse({})
   async getPayments(@Query("organization") organization: string) {
     return this.organizationService.getAllPayments(organization);
+  }
+
+  @Get("current")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles(RoleType.admin)
+  async getCurrentOrganization(@CurrentUser() user: User) {
+    const { organization } = user;
+    return this.organizationService.getCurrentOrganization(organization);
   }
 }

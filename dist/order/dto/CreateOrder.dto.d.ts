@@ -1,10 +1,13 @@
-export declare class CreateOrderDto {
-    amount: 1000000;
-    currency: string;
-    receipt: string;
-    payment_capture: number;
-    notes: {
-        notes_key_1: string;
-        notes_key_2: string;
-    };
+declare class OrderMeta {
+    perUserRate: number;
+    discount: number;
+    seats: number;
+    total: number;
+    months: number;
 }
+export declare class CreateOrderDto {
+    amount: number;
+    currency: string;
+    notes: OrderMeta;
+}
+export {};

@@ -18,6 +18,7 @@ export declare class OrganizationService {
     private readonly sharedService;
     private readonly redisService;
     private userService;
+    getCurrentOrganization(organization: string): Promise<Pick<Organization, "_id" | "size" | "name" | "email" | "phoneNumber" | "accountType" | "phoneNumberPrefix" | "lastActive" | "organizationImage" | "startDate" | "endDate" | "currentSize">>;
     constructor(organizationalModel: Model<Organization>, resellerOrganizationModel: Model<ResellerOrganization>, transactionModel: Model<Transaction>, twilioService: TwilioService, sharedService: SharedService, redisService: RedisService, userService: UserService);
     createOrganization(createOrganizationDto: CreateOrganizationDto, resellerId: string, resellerName: string): Promise<void>;
     getAllResellerOrganization(id: string): Promise<ResellerOrganization[]>;

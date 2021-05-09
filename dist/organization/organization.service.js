@@ -42,6 +42,11 @@ let OrganizationService = class OrganizationService {
         this.redisService = redisService;
         this.userService = userService;
     }
+    getCurrentOrganization(organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.organizationalModel.findById(organization).lean().exec();
+        });
+    }
     createOrganization(createOrganizationDto, resellerId, resellerName) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, fullName, password, phoneNumber } = createOrganizationDto;

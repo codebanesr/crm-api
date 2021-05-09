@@ -1,21 +1,41 @@
-import { IsNumber, IsString, MaxLength } from "class-validator";
-import { Transform } from "class-transformer";
+import {
+  IsNumber,
+  IsObject,
+  IsString,
+  MaxLength,
+  ValidateNested,
+} from "class-validator";
+import { Transform, Type } from "class-transformer";
 
+class OrderMeta {
+  @Transform((v: string | number) => +v)
+  @IsNumber()
+  perUserRate: number;
+
+  @Transform((v: string | number) => +v)
+  @IsNumber()
+  discount: number;
+
+  @Transform((v: string | number) => +v)
+  @IsNumber()
+  seats: number;
+
+  @Transform((v: string | number) => +v)
+  @IsNumber()
+  total: number;
+
+  @Transform((v: string | number) => +v)
+  @IsNumber()
+  months: number;
+}
 export class CreateOrderDto {
   @Transform((v: string | number) => +v)
   @IsNumber()
-  amount: 1000000;
+  amount: number;
 
   @MaxLength(5)
   currency: string;
 
-  @IsString()
-  receipt: string;
-
-  payment_capture: number;
-
-  notes: {
-    notes_key_1: string;
-    notes_key_2: string;
-  };
+  @ValidateNested()
+  notes: OrderMeta;
 }

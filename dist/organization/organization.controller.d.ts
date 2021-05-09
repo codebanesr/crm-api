@@ -16,4 +16,5 @@ export declare class OrganizationController {
     createOrUpdateUserQuota(updateQuota: UpdateQuotaDto): Promise<import("./interface").Transaction>;
     isValidAttribute(validateNewOrganizationDto: ValidateNewOrganizationDto): Promise<void>;
     getPayments(organization: string): Promise<import("./interface").Transaction[]>;
+    getCurrentOrganization(user: User): Promise<Pick<import("./interface").Organization, "_id" | "size" | "name" | "email" | "phoneNumber" | "accountType" | "phoneNumberPrefix" | "lastActive" | "organizationImage" | "startDate" | "endDate" | "currentSize">>;
 }

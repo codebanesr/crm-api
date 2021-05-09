@@ -1,9 +1,12 @@
 import { CreateOrderDto } from "../order/dto/CreateOrder.dto";
 import { AxiosInstance } from "axios";
 import { VerificationDto } from "../order/dto/Verification.dto";
+import { OrderCreated } from "../order/interfaces/OrderCreated.interface";
 export declare class RazorpayService {
-    verifyOrder(verificationDto: VerificationDto, razorpaySignature: string): Promise<"OK" | "Invalid">;
     axiosInstance: AxiosInstance;
     constructor();
-    createOrder(orderDto: CreateOrderDto): Promise<any>;
+    createOrder(orderDto: CreateOrderDto): Promise<OrderCreated>;
+    verifyOrder(verificationDto: VerificationDto): Promise<{
+        status: string;
+    }>;
 }

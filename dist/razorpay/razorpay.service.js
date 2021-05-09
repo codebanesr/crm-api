@@ -23,32 +23,37 @@ const common_1 = require("@nestjs/common");
 const axios_1 = require("axios");
 const config_1 = require("../config/config");
 const crypto_1 = require("crypto");
+const uuid_1 = require("uuid");
 let RazorpayService = class RazorpayService {
     constructor() {
         this.axiosInstance = axios_1.default.create({
-            baseURL: "https://api.razorpay.com/v1/",
+            baseURL: "https://api.razorpay.com/v1",
             auth: {
                 username: config_1.default.razorpay.username,
                 password: config_1.default.razorpay.password,
             },
         });
     }
-    verifyOrder(verificationDto, razorpaySignature) {
+    createOrder(orderDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const receipt = uuid_1.v4();
+            const payload = Object.assign(Object.assign({}, orderDto), { receipt });
+            const result = yield this.axiosInstance.post("orders", payload);
+            return result.data;
+        });
+    }
+    verifyOrder(verificationDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const secret = config_1.default.razorpay.secret;
             const shasum = crypto_1.createHmac("sha256", secret);
-            shasum.update(JSON.stringify(verificationDto));
+            shasum.update(verificationDto.razorpay_order_id +
+                "|" +
+                verificationDto.razorpay_payment_id);
             const digest = shasum.digest("hex");
-            if (digest === razorpaySignature) {
-                return "OK";
+            if (digest === verificationDto.razorpay_signature) {
+                return { status: "OK" };
             }
-            return "Invalid";
-        });
-    }
-    createOrder(orderDto) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const result = yield this.axiosInstance.post("/orders", orderDto);
-            return result.data;
+            return { status: "INVALID" };
         });
     }
 };

@@ -35,23 +35,24 @@ let OrderController = class OrderController {
             return this.razorpayService.createOrder(orderDto);
         });
     }
-    verifyOrder(verificationDto, razorpaySignature) {
+    verifyOrder(verificationDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.razorpayService.verifyOrder(verificationDto, razorpaySignature);
+            return this.razorpayService.verifyOrder(verificationDto);
         });
     }
 };
 __decorate([
     common_1.Post("create"),
+    __param(0, common_1.Body()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [CreateOrder_dto_1.CreateOrderDto]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "createOrder", null);
 __decorate([
     common_1.Post("verify"),
-    __param(1, common_1.Headers("x-razorpay-signature")),
+    __param(0, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Verification_dto_1.VerificationDto, String]),
+    __metadata("design:paramtypes", [Verification_dto_1.VerificationDto]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "verifyOrder", null);
 OrderController = __decorate([

@@ -1,9 +1,6 @@
 import { TwilioService } from "@lkaric/twilio-nestjs";
 import {
   ConflictException,
-  HttpException,
-  HttpStatus,
-  ImATeapotException,
   Injectable,
   Logger,
   PreconditionFailedException,
@@ -26,6 +23,9 @@ import { RoleType } from "../shared/role-type.enum";
 
 @Injectable()
 export class OrganizationService {
+  async getCurrentOrganization(organization: string) {
+    return this.organizationalModel.findById(organization).lean().exec();
+  }
   constructor(
     @InjectModel("Organization")
     private readonly organizationalModel: Model<Organization>,
