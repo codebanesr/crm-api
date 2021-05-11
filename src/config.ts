@@ -1,8 +1,17 @@
+import * as path from "path";
 import { config as loadEnvConfig } from "dotenv";
 
-loadEnvConfig();
+if (!process.env.NODE_ENV) {
+  const p = path.resolve(__dirname, "../..", "env", "local.env");
+  loadEnvConfig({ path: p });
+}
 
 export default {
+  razorpay: {
+    username: process.env.RAZORPAY_USERNAME,
+    password: process.env.RAZORPAY_PASSWORD,
+    secret: process.env.RAZORPAY_SECRET,
+  },
   s3: {
     accessKeyId: process.env.accessKeyId,
     secretAccessKey: process.env.secretAccessKey,
@@ -54,5 +63,5 @@ export default {
     REDIS_PASSWORD: process.env.BULL_REDIS_PASSWORD,
     REDIS_URL: process.env.BULL_REDIS_URL,
     REDIS_PORT: process.env.BULL_REDIS_PORT,
-  }
+  },
 };
