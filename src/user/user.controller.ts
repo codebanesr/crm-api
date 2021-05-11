@@ -93,13 +93,14 @@ export class UserController {
     return this.userService.getAllUsersHack(organization);
   }
 
-  // @Get(':organizationId')
-  // @Roles("superAdmin")
-  // @UseGuards(AuthGuard("jwt"))
-  // @ApiOperation({ summary: "Gets users for organization" })
-  // async getUsersForOrga(@Param('organizationId') organizationId: string) {
-  //   return this.userService.getAllUsersForOrganization(organizationId);
-  // }
+  @Get('organization/:organizationId')
+  @Roles("superAdmin")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Gets users for organization" })
+  async getUsersForOrga(@Param('organizationId') organizationId: string) {
+    return this.userService.getAllUsersForOrganization(organizationId);
+  }
+
 
   @Get('profile')
   @UseGuards(AuthGuard("jwt"))

@@ -198,6 +198,7 @@ export class UserService {
     await this.passwordsAreMatch(user);
 
     return {
+      _id: user._id,
       fullName: user.fullName,
       organization: user.get("organization.name"),
       email: user.email,

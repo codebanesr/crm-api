@@ -23,7 +23,6 @@ import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Logger } from "nestjs-pino";
 import { RoleType } from "../shared/role-type.enum";
-
 @Controller("organization")
 @ApiTags("organization")
 @UseGuards(RolesGuard)
