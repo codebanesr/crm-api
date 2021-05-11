@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { S3 } from "aws-sdk";
-import AppConfig from "../config";
+import AppConfig from "../config/config";
 
 @Injectable()
 export class UploadService {

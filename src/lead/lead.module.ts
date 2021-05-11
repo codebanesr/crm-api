@@ -20,19 +20,20 @@ import { LeadAnalyticService } from "./lead-analytic.service";
 import { LeadAnalyticController } from "./lead-analytic.controller";
 import { UserModule } from "../user/user.module";
 import { BullModule } from "@nestjs/bull";
-import config from "../config";
+import config from "../config/config";
 import { NotificationService } from "../utils/notification.service";
+import { ConfigModule } from "nestjs-config";
 
 @Module({
   imports: [
     BullModule.registerQueue({
-      name: 'leadQ',
+      name: "leadQ",
       redis: {
-        name: 'BullQueueWorker',
+        name: "BullQueueWorker",
         host: config.BULL.REDIS_URL,
         port: +config.BULL.REDIS_PORT,
-        password: config.BULL.REDIS_PASSWORD
-      }
+        password: config.BULL.REDIS_PASSWORD,
+      },
     }),
     RulesModule,
     UserModule,
@@ -53,11 +54,11 @@ import { NotificationService } from "../utils/notification.service";
     ]),
   ],
   providers: [
-    LeadService, 
-    UploadService, 
-    PushNotificationService, 
+    LeadService,
+    UploadService,
+    PushNotificationService,
     LeadAnalyticService,
-    NotificationService
+    NotificationService,
   ],
   controllers: [LeadController, LeadAnalyticController],
 })

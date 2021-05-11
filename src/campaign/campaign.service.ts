@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  PreconditionFailedException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Campaign } from "./interfaces/campaign.interface";
@@ -18,7 +23,6 @@ import * as moment from "moment";
 import { RoleType } from "../shared/role-type.enum";
 import { DeleteCampaignConfigDto } from "./dto/delete-campaignConfig.dto";
 import { DcaeDto } from "./dto/dcae.dto";
-
 
 @Injectable()
 export class CampaignService {
@@ -470,17 +474,16 @@ export class CampaignService {
           },
         }
       );
-      session.commitTransaction();
+      await session.commitTransaction();
       status = true;
     } catch (e) {
-      session.abortTransaction();
+      await session.abortTransaction();
       status = false;
     } finally {
       session.endSession();
     }
 
-
-    return {status}
+    return { status };
   }
 
   async cloneCampaign(campaignId: string) {
@@ -509,45 +512,56 @@ export class CampaignService {
         return { ...c, campaignId: newCampaign._id };
       });
       await this.campaignConfigModel.insertMany(campaignConfig);
-      session.commitTransaction();
+      await session.commitTransaction();
     } catch (e) {
-      session.abortTransaction();
+      await session.abortTransaction();
     } finally {
       session.endSession();
     }
   }
 
-
   async deleteCampaignAndAllAssociatedEntities(dcAE: DcaeDto) {
-    // if(!(dcAE.superAdminKey === process.env.SUPERADMIN_API_KEY)) {
-    //   throw new BadRequestException("You are not authorized to perform this action");
-    // }
     const session = await this.campaignConfigModel.db.startSession();
 
     session.startTransaction();
-    let leads, campaign, campaignConfig;
+    let leads, campaign, campaignConfig, disposition;
     try {
-      leads = await this.leadModel.deleteMany({campaignId: dcAE.campaignId});
-      campaignConfig = await this.campaignConfigModel.deleteMany({campaignId: dcAE.campaignId});
+      leads = await this.leadModel.deleteMany({ campaignId: dcAE.campaignId });
+      campaignConfig = await this.campaignConfigModel.deleteMany({
+        campaignId: dcAE.campaignId,
+      });
       campaign = await this.campaignModel.findByIdAndDelete(dcAE.campaignId);
-      session.commitTransaction();
+      disposition = await this.dispositionModel.findOneAndDelete({
+        campaign: dcAE.campaignId,
+      });
+      await session.commitTransaction();
     } catch (e) {
-      session.abortTransaction();
+      await session.abortTransaction();
+      Logger.error(e);
+      session.endSession(); //finally will not be executed
+      throw new PreconditionFailedException(
+        "An error occured inside transaction" + e.message
+      );
     } finally {
       session.endSession();
     }
 
-    return { leads, campaign, campaignConfig };
+    return { leads, campaign, campaignConfig, disposition };
   }
 
-
   getCampaignsForOrganization(organization: string) {
-    return this.campaignModel.find({organization}, {
-      campaignName: 1,
-      createdBy: 1,
-      startDate: 1,
-      endDate: 1,
-      comment: 1
-    }).lean().exec();
+    return this.campaignModel
+      .find(
+        { organization },
+        {
+          campaignName: 1,
+          createdBy: 1,
+          startDate: 1,
+          endDate: 1,
+          comment: 1,
+        }
+      )
+      .lean()
+      .exec();
   }
 }
