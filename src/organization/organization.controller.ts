@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -20,24 +22,20 @@ import { OrganizationService } from "./organization.service";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Logger } from "nestjs-pino";
-import { RoleType } from "src/shared/role-type.enum";
-
+import { RoleType } from "../shared/role-type.enum";
 @Controller("organization")
 @ApiTags("organization")
 @UseGuards(RolesGuard)
 export class OrganizationController {
   constructor(
     private organizationService: OrganizationService,
-    private logger: Logger  
-  ) {
-  }
-
+    private logger: Logger
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary:
-      "Get all organizations",
+    summary: "Get all organizations",
   })
   @UseGuards(AuthGuard("jwt"))
   @Roles("reseller", "superAdmin")
@@ -45,7 +43,6 @@ export class OrganizationController {
     return this.organizationService.getAllOrganizations();
   }
 
-  
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -125,4 +122,20 @@ export class OrganizationController {
     return this.organizationService.getAllPayments(organization);
   }
 
+  @Get("current")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles(RoleType.admin)
+  async getCurrentOrganization(@CurrentUser() user: User) {
+    const { organization } = user;
+    return this.organizationService.getCurrentOrganization(organization);
+  }
+
+  @Delete("delete/:organizationId")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles(RoleType.superAdmin)
+  async deleteCurrentOrganization(
+    @Param("organizationId") organizationId: string
+  ) {
+    return this.organizationService.deleteOrganization(organizationId);
+  }
 }

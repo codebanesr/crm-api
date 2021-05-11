@@ -27,7 +27,7 @@ import { RulesService } from "../rules/rules.service";
 import { UserService } from "../user/user.service";
 import { InjectQueue } from "@nestjs/bull";
 import { Queue } from "bull";
-import config from '../config';
+import config from '../config/config';
 import { RoleType } from "../shared/role-type.enum";
 import { FetchNextLeadDto, TypeOfLead } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
