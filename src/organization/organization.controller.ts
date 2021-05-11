@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -127,5 +129,14 @@ export class OrganizationController {
   async getCurrentOrganization(@CurrentUser() user: User) {
     const { organization } = user;
     return this.organizationService.getCurrentOrganization(organization);
+  }
+
+  @Delete("delete/:organizationId")
+  @UseGuards(AuthGuard("jwt"))
+  @Roles(RoleType.superAdmin)
+  async deleteCurrentOrganization(
+    @Param("organizationId") organizationId: string
+  ) {
+    return this.organizationService.deleteOrganization(organizationId);
   }
 }

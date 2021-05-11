@@ -1,1 +1,0 @@
-{"version":3,"file":"generic.dto.js","sourceRoot":"","sources":["../../../src/lead/dto/generic.dto.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,6CAA8C;AAC9C,qDAAkE;AAElE,MAAa,sBAAsB;CAelC;AARC;IANC,qBAAW,CAAC;QACX,OAAO,EAAE,cAAc;QACvB,WAAW,EACT,oEAAoE;KACvE,CAAC;IACD,0BAAQ,EAAE;;4DACU;AAKrB;IAFC,4BAAU,EAAE;IACZ,2BAAS,EAAE;;0DACO;AAZrB,wDAeC;AAED,MAAa,eAAe;CAK3B;AALD,0CAKC"}

@@ -20,6 +20,12 @@ import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import * as moment from "moment";
 import { Transaction } from "./interface/transaction.interface";
 import { RoleType } from "../shared/role-type.enum";
+import { AdminAction } from "src/agent/interface/admin-actions.interface";
+import { CampaignForm } from "src/campaign/interfaces/campaign-form.interface";
+import { Campaign } from "src/campaign/interfaces/campaign.interface";
+import { Disposition } from "src/campaign/interfaces/disposition.interface";
+import { CampaignConfig } from "src/lead/interfaces/campaign-config.interface";
+import { Lead } from "src/lead/interfaces/lead.interface";
 
 @Injectable()
 export class OrganizationService {
@@ -36,11 +42,61 @@ export class OrganizationService {
     @InjectModel("Transaction")
     private readonly transactionModel: Model<Transaction>,
 
+    @InjectModel("Campaign")
+    private readonly campaignModel: Model<Campaign>,
+
+    @InjectModel("CampaignConfig")
+    private readonly campaignConfigModel: Model<CampaignConfig>,
+
+    @InjectModel("Disposition")
+    private readonly dispositionModel: Model<Disposition>,
+
+    @InjectModel("AdminAction")
+    private readonly adminActionModel: Model<AdminAction>,
+
+    @InjectModel("CampaignForm")
+    private readonly campaignFormModel: Model<CampaignForm>,
+
+    @InjectModel("Lead")
+    private readonly leadModel: Model<Lead>,
+
     private readonly twilioService: TwilioService,
     private readonly sharedService: SharedService,
     private readonly redisService: RedisService,
     private userService: UserService
   ) {}
+
+  /** @Todo dump all information to s3 before deleting and this should be done in
+   * worker code
+   */
+  async deleteOrganization(organization: string) {
+    const session = await this.organizationalModel.db.startSession();
+    session.startTransaction();
+    try {
+      await this.campaignConfigModel.deleteMany({ organization });
+      await this.campaignModel.deleteMany({ organization });
+      await this.leadModel.deleteMany({ organization });
+      await this.transactionModel.deleteMany({ organization });
+      await this.organizationalModel.deleteOne({ _id: organization });
+      await this.resellerOrganizationModel.deleteOne({ orgId: organization });
+      await this.dispositionModel.deleteMany({ organization });
+      await this.adminActionModel.deleteMany({ organization });
+      await session.commitTransaction();
+    } catch (e) {
+      await session.abortTransaction();
+      Logger.error(
+        "An error occured while in delete organization transaction",
+        e
+      );
+
+      session.endSession();
+      throw new PreconditionFailedException(
+        "An error occured while in delete organization transaction"
+      );
+    } finally {
+      session.endSession();
+    }
+  }
 
   /** @Todo everything should happen in a transaction */
   async createOrganization(
@@ -51,28 +107,41 @@ export class OrganizationService {
     const { email, fullName, password, phoneNumber } = createOrganizationDto;
     await this.isOrganizationalPayloadValid(createOrganizationDto);
     // now save organization information in the user schema...
-    const organization = new this.organizationalModel(createOrganizationDto);
-    const result = await organization.save();
 
-    await this.resellerOrganizationModel.create({
-      credit: 300,
-      orgId: result._id,
-      orgName: result.name,
-      resellerId,
-      resellerName,
-    });
+    const session = await this.organizationalModel.db.startSession();
 
-    await this.userService.create(
-      {
-        email,
-        fullName,
-        password,
-        roleType: RoleType.admin,
-        phoneNumber,
-      },
-      result._id,
-      true
-    );
+    session.startTransaction();
+    try {
+      const organization = new this.organizationalModel(createOrganizationDto);
+      const result = await organization.save();
+
+      await this.resellerOrganizationModel.create({
+        credit: 300,
+        orgId: result._id,
+        orgName: result.name,
+        resellerId,
+        resellerName,
+      });
+
+      await this.userService.create(
+        {
+          email,
+          fullName,
+          password,
+          roleType: RoleType.admin,
+          phoneNumber,
+        },
+        result._id,
+        true
+      );
+
+      await session.commitTransaction();
+    } catch (e) {
+      Logger.error("Transaction aborted", e);
+      await session.abortTransaction();
+    } finally {
+      session.endSession();
+    }
   }
 
   async getAllResellerOrganization(id: string) {
