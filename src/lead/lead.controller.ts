@@ -477,7 +477,7 @@ export class LeadController {
     @Body() followUpDto: FollowUpDto,
     @CurrentUser() user: User
   ) {
-    const { organization, email } = user;
+    const { organization, email, roleType } = user;
     const {
       interval,
       campaignId,
@@ -497,6 +497,7 @@ export class LeadController {
       limit,
       page,
       skip,
+      roleType
     });
   }
 
