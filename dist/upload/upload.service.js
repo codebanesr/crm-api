@@ -33,7 +33,7 @@ let UploadService = class UploadService {
     uploadFile(key, file) {
         return __awaiter(this, void 0, void 0, function* () {
             const params = {
-                Bucket: "molecule.static.files",
+                Bucket: "molecule.uploads",
                 Key: key + file.name,
                 Body: file,
             };
