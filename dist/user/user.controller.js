@@ -63,7 +63,7 @@ let UserController = class UserController {
             return this.userService.getAllUsersHack(organization);
         });
     }
-    getUsersForOrga(organizationId) {
+    getUsersForOrganization(organizationId) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.userService.getAllUsersForOrganization(organizationId);
         });
@@ -193,7 +193,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], UserController.prototype, "getUsersForOrga", null);
+], UserController.prototype, "getUsersForOrganization", null);
 __decorate([
     common_1.Get('profile'),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),

@@ -97,7 +97,7 @@ export class UserController {
   @Roles("superAdmin")
   @UseGuards(AuthGuard("jwt"))
   @ApiOperation({ summary: "Gets users for organization" })
-  async getUsersForOrga(@Param('organizationId') organizationId: string) {
+  async getUsersForOrganization(@Param('organizationId') organizationId: string) {
     return this.userService.getAllUsersForOrganization(organizationId);
   }
 
