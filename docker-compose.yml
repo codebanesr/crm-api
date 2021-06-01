@@ -83,7 +83,7 @@ services:
       CERTBOT_EMAIL: shanur.cse.nitap@gmail.com
       # variable names are space-separated
       ENVSUBST_VARS: FQDN
-      FQDN: prod.moleculesystem.com
+      FQDN: moleculesystem.com
     volumes:
       - ./conf.d:/etc/nginx/user.conf.d:ro
       - letsencrypt:/etc/letsencrypt
