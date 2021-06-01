@@ -48,6 +48,7 @@ const role_type_enum_1 = require("../shared/role-type.enum");
 const transfer_leads_dto_1 = require("./dto/transfer-leads.dto");
 const bulk_unarchive_dto_1 = require("./dto/bulk-unarchive.dto");
 const open_closed_lead_dto_1 = require("./dto/open-closed-lead.dto");
+const path_1 = require("path");
 let LeadController = class LeadController {
     constructor(leadService) {
         this.leadService = leadService;
@@ -73,7 +74,7 @@ let LeadController = class LeadController {
                 const wb = xlsx_1.utils.book_new();
                 const ws = xlsx_1.utils.json_to_sheet(JSON.parse(JSON.stringify(response)));
                 xlsx_1.utils.book_append_sheet(wb, ws, 'transactions');
-                const filename = "transactions.xlsx";
+                const filename = path_1.join(__dirname, "transactions.xlsx");
                 const wb_opts = { bookType: 'xlsx', type: 'binary' };
                 xlsx_1.writeFile(wb, filename, wb_opts);
                 const stream = fs_1.createReadStream(filename);
