@@ -1,6 +1,5 @@
 FROM node:14.4.0-alpine
 WORKDIR /usr/src/app
-RUN chown 1000:1000 /usr/src/app
 
 ENV NODE_ENV=production
 COPY package.json .
