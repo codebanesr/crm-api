@@ -16,10 +16,10 @@ services:
     environment:
       - NODE_ENV=production
       - VERSION=1.0
-
+    # volumes are only required for live reloading and binding local directories
     volumes:
-      - /usr/src/app/node_modules
-      - .:/usr/src/app
+      - /usr/src/app
+      # - /usr/app/node_modules
     ports:
       - "3000:3000"
     tty: true
@@ -35,6 +35,25 @@ services:
         awslogs-region: "ap-south-1"
         awslogs-group: "Molecule"
         awslogs-stream: "main"
+
+  # minio:
+  #   image: 'bitnami/minio:latest'
+  #   ports:
+  #     - '9000:9000'
+  #   environment:
+  #     - MINIO_ACCESS_KEY=shanur
+  #     - MINIO_SECRET_KEY=shanurrahman123
+  #   networks:
+  #     - webnet
+
+  # mongodb:
+  #   image: 'docker.io/bitnami/mongodb:4.4-debian-10'
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - 'mongodb_data:/bitnami/mongodb'
+  #   networks:
+  #     - webnet
 
   redis:
     image: "bitnami/redis:latest"
@@ -54,46 +73,31 @@ services:
         awslogs-group: "Molecule"
         awslogs-stream: "redis"
 
-  nginx:
-    image: docker.io/bitnami/nginx:1.19
+  webserver:
     restart: unless-stopped
+    image: staticfloat/nginx-certbot
+    ports:
+      - 80:80/tcp
+      - 443:443/tcp
+    environment:
+      CERTBOT_EMAIL: shanur.cse.nitap@gmail.com
+      # variable names are space-separated
+      ENVSUBST_VARS: FQDN
+      FQDN: moleculesystem.com
+    volumes:
+      - ./conf.d:/etc/nginx/user.conf.d:ro
+      - letsencrypt:/etc/letsencrypt
+      - /home/ec2-user/leon:/usr/share/nginx/html
     depends_on:
       - main
-    ports:
-      - "80:8080"
-    volumes:   
-      - ./conf.d/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/my_server_block.conf:ro
+    networks:
+      - webnet
     logging:
       driver: awslogs
       options:
         awslogs-region: "ap-south-1"
         awslogs-group: "Molecule"
         awslogs-stream: "webserver"
-  # webserver:
-  #   restart: unless-stopped
-  #   image: staticfloat/nginx-certbot
-  #   ports:
-  #     - 80:80/tcp
-  #     - 443:443/tcp
-  #   environment:
-  #     CERTBOT_EMAIL: shanur.cse.nitap@gmail.com
-  #     # variable names are space-separated
-  #     ENVSUBST_VARS: FQDN
-  #     FQDN: moleculesystem.com
-  #   volumes:
-  #     - ./conf.d:/etc/nginx/user.conf.d:ro
-  #     - letsencrypt:/etc/letsencrypt
-  #     - /home/ec2-user/leon:/usr/share/nginx/html
-  #   depends_on:
-  #     - main
-  #   networks:
-  #     - webnet
-  #   logging:
-  #     driver: awslogs
-  #     options:
-  #       awslogs-region: "ap-south-1"
-  #       awslogs-group: "Molecule"
-  #       awslogs-stream: "webserver"
 
   worker:
     image: "node:14.15.1-alpine3.12"
