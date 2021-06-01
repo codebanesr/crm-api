@@ -16,10 +16,10 @@ services:
     environment:
       - NODE_ENV=production
       - VERSION=1.0
-    # volumes are only required for live reloading and binding local directories
+
     volumes:
-      - /usr/src/app
-      - /usr/app/node_modules
+      - /usr/src/app/node_modules
+      - .:/usr/src/app
     ports:
       - "3000:3000"
     tty: true
