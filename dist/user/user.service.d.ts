@@ -30,6 +30,7 @@ export declare class UserService {
     checkAndUpdateUserQuota(organizationId: string): Promise<void>;
     checkHierarchyPreconditions(createUserDto: CreateUserDto): Promise<boolean>;
     getSuperiorRoleTypes(email: string): Promise<RoleType[]>;
+    getSuperiorRoles(roleType: RoleType): RoleType[];
     createReseller(createResellerDto: CreateResellerDto): Promise<any>;
     verifyEmail(req: Request, verifyUuidDto: VerifyUuidDto): Promise<{
         fullName: string;
@@ -105,4 +106,5 @@ export declare class UserService {
     }>;
     sendPushNotification(): Promise<void>;
     getAllUsersForOrganization(organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    getUsersForRoles(organization: string, roles: RoleType[]): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
 }

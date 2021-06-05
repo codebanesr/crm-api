@@ -64,4 +64,5 @@ export declare class UserController {
         message: string;
     }>;
     sendPushNotification(req: IRequest, body: VerifyUuidDto): Promise<void>;
+    getManagersForRoleType(user: User, roleType: RoleType): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
 }

@@ -142,6 +142,10 @@ export class UserService {
       .findOne({ email }, { roleType: 1 })
       .lean()
       .exec();
+    return this.getSuperiorRoles(roleType);
+  }
+
+  getSuperiorRoles(roleType: RoleType) {
     if (roleType === RoleType.admin) {
       return [];
     } else if (roleType === RoleType.seniorManager) {
@@ -833,4 +837,11 @@ export class UserService {
       .lean()
       .exec();
   }
+
+
+
+  async getUsersForRoles(organization: string, roles: RoleType[])  {
+    const users = await this.userModel.find({organization, roleType: {$in: roles}}).lean().exec();
+    return users;
+  } 
 }

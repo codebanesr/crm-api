@@ -147,6 +147,11 @@ let UserController = class UserController {
             return this.userService.sendPushNotification();
         });
     }
+    getManagersForRoleType(user, roleType) {
+        const { organization } = user;
+        const superiorRoles = this.userService.getSuperiorRoles(roleType);
+        return this.userService.getUsersForRoles(organization, superiorRoles);
+    }
 };
 __decorate([
     common_1.Post(),
@@ -398,6 +403,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, verify_uuid_dto_1.VerifyUuidDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "sendPushNotification", null);
+__decorate([
+    common_1.Get("managersForRoleType/:roleType"),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Param('roleType')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], UserController.prototype, "getManagersForRoleType", null);
 UserController = __decorate([
     swagger_1.ApiTags("User"),
     common_1.Controller("user"),

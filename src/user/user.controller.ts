@@ -299,4 +299,14 @@ export class UserController {
   ) {
     return this.userService.sendPushNotification();
   }
+
+
+  @Get("managersForRoleType/:roleType")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard("jwt"))
+  getManagersForRoleType(@CurrentUser() user: User, @Param('roleType') roleType: RoleType) {
+    const { organization } = user;
+    const superiorRoles = this.userService.getSuperiorRoles(roleType);
+    return this.userService.getUsersForRoles(organization, superiorRoles);
+  }
 }
