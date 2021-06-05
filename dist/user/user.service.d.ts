@@ -14,7 +14,7 @@ import { FindAllDto } from "../lead/dto/find-all.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { RoleType } from "../shared/role-type.enum";
-import { Organization } from "src/organization/interface/organization.interface";
+import { Organization } from "../organization/interface/organization.interface";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 export declare class UserService {
     private readonly userModel;

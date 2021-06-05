@@ -37,7 +37,7 @@ import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { hashPassword } from "../utils/crypto.utils";
 import { v4 as uuidv4 } from 'uuid';
 import { RoleType } from "../shared/role-type.enum";
-import { Organization } from "src/organization/interface/organization.interface";
+import { Organization } from "../organization/interface/organization.interface";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import * as moment from "moment";
 

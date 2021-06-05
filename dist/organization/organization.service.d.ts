@@ -10,12 +10,12 @@ import { UserService } from "../user/user.service";
 import { ResellerOrganization } from "../organization/interface/reseller-organization.interface";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import { Transaction } from "./interface/transaction.interface";
-import { AdminAction } from "src/agent/interface/admin-actions.interface";
-import { CampaignForm } from "src/campaign/interfaces/campaign-form.interface";
-import { Campaign } from "src/campaign/interfaces/campaign.interface";
-import { Disposition } from "src/campaign/interfaces/disposition.interface";
-import { CampaignConfig } from "src/lead/interfaces/campaign-config.interface";
-import { Lead } from "src/lead/interfaces/lead.interface";
+import { AdminAction } from "../agent/interface/admin-actions.interface";
+import { CampaignForm } from "../campaign/interfaces/campaign-form.interface";
+import { Campaign } from "../campaign/interfaces/campaign.interface";
+import { Disposition } from "../campaign/interfaces/disposition.interface";
+import { CampaignConfig } from "../lead/interfaces/campaign-config.interface";
+import { Lead } from "../lead/interfaces/lead.interface";
 export declare class OrganizationService {
     private readonly organizationalModel;
     private readonly resellerOrganizationModel;
