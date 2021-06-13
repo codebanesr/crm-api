@@ -19,7 +19,7 @@ services:
     # volumes are only required for live reloading and binding local directories
     volumes:
       - /usr/src/app
-      # - /usr/app/node_modules
+      - /usr/app/node_modules
     ports:
       - "3000:3000"
     tty: true
