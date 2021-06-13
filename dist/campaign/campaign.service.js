@@ -46,7 +46,7 @@ let CampaignService = class CampaignService {
             const limit = Number(perPage);
             const skip = Number((page - 1) * limit);
             const campaignAgg = this.campaignModel.aggregate();
-            campaignAgg.match({ organization, archived: { $ne: true } });
+            campaignAgg.match({ organization, archived: { $ne: filters.archived ? false : true } });
             const { campaigns = [], select = [] } = filters;
             if (!roles.includes(role_type_enum_1.RoleType.admin)) {
                 campaignAgg.match({
@@ -277,6 +277,7 @@ let CampaignService = class CampaignService {
             quickStatsAgg.match({
                 organization,
                 campaignId: { $in: campaignIds },
+                archived: { $ne: true }
             });
             quickStatsAgg.group({
                 _id: { campaign: "$campaign" },

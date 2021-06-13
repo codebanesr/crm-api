@@ -59,8 +59,8 @@ export class CampaignService {
 
     const campaignAgg = this.campaignModel.aggregate();
 
-    // dont fetch any archived campaign
-    campaignAgg.match({ organization, archived: { $ne: true } });
+    // dont fetch any archived campaign, make sure archived is not a string
+    campaignAgg.match({ organization, archived: { $ne: filters.archived ? false: true } });
     const { campaigns = [], select = [] } = filters;
 
     // if the admin wants to see the campaign list we dont
@@ -380,6 +380,7 @@ export class CampaignService {
     quickStatsAgg.match({
       organization,
       campaignId: { $in: campaignIds },
+      archived: {$ne: true}
     });
     quickStatsAgg.group({
       _id: { campaign: "$campaign" },
