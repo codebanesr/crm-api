@@ -1,6 +1,6 @@
 FROM node:14.4.0-alpine
 WORKDIR /usr/src/app
-RUN chown -R $USER:$GROUP ~/.npm
+RUN chown -R docker /usr/src/app
 
 ENV NODE_ENV=production
 COPY package.json .
