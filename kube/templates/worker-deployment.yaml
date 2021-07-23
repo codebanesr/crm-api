@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kube -c
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: worker
+  name: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: worker
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o kube -c
+        kompose.version: 1.22.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/webnet: "true"
+        io.kompose.service: worker
+    spec:
+      containers:
+        - args:
+            - yarn
+            - start:prod
+          env:
+            - name: BULL_APP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: BULL_APP_PORT
+                  name: molecule_bull_microservice--env
+            - name: BULL_REDIS_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: BULL_REDIS_PASSWORD
+                  name: molecule_bull_microservice--env
+            - name: BULL_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: BULL_REDIS_PORT
+                  name: molecule_bull_microservice--env
+            - name: BULL_REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: BULL_REDIS_URL
+                  name: molecule_bull_microservice--env
+            - name: MONGODB_URI
+              valueFrom:
+                configMapKeyRef:
+                  key: MONGODB_URI
+                  name: molecule_bull_microservice--env
+            - name: NODE_ENV
+              value: production
+            - name: VAPID_PRIVATE
+              valueFrom:
+                configMapKeyRef:
+                  key: VAPID_PRIVATE
+                  name: molecule_bull_microservice--env
+            - name: VAPID_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  key: VAPID_PUBLIC
+                  name: molecule_bull_microservice--env
+            - name: VERSION
+              value: "1.0"
+            - name: accessKeyId
+              valueFrom:
+                configMapKeyRef:
+                  key: accessKeyId
+                  name: molecule_bull_microservice--env
+            - name: region
+              valueFrom:
+                configMapKeyRef:
+                  key: region
+                  name: molecule_bull_microservice--env
+            - name: secretAccessKey
+              valueFrom:
+                configMapKeyRef:
+                  key: secretAccessKey
+                  name: molecule_bull_microservice--env
+          image: node:14.15.1-alpine3.12
+          name: worker
+          ports:
+            - containerPort: 3333
+          resources: {}
+          tty: true
+          workingDir: /usr/src/app
+      restartPolicy: Always
+status: {}
