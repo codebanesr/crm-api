@@ -11,6 +11,7 @@ import {
   PreconditionFailedException,
   UnauthorizedException,
   NotAcceptableException,
+  BadGatewayException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
@@ -40,6 +41,9 @@ import { RoleType } from "../shared/role-type.enum";
 import { Organization } from "../organization/interface/organization.interface";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import * as moment from "moment";
+import { OAuthDto } from './dto/oauth.dto';
+import { OAuth2Client } from 'google-auth-library';
+const oauth2Client = new OAuth2Client(config.oauth.google.clientId);
 
 @Injectable()
 export class UserService {
@@ -89,6 +93,34 @@ export class UserService {
     return this.buildRegistrationInfo(user);
   }
 
+
+  async oauthLogin(userDto: OAuthDto, req) {
+    switch (userDto.provider) {
+      case 'google': {
+        const payload = await this.verifyGoogleOauth(userDto.idToken);
+        if (!payload.email) {
+          throw new BadGatewayException("user email was not provided from oauth, please contact admin");
+        }
+        const user = await this.userModel.findOne({ email: payload.email }).lean().exec();
+        if (user) {
+          return this.loginUtil(user, req);
+        }
+
+        // else create a new user
+        this.create({
+          email: payload.email,
+          fullName: (payload.name || '') + (payload.family_name || '') + (payload.given_name || ''),
+          password: uuidv4(),
+          phoneNumber: '0000',
+          roleType: RoleType.admin,
+        }, "", true);
+
+        return this.loginUtil(user, req);
+      }
+    }
+  }
+
+  
   async checkAndUpdateUserQuota(organizationId: string) {
     const { currentSize, size } = await this.organizationModel
       .findById(organizationId, {
@@ -175,17 +207,8 @@ export class UserService {
   //  └┘ └─┘┴└─┴└   ┴   └─┘┴ ┴┴ ┴┴┴─┘
   async verifyEmail(req: Request, verifyUuidDto: VerifyUuidDto) {
     const user = await this.findByVerification(verifyUuidDto.verification);
-    const singleLoginKey = this.setSingleLoginKey(user);
     await this.setUserAsVerified(user);
-    return {
-      fullName: user.fullName,
-      email: user.email,
-      accessToken: await this.authService.createAccessToken(
-        user._id,
-        singleLoginKey
-      ),
-      refreshToken: await this.authService.createRefreshToken(req, user._id),
-    };
+    return this.loginUtil(user, req);
   }
 
   // ┬  ┌─┐┌─┐┬┌┐┌
@@ -196,7 +219,10 @@ export class UserService {
     await this.isOrganizationActive(user.organization as any);
     this.isUserBlocked(user);
     await this.checkPassword(loginUserDto.password, user);
+    return this.loginUtil(user, req);
+  }
 
+  async loginUtil(user, req) {
     const singleLoginKey = this.setSingleLoginKey(user);
     // save the user if passwords match
     await this.passwordsAreMatch(user);
@@ -212,7 +238,7 @@ export class UserService {
         singleLoginKey
       ),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
-    };
+    }
   }
 
   // ┬─┐┌─┐┌─┐┬─┐┌─┐┌─┐┬ ┬  ┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐  ┌┬┐┌─┐┬┌─┌─┐┌┐┌
@@ -844,4 +870,21 @@ export class UserService {
     const users = await this.userModel.find({organization, roleType: {$in: roles}}).lean().exec();
     return users;
   } 
+
+
+
+  async verifyGoogleOauth(token: string) {
+    const ticket = await oauth2Client.verifyIdToken({
+        idToken: token,
+        audience: [config.oauth.google.clientId],  // Specify the CLIENT_ID of the app that accesses the backend
+        // Or, if multiple clients access the backend:
+        //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+    });
+    const payload = ticket.getPayload();
+    const userid = payload['sub'];
+    // If request specified a G Suite domain:
+    // const domain = payload['hd'];
+
+    return payload;
+  }
 }

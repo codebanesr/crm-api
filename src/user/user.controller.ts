@@ -45,6 +45,7 @@ import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import { RoleType } from "../shared/role-type.enum";
+import { OAuthDto } from './dto/oauth.dto';
 
 @ApiTags("User")
 @Controller("user")
@@ -144,6 +145,14 @@ export class UserController {
   @ApiOkResponse({})
   async login(@Req() req: IRequest, @Body() loginUserDto: LoginUserDto) {
     return this.userService.login(req, loginUserDto);
+  }
+
+
+  @Post("oauth/login")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Login User with oauth token" })
+  async oauthLogin(@Body() loginUserDto: OAuthDto, @Request() req) {
+    return this.userService.oauthLogin(loginUserDto, req);
   }
 
   @Post("refresh-access-token")
