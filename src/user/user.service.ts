@@ -94,7 +94,7 @@ export class UserService {
             name: uuidv4(),
             type: 'free',
             password,
-            phoneNumber: '00000',
+            phoneNumber: '00000000',
             phoneNumberPrefix: '+91',
             startDate: moment().subtract(5, 'minute').toDate()
           });
