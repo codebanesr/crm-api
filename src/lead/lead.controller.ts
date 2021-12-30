@@ -48,6 +48,7 @@ import { RoleType } from "../shared/role-type.enum";
 import { TransferLeadsDto } from "./dto/transfer-leads.dto";
 import { BulkUnArchiveLeads } from "./dto/bulk-unarchive.dto";
 import { OpenClosedLeadDto } from "./dto/open-closed-lead.dto";
+import { join } from "path";
 
 @ApiTags("Lead")
 @Controller("lead")
@@ -123,7 +124,7 @@ export class LeadController {
       const ws = utils.json_to_sheet(JSON.parse(JSON.stringify(response)));
       utils.book_append_sheet(wb, ws, 'transactions');  // add sheet to workbook
 
-      const filename = "transactions.xlsx";
+      const filename = join(__dirname, "transactions.xlsx");
       const wb_opts: WritingOptions = {bookType: 'xlsx', type: 'binary'};   // workbook options
       writeFile(wb, filename, wb_opts);                // write workbook file
 
@@ -477,7 +478,7 @@ export class LeadController {
     @Body() followUpDto: FollowUpDto,
     @CurrentUser() user: User
   ) {
-    const { organization, email } = user;
+    const { organization, email, roleType } = user;
     const {
       interval,
       campaignId,
@@ -497,6 +498,7 @@ export class LeadController {
       limit,
       page,
       skip,
+      roleType
     });
   }
 

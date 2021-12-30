@@ -43,5 +43,6 @@ export declare class CampaignController {
         leads: any;
         campaign: any;
         campaignConfig: any;
+        disposition: any;
     }>;
 }

@@ -28,7 +28,7 @@ let LeadAnalyticService = class LeadAnalyticService {
         var _a;
         pipeline.match({
             organization,
-            updatedAt: { $gte: filter.startDate, $lt: filter.endDate }
+            updatedAt: { $gte: filter.startDate, $lt: filter.endDate },
         });
         if (((_a = filter.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
             pipeline.match({ email: { $in: filter.handler } });
@@ -37,44 +37,86 @@ let LeadAnalyticService = class LeadAnalyticService {
             pipeline.match({ campaignId: mongoose_2.Types.ObjectId(filter.campaign) });
         }
     }
-    getGraphData(organization, userList) {
+    getGraphData(organization, getGraphDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const barAgg = this.leadModel.aggregate();
-            let fltrs = { organization };
-            if ((userList === null || userList === void 0 ? void 0 : userList.length) > 0) {
-                fltrs["email"] = { $in: userList };
+            const { handler: userList, campaign, endDate, startDate } = getGraphDto;
+            const pieAgg = this.leadModel.aggregate();
+            const pieFilters = {
+                campaignId: mongoose_2.Types.ObjectId(campaign),
+                organization,
+                email: { $in: userList },
+                updatedAt: { $gte: startDate, $lte: endDate },
+            };
+            if (!userList || userList.length === 0) {
+                delete pieFilters.email;
             }
-            barAgg.match(fltrs);
-            barAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
-            barAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
-            const pieAgg = this.leadHistoryModel.aggregate();
-            pieAgg.match({ organization });
+            pieAgg.match(pieFilters);
             pieAgg.group({ _id: { type: "$leadStatus" }, value: { $sum: 1 } });
             pieAgg.project({ type: "$_id.type", value: "$value", _id: 0 });
             pieAgg.sort({ value: 1 });
             const stackBarData = this.leadHistoryModel.aggregate();
-            stackBarData.match({ organization, email: { $in: userList } });
+            const leadHistoryFilters = {
+                campaign: mongoose_2.Types.ObjectId(campaign),
+                organization,
+                newUser: { $in: userList },
+                createdAt: { $gte: startDate, $lte: endDate },
+            };
+            if (!userList || userList.length === 0) {
+                delete leadHistoryFilters.newUser;
+            }
+            stackBarData.match(leadHistoryFilters);
             stackBarData.project({
                 month: { $month: "$createdAt" },
                 year: { $year: "$createdAt" },
-                callStatus: "$callStatus",
+                leadStatus: "$leadStatus",
             });
             stackBarData.group({
-                _id: { month: "$month", year: "$year", callStatus: "$callStatus" },
+                _id: { month: "$month", year: "$year", leadStatus: "$leadStatus" },
                 NOC: { $sum: 1 },
             });
             stackBarData.project({
-                month: { $concat: ["$year", " - ", "$month"] },
-                NOC: "$_id.NOC",
-                type: "$_id.callStatus",
+                month: {
+                    $concat: [
+                        { $toString: "$_id.year" },
+                        " - ",
+                        { $toString: "$_id.month" },
+                    ],
+                },
+                NOC: "$NOC",
+                type: "$_id.leadStatus",
             });
-            let [pieData, barData, stackData] = yield Promise.all([
-                pieAgg,
-                barAgg,
-                stackBarData,
+            const userCallDurationData = this.leadHistoryModel.aggregate();
+            userCallDurationData.match(leadHistoryFilters);
+            userCallDurationData.group({
+                "_id": "$newUser",
+                "duration": { "$sum": "$duration" },
+                "callCount": {
+                    "$sum": {
+                        "$switch": {
+                            "branches": [
+                                {
+                                    "case": { "$gt": ["$duration", 0] },
+                                    "then": 1
+                                }
+                            ],
+                            "default": 0
+                        }
+                    }
+                }
+            });
+            userCallDurationData.project({
+                "email": "$_id",
+                "duration": "$duration",
+                "callCount": "$callCount"
+            });
+            let [pieData, stackData, userCallDurationTransposed] = yield Promise.all([
+                pieAgg.exec(),
+                stackBarData.exec(),
+                userCallDurationData.exec()
             ]);
-            pieData = pieData.filter(d => d.type !== null);
-            return { pieData, barData, stackData };
+            pieData = pieData.filter((p) => !!p.type);
+            const callDetails = yield this.getTellecallerCallDetails(campaign, startDate, endDate);
+            return { pieData, barData: pieData, stackData, callDetails, userCallDurationTransposed };
         });
     }
     getLeadStatusDataForLineGraph(email, organization, year) {
@@ -141,10 +183,20 @@ let LeadAnalyticService = class LeadAnalyticService {
                 .exec();
         });
     }
-    getLeadStatusCountForTelecallers(email, organization) {
+    getLeadStatusCountForTelecallers(email, organization, startDate, endDate, campaign, handler) {
         return __awaiter(this, void 0, void 0, function* () {
             const pipeline = this.leadModel.aggregate();
-            pipeline.match({ organization });
+            const matchQuery = { organization };
+            if ((handler === null || handler === void 0 ? void 0 : handler.length) > 0) {
+                matchQuery["email"] = { $in: handler };
+            }
+            if (campaign && campaign.length > 0) {
+                matchQuery["campaignId"] = { $in: campaign.map(c => mongoose_2.Types.ObjectId(c)) };
+            }
+            if (startDate && endDate) {
+                matchQuery["updatedAt"] = { $lte: endDate, $gte: startDate };
+            }
+            pipeline.match(matchQuery);
             pipeline.addFields({
                 nextActionExists: {
                     $cond: [
@@ -182,29 +234,52 @@ let LeadAnalyticService = class LeadAnalyticService {
         });
     }
     getCampaignWiseLeadCount(email, organization, filters) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             const pipeline = this.leadModel.aggregate();
-            this.attachCommonGraphFilters(pipeline, organization, filters);
+            pipeline.match({
+                organization,
+                updatedAt: { $gte: filters.startDate, $lt: filters.endDate },
+            });
+            if (((_a = filters.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                pipeline.match({ email: { $in: filters.handler } });
+            }
+            if (filters.campaign) {
+                pipeline.match({ campaignId: { $in: filters.campaign.map(c => mongoose_2.Types.ObjectId(c)) } });
+            }
             pipeline.group({
                 _id: "$campaign",
                 total: { $sum: 1 },
             });
-            pipeline.project({ type: "$_id", "value": "$total", percentage: "1" });
+            pipeline.project({ type: "$_id", value: "$total", percentage: "1" });
             return pipeline.exec();
         });
     }
     getCampaignWiseLeadCountPerLeadCategory(email, organization, filter) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const XAxisLabel = 'Campaign Name';
-            const YAxisLabel = 'Total Leads';
+            const XAxisLabel = "Campaign Name";
+            const YAxisLabel = "Total Leads";
             const pipeline = this.leadModel.aggregate();
-            this.attachCommonGraphFilters(pipeline, organization, filter);
+            pipeline.match({
+                organization,
+                updatedAt: { $gte: filter.startDate, $lt: filter.endDate },
+            });
+            if (((_a = filter.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                pipeline.match({ email: { $in: filter.handler } });
+            }
+            if (filter.campaign) {
+                pipeline.match({ campaignId: { $in: filter.campaign.map(c => mongoose_2.Types.ObjectId(c)) } });
+            }
             pipeline.group({
                 _id: { campaign: "$campaign", leadStatus: "$leadStatus" },
                 total: { $sum: 1 },
             });
             pipeline.project({
-                _id: 0, type: "$_id.leadStatus", [YAxisLabel]: "$total", [XAxisLabel]: "$_id.campaign"
+                _id: 0,
+                type: "$_id.leadStatus",
+                [YAxisLabel]: "$total",
+                [XAxisLabel]: "$_id.campaign",
             });
             const stackBarData = yield pipeline.exec();
             let max = 10;
@@ -215,35 +290,37 @@ let LeadAnalyticService = class LeadAnalyticService {
                 XAxisLabel,
                 YAxisLabel,
                 stackBarData,
-                max: max * 2
+                max: max * 2,
             };
         });
     }
-    getUserTalktime(email, organization, filter) {
-        var _a;
-        return __awaiter(this, void 0, void 0, function* () {
-            const pipeline = this.leadHistoryModel.aggregate();
-            pipeline.match({
-                organization,
-                createdAt: { $gte: filter.startDate, $lt: filter.endDate }
-            });
-            if (((_a = filter.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-                pipeline.match({ email: { $in: filter.handler } });
+    getTellecallerCallDetails(campaign, startDate, endDate) {
+        return this.leadHistoryModel.aggregate([
+            {
+                $match: {
+                    campaign: mongoose_2.Types.ObjectId(campaign),
+                    createdAt: { $gte: startDate, $lte: endDate },
+                },
+            },
+            {
+                $addFields: {
+                    isAnswered: { $cond: [{ $gt: ["$duration", 0] }, 1, 0] },
+                    isUnanswered: { $cond: [{ $lte: ["$duration", 0] }, 1, 0] },
+                },
+            },
+            {
+                $group: {
+                    _id: { email: "$newUser" },
+                    total: { $sum: 1 },
+                    totalTalktime: { $sum: "$duration" },
+                    answered: { $sum: "$isAnswered" },
+                    unAnswered: { $sum: "$isUnanswered" },
+                },
+            },
+            {
+                $project: { email: "$_id.email", total: "$total", answered: "$answered", unAnswered: "$unAnswered", totalTalktime: "$totalTalktime" }
             }
-            pipeline.group({
-                _id: { "email": "$newUser" },
-                talktime: { $sum: "$duration" },
-                totalCalls: { $sum: 1 }
-            });
-            pipeline.project({
-                value: "$talktime",
-                averageValue: { $divide: ["$talktime", "$totalCalls"] },
-                type: "$_id.email",
-                _id: 0
-            });
-            const result = yield pipeline.exec();
-            return result;
-        });
+        ]).exec();
     }
 };
 __decorate([

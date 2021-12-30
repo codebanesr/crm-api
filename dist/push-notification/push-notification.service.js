@@ -20,8 +20,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PushNotificationService = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("../config/config");
 const web_push_1 = require("web-push");
-const config_1 = require("../config");
 let PushNotificationService = class PushNotificationService {
     constructor() {
         web_push_1.setVapidDetails("mailto:example@yourdomain.org", config_1.default.webpush.VAPID_PUBLIC, config_1.default.webpush.VAPID_PRIVATE);

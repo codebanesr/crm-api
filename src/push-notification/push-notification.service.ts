@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import config from "../config/config";
 
 import {
   sendNotification,
@@ -7,15 +8,14 @@ import {
   PushSubscription,
   SendResult,
 } from "web-push";
-import AppConfig from "../config";
 
 @Injectable()
 export class PushNotificationService {
   constructor() {
     setVapidDetails(
       "mailto:example@yourdomain.org",
-      AppConfig.webpush.VAPID_PUBLIC,
-      AppConfig.webpush.VAPID_PRIVATE
+      config.webpush.VAPID_PUBLIC,
+      config.webpush.VAPID_PRIVATE
     );
   }
 

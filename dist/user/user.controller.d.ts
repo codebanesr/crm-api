@@ -18,6 +18,7 @@ export declare class UserController {
     register(createUserDto: CreateUserDto, user: User): Promise<any>;
     registerReseller(createResellerDto: CreateResellerDto, user: User): Promise<any>;
     getAllUsersHack(user: User): Promise<any>;
+    getUsersForOrganization(organizationId: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     getUserProfile(user: User): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
     updateUserProfile(user: User, updateProfileDto: UpdateProfileDto): Promise<{
         status: string;
@@ -30,6 +31,7 @@ export declare class UserController {
         refreshToken: string;
     }>;
     login(req: IRequest, loginUserDto: LoginUserDto): Promise<{
+        _id: any;
         fullName: string;
         organization: any;
         email: string;
@@ -62,4 +64,5 @@ export declare class UserController {
         message: string;
     }>;
     sendPushNotification(req: IRequest, body: VerifyUuidDto): Promise<void>;
+    getManagersForRoleType(user: User, roleType: RoleType): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
 }

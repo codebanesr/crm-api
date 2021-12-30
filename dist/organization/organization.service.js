@@ -28,40 +28,89 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const shared_service_1 = require("../shared/shared.service");
 const nestjs_redis_1 = require("nestjs-redis");
-const config_1 = require("../config");
+const config_1 = require("../config/config");
 const user_service_1 = require("../user/user.service");
 const moment = require("moment");
 const role_type_enum_1 = require("../shared/role-type.enum");
 let OrganizationService = class OrganizationService {
-    constructor(organizationalModel, resellerOrganizationModel, transactionModel, twilioService, sharedService, redisService, userService) {
+    constructor(organizationalModel, resellerOrganizationModel, transactionModel, campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel, leadModel, twilioService, sharedService, redisService, userService) {
         this.organizationalModel = organizationalModel;
         this.resellerOrganizationModel = resellerOrganizationModel;
         this.transactionModel = transactionModel;
+        this.campaignModel = campaignModel;
+        this.campaignConfigModel = campaignConfigModel;
+        this.dispositionModel = dispositionModel;
+        this.adminActionModel = adminActionModel;
+        this.campaignFormModel = campaignFormModel;
+        this.leadModel = leadModel;
         this.twilioService = twilioService;
         this.sharedService = sharedService;
         this.redisService = redisService;
         this.userService = userService;
     }
+    getCurrentOrganization(organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.organizationalModel.findById(organization).lean().exec();
+        });
+    }
+    deleteOrganization(organization) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const session = yield this.organizationalModel.db.startSession();
+            session.startTransaction();
+            try {
+                yield this.campaignConfigModel.deleteMany({ organization });
+                yield this.campaignModel.deleteMany({ organization });
+                yield this.leadModel.deleteMany({ organization });
+                yield this.transactionModel.deleteMany({ organization });
+                yield this.organizationalModel.deleteOne({ _id: organization });
+                yield this.resellerOrganizationModel.deleteOne({ orgId: organization });
+                yield this.dispositionModel.deleteMany({ organization });
+                yield this.adminActionModel.deleteMany({ organization });
+                yield session.commitTransaction();
+            }
+            catch (e) {
+                yield session.abortTransaction();
+                common_1.Logger.error("An error occured while in delete organization transaction", e);
+                session.endSession();
+                throw new common_1.PreconditionFailedException("An error occured while in delete organization transaction");
+            }
+            finally {
+                session.endSession();
+            }
+        });
+    }
     createOrganization(createOrganizationDto, resellerId, resellerName) {
         return __awaiter(this, void 0, void 0, function* () {
             const { email, fullName, password, phoneNumber } = createOrganizationDto;
             yield this.isOrganizationalPayloadValid(createOrganizationDto);
-            const organization = new this.organizationalModel(createOrganizationDto);
-            const result = yield organization.save();
-            yield this.resellerOrganizationModel.create({
-                credit: 300,
-                orgId: result._id,
-                orgName: result.name,
-                resellerId,
-                resellerName
-            });
-            yield this.userService.create({
-                email,
-                fullName,
-                password,
-                roleType: role_type_enum_1.RoleType.admin,
-                phoneNumber,
-            }, result._id, true);
+            const session = yield this.organizationalModel.db.startSession();
+            session.startTransaction();
+            try {
+                const organization = new this.organizationalModel(createOrganizationDto);
+                const result = yield organization.save();
+                yield this.resellerOrganizationModel.create({
+                    credit: 300,
+                    orgId: result._id,
+                    orgName: result.name,
+                    resellerId,
+                    resellerName,
+                });
+                yield this.userService.create({
+                    email,
+                    fullName,
+                    password,
+                    roleType: role_type_enum_1.RoleType.admin,
+                    phoneNumber,
+                }, result._id, true);
+                yield session.commitTransaction();
+            }
+            catch (e) {
+                common_1.Logger.error("Transaction aborted", e);
+                yield session.abortTransaction();
+            }
+            finally {
+                session.endSession();
+            }
         });
     }
     getAllResellerOrganization(id) {
@@ -111,25 +160,28 @@ let OrganizationService = class OrganizationService {
     }
     createOrUpdateUserQuota(obj) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { discount, months, perUserRate, seats, total: UITotal, organization } = obj;
+            const { discount, months, perUserRate, seats, total: UITotal, organization, } = obj;
             const total = perUserRate * (1 - 0.01 * discount) * seats * months;
             if (total !== UITotal) {
                 throw new common_1.PreconditionFailedException();
             }
-            const expiresOn = moment().add(months, 'M');
+            const expiresOn = moment().add(months, "M");
             return this.transactionModel.create({
                 discount,
                 perUserRate,
                 seats,
                 total,
                 expiresOn: expiresOn.toDate(),
-                organization
+                organization,
             });
         });
     }
     getAllPayments(organization) {
         return __awaiter(this, void 0, void 0, function* () {
-            return this.transactionModel.find({ organization }).sort({ _id: 1 }).limit(15);
+            return this.transactionModel
+                .find({ organization })
+                .sort({ _id: 1 })
+                .limit(15);
         });
     }
     getAllOrganizations() {
@@ -143,7 +195,19 @@ OrganizationService = __decorate([
     __param(0, mongoose_1.InjectModel("Organization")),
     __param(1, mongoose_1.InjectModel("ResellerOrganization")),
     __param(2, mongoose_1.InjectModel("Transaction")),
+    __param(3, mongoose_1.InjectModel("Campaign")),
+    __param(4, mongoose_1.InjectModel("CampaignConfig")),
+    __param(5, mongoose_1.InjectModel("Disposition")),
+    __param(6, mongoose_1.InjectModel("AdminAction")),
+    __param(7, mongoose_1.InjectModel("CampaignForm")),
+    __param(8, mongoose_1.InjectModel("Lead")),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         twilio_nestjs_1.TwilioService,

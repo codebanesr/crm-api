@@ -9,11 +9,13 @@ export declare class OrganizationController {
     private organizationService;
     private logger;
     constructor(organizationService: OrganizationService, logger: Logger);
-    getAllOrganizations(): Promise<Pick<import("./interface/organization.interface").Organization, "_id" | "size" | "name" | "email" | "phoneNumber" | "accountType" | "phoneNumberPrefix" | "lastActive" | "organizationImage" | "startDate" | "endDate" | "currentSize">[]>;
+    getAllOrganizations(): Promise<Pick<import("./interface").Organization, "_id" | "size" | "name" | "email" | "phoneNumber" | "accountType" | "phoneNumberPrefix" | "lastActive" | "organizationImage" | "startDate" | "endDate" | "currentSize">[]>;
     register(createOrganizationDto: CreateOrganizationDto, user: User): Promise<void>;
-    getAllResellerOrganizations(user: User): Promise<import("./interface/reseller-organization.interface").ResellerOrganization[]>;
+    getAllResellerOrganizations(user: User): Promise<import("./interface").ResellerOrganization[]>;
     generateToken(generateTokenDto: GenerateTokenDto): Promise<import("twilio/lib/rest/api/v2010/account/message").MessageInstance>;
-    createOrUpdateUserQuota(updateQuota: UpdateQuotaDto): Promise<import("./interface/transaction.interface").Transaction>;
+    createOrUpdateUserQuota(updateQuota: UpdateQuotaDto): Promise<import("./interface").Transaction>;
     isValidAttribute(validateNewOrganizationDto: ValidateNewOrganizationDto): Promise<void>;
-    getPayments(organization: string): Promise<import("./interface/transaction.interface").Transaction[]>;
+    getPayments(organization: string): Promise<import("./interface").Transaction[]>;
+    getCurrentOrganization(user: User): Promise<Pick<import("./interface").Organization, "_id" | "size" | "name" | "email" | "phoneNumber" | "accountType" | "phoneNumberPrefix" | "lastActive" | "organizationImage" | "startDate" | "endDate" | "currentSize">>;
+    deleteCurrentOrganization(organizationId: string): Promise<void>;
 }

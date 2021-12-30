@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { S3 } from "aws-sdk";
-import AppConfig from "../config";
+import AppConfig from "../config/config";
 
 @Injectable()
 export class UploadService {
@@ -14,7 +14,7 @@ export class UploadService {
 
   async uploadFile(key: string, file: any) {
     const params = {
-      Bucket: "molecule.static.files",
+      Bucket: "molecule.uploads",
       Key: key + file.name,
       Body: file,
     };

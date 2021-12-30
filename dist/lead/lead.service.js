@@ -43,7 +43,7 @@ const notification_service_1 = require("../utils/notification.service");
 const rules_service_1 = require("../rules/rules.service");
 const user_service_1 = require("../user/user.service");
 const bull_1 = require("@nestjs/bull");
-const config_1 = require("../config");
+const config_1 = require("../config/config");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 const moment = require("moment");
@@ -805,36 +805,28 @@ let LeadService = LeadService_1 = class LeadService {
             return { response, total: count };
         });
     }
-    getFollowUps({ interval, organization, email, campaignId, limit, skip, page, }) {
+    getFollowUps({ interval, organization, email, campaignId, limit, skip, page, roleType }) {
         return __awaiter(this, void 0, void 0, function* () {
             const leadAgg = this.leadModel.aggregate();
-            var todayStart = new Date();
-            todayStart.setHours(0);
-            todayStart.setMinutes(0);
-            todayStart.setSeconds(1);
-            var todayEnd = new Date();
-            todayEnd.setHours(23);
-            todayEnd.setMinutes(59);
-            todayEnd.setSeconds(59);
+            const matchQ = {};
             if (campaignId) {
-                leadAgg.match({ campaignId: mongoose_3.Types.ObjectId(campaignId) });
+                matchQ["campaignId"] = mongoose_3.Types.ObjectId(campaignId);
             }
             if ((interval === null || interval === void 0 ? void 0 : interval.length) === 2) {
-                leadAgg.match({
-                    followUp: {
-                        $gte: new Date(interval[0]),
-                        $lte: new Date(interval[1]),
-                    },
-                });
+                matchQ["followUp"] = {
+                    $gte: new Date(interval[0]),
+                    $lte: new Date(interval[1]),
+                };
             }
             else {
-                leadAgg.match({
-                    followUp: {
-                        $gte: todayStart,
-                    },
-                });
+                matchQ["followUp"] = {
+                    $gte: new Date(),
+                };
             }
-            leadAgg.match({ organization, email });
+            if (roleType !== role_type_enum_1.RoleType.admin && roleType !== role_type_enum_1.RoleType.superAdmin) {
+                matchQ["email"] = email;
+            }
+            leadAgg.match(matchQ);
             leadAgg.sort({ followUp: 1 });
             leadAgg.facet({
                 metadata: [{ $count: "total" }, { $addFields: { page: Number(page) } }],

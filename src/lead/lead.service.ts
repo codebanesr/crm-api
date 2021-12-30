@@ -27,7 +27,7 @@ import { RulesService } from "../rules/rules.service";
 import { UserService } from "../user/user.service";
 import { InjectQueue } from "@nestjs/bull";
 import { Queue } from "bull";
-import config from '../config';
+import config from '../config/config';
 import { RoleType } from "../shared/role-type.enum";
 import { FetchNextLeadDto, TypeOfLead } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
@@ -1173,38 +1173,31 @@ export class LeadService {
     limit,
     skip,
     page,
+    roleType
   }) {
     const leadAgg = this.leadModel.aggregate();
-    var todayStart = new Date();
-    todayStart.setHours(0);
-    todayStart.setMinutes(0);
-    todayStart.setSeconds(1);
-
-    var todayEnd = new Date();
-    todayEnd.setHours(23);
-    todayEnd.setMinutes(59);
-    todayEnd.setSeconds(59);
-
+    const matchQ = {};
     if (campaignId) {
-      leadAgg.match({ campaignId: Types.ObjectId(campaignId) });
+      // leadAgg.match({ campaignId: Types.ObjectId(campaignId) });
+      matchQ["campaignId"] = Types.ObjectId(campaignId)
     }
 
     if (interval?.length === 2) {
-      leadAgg.match({
-        followUp: {
-          $gte: new Date(interval[0]),
-          $lte: new Date(interval[1]),
-        },
-      });
+      matchQ["followUp"] = {
+        $gte: new Date(interval[0]),
+        $lte: new Date(interval[1]),
+      };
     } else {
-      leadAgg.match({
-        followUp: {
-          $gte: todayStart,
-        },
-      });
+      matchQ["followUp"] = {
+        $gte: new Date(),
+      };
     }
 
-    leadAgg.match({ organization, email });
+    if(roleType !== RoleType.admin && roleType!==RoleType.superAdmin) {
+      matchQ["email"] = email;
+    }
+
+    leadAgg.match(matchQ);
     leadAgg.sort({ followUp: 1 });
 
     leadAgg.facet({

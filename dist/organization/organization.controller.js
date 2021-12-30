@@ -34,6 +34,7 @@ const organization_service_1 = require("./organization.service");
 const update_quota_dto_1 = require("./dto/update-quota.dto");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const nestjs_pino_1 = require("nestjs-pino");
+const role_type_enum_1 = require("../shared/role-type.enum");
 let OrganizationController = class OrganizationController {
     constructor(organizationService, logger) {
         this.organizationService = organizationService;
@@ -75,6 +76,17 @@ let OrganizationController = class OrganizationController {
     getPayments(organization) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.organizationService.getAllPayments(organization);
+        });
+    }
+    getCurrentOrganization(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { organization } = user;
+            return this.organizationService.getCurrentOrganization(organization);
+        });
+    }
+    deleteCurrentOrganization(organizationId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.organizationService.deleteOrganization(organizationId);
         });
     }
 };
@@ -165,6 +177,24 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], OrganizationController.prototype, "getPayments", null);
+__decorate([
+    common_1.Get("current"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles(role_type_enum_1.RoleType.admin),
+    __param(0, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], OrganizationController.prototype, "getCurrentOrganization", null);
+__decorate([
+    common_1.Delete("delete/:organizationId"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    roles_decorator_1.Roles(role_type_enum_1.RoleType.superAdmin),
+    __param(0, common_1.Param("organizationId")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], OrganizationController.prototype, "deleteCurrentOrganization", null);
 OrganizationController = __decorate([
     common_1.Controller("organization"),
     swagger_1.ApiTags("organization"),

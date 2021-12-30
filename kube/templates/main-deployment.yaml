@@ -1,0 +1,162 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -o kube -c
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: main
+  name: main
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: main
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o kube -c
+        kompose.version: 1.22.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/webnet: "true"
+        io.kompose.service: main
+    spec:
+      containers:
+        - args:
+            - yarn
+            - start
+          env:
+            - name: BULL_REDIS_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: BULL_REDIS_PASSWORD
+                  name: env-production-env
+            - name: BULL_REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: BULL_REDIS_PORT
+                  name: env-production-env
+            - name: BULL_REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: BULL_REDIS_URL
+                  name: env-production-env
+            - name: ENCRYPT_JWT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: ENCRYPT_JWT_SECRET
+                  name: env-production-env
+            - name: FACEBOOK_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: FACEBOOK_ID
+                  name: env-production-env
+            - name: FACEBOOK_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: FACEBOOK_SECRET
+                  name: env-production-env
+            - name: JWT_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  key: JWT_EXPIRATION
+                  name: env-production-env
+            - name: JWT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: JWT_SECRET
+                  name: env-production-env
+            - name: MONGODB_URI
+              valueFrom:
+                configMapKeyRef:
+                  key: MONGODB_URI
+                  name: env-production-env
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PORT
+                  name: env-production-env
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: REDIS_HOST
+                  name: env-production-env
+            - name: SENDGRID_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: SENDGRID_PASSWORD
+                  name: env-production-env
+            - name: SENDGRID_USER
+              valueFrom:
+                configMapKeyRef:
+                  key: SENDGRID_USER
+                  name: env-production-env
+            - name: SERVER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: SERVER_PORT
+                  name: env-production-env
+            - name: SESSION_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: SESSION_SECRET
+                  name: env-production-env
+            - name: SUPERADMIN_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: SUPERADMIN_API_KEY
+                  name: env-production-env
+            - name: VAPID_PRIVATE
+              valueFrom:
+                configMapKeyRef:
+                  key: VAPID_PRIVATE
+                  name: env-production-env
+            - name: VAPID_PUBLIC
+              valueFrom:
+                configMapKeyRef:
+                  key: VAPID_PUBLIC
+                  name: env-production-env
+            - name: VERSION
+              value: "1.0"
+            - name: accessKeyId
+              valueFrom:
+                configMapKeyRef:
+                  key: accessKeyId
+                  name: env-production-env
+            - name: region
+              valueFrom:
+                configMapKeyRef:
+                  key: region
+                  name: env-production-env
+            - name: secretAccessKey
+              valueFrom:
+                configMapKeyRef:
+                  key: secretAccessKey
+                  name: env-production-env
+          image: node:14.15.1-alpine3.12
+          name: main
+          ports:
+            - containerPort: 3000
+          resources: {}
+          tty: true
+          volumeMounts:
+            - mountPath: /usr/src/app
+              name: main-claim0
+            - mountPath: /usr/app/node_modules
+              name: main-claim1
+          workingDir: /usr/src/app
+      restartPolicy: Always
+      volumes:
+        - name: main-claim0
+          persistentVolumeClaim:
+            claimName: main-claim0
+        - name: main-claim1
+          persistentVolumeClaim:
+            claimName: main-claim1
+status: {}
