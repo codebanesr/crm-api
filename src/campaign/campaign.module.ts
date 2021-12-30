@@ -26,5 +26,6 @@ import { LeadSchema } from "../lead/schema/lead.schema";
   ],
   controllers: [CampaignController],
   providers: [CampaignService],
+  exports: [CampaignService],
 })
 export class CampaignModule {}

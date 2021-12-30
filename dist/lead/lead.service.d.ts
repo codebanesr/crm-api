@@ -114,7 +114,7 @@ export declare class LeadService {
         response: Partial<LeadHistory>[];
         total: number;
     }>;
-    getFollowUps({ interval, organization, email, campaignId, limit, skip, page, }: {
+    getFollowUps({ interval, organization, email, campaignId, limit, skip, page, roleType }: {
         interval: any;
         organization: any;
         email: any;
@@ -122,6 +122,7 @@ export declare class LeadService {
         limit: any;
         skip: any;
         page: any;
+        roleType: any;
     }): Promise<any>;
     checkPrecondition(user: User, subordinateEmail: string): Promise<void>;
     getAllAlarms(body: any, organization: any): Promise<any>;

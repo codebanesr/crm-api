@@ -37,6 +37,7 @@ CampaignModule = __decorate([
         ],
         controllers: [campaign_controller_1.CampaignController],
         providers: [campaign_service_1.CampaignService],
+        exports: [campaign_service_1.CampaignService],
     })
 ], CampaignModule);
 exports.CampaignModule = CampaignModule;

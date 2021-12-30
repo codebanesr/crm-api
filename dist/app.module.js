@@ -23,15 +23,19 @@ const shared_module_1 = require("./shared/shared.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
 const upload_service_1 = require("./upload/upload.service");
 const push_notification_service_1 = require("./push-notification/push-notification.service");
-const config_1 = require("./config");
 const rules_module_1 = require("./rules/rules.module");
 const nestjs_pino_1 = require("nestjs-pino");
 const pino_1 = require("pino");
+const order_module_1 = require("./order/order.module");
+const razorpay_module_1 = require("./razorpay/razorpay.module");
+const config_1 = require("./config/config");
+const nestjs_config_1 = require("nestjs-config");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     common_1.Module({
         imports: [
+            nestjs_config_1.ConfigModule.load("./config/config"),
             nestjs_pino_1.LoggerModule.forRoot({
                 pinoHttp: {
                     serializers: {
@@ -40,16 +44,20 @@ AppModule = __decorate([
                                 id: req.id,
                                 url: req.url,
                                 body: req.body,
-                                method: req.method
+                                method: req.method,
                             };
                         },
                         res: pino_1.stdSerializers.res,
                         err: pino_1.stdSerializers.err,
-                    }
-                }
+                    },
+                },
             }),
             common_1.CacheModule.register(),
-            mongoose_1.MongooseModule.forRoot(config_1.default.MONGODB_URI, { useNewUrlParser: true }),
+            mongoose_1.MongooseModule.forRootAsync({
+                useFactory: () => ({
+                    uri: config_1.default.MONGODB_URI,
+                }),
+            }),
             user_module_1.UserModule,
             auth_module_1.AuthModule,
             article_module_1.ArticleModule,
@@ -60,6 +68,8 @@ AppModule = __decorate([
             shared_module_1.SharedModule,
             dashboard_module_1.DashboardModule,
             rules_module_1.RulesModule,
+            order_module_1.OrderModule,
+            razorpay_module_1.RazorpayModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

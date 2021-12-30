@@ -21,16 +21,14 @@ const lead_module_1 = require("./lead/lead.module");
 const campaign_module_1 = require("./campaign/campaign.module");
 const agent_module_1 = require("./agent/agent.module");
 const organization_module_1 = require("./organization/organization.module");
-const nestjs_pino_1 = require("nestjs-pino");
 function bootstrap() {
     return __awaiter(this, void 0, void 0, function* () {
         const app = yield core_1.NestFactory.create(app_module_1.AppModule);
-        app.useLogger(app.get(nestjs_pino_1.Logger));
         app.enableCors();
         app.useGlobalPipes(new common_1.ValidationPipe({
             transform: true,
         }));
-        app.setGlobalPrefix('api');
+        app.setGlobalPrefix("api");
         const options = new swagger_1.DocumentBuilder()
             .setTitle("API")
             .setDescription("API description")
@@ -49,6 +47,7 @@ function bootstrap() {
         });
         swagger_1.SwaggerModule.setup("api/swagger", app, document);
         const PORT = process.env.PORT || 3000;
+        console.log({ PORT });
         yield app.listen(PORT);
         console_1.warn(`APP IS LISTENING TO PORT ${PORT}`);
     });

@@ -45,6 +45,7 @@ import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import { RoleType } from "../shared/role-type.enum";
+import { OAuthDto } from './dto/oauth.dto';
 
 @ApiTags("User")
 @Controller("user")
@@ -93,13 +94,14 @@ export class UserController {
     return this.userService.getAllUsersHack(organization);
   }
 
-  // @Get(':organizationId')
-  // @Roles("superAdmin")
-  // @UseGuards(AuthGuard("jwt"))
-  // @ApiOperation({ summary: "Gets users for organization" })
-  // async getUsersForOrga(@Param('organizationId') organizationId: string) {
-  //   return this.userService.getAllUsersForOrganization(organizationId);
-  // }
+  @Get('organization/:organizationId')
+  @Roles("superAdmin")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Gets users for organization" })
+  async getUsersForOrganization(@Param('organizationId') organizationId: string) {
+    return this.userService.getAllUsersForOrganization(organizationId);
+  }
+
 
   @Get('profile')
   @UseGuards(AuthGuard("jwt"))
@@ -143,6 +145,14 @@ export class UserController {
   @ApiOkResponse({})
   async login(@Req() req: IRequest, @Body() loginUserDto: LoginUserDto) {
     return this.userService.login(req, loginUserDto);
+  }
+
+
+  @Post("oauth/login")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Login User with oauth token" })
+  async oauthLogin(@Body() loginUserDto: OAuthDto, @Request() req) {
+    return this.userService.oauthLogin(loginUserDto, req);
   }
 
   @Post("refresh-access-token")
@@ -297,5 +307,15 @@ export class UserController {
     @Body() body: VerifyUuidDto
   ) {
     return this.userService.sendPushNotification();
+  }
+
+
+  @Get("managersForRoleType/:roleType")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard("jwt"))
+  getManagersForRoleType(@CurrentUser() user: User, @Param('roleType') roleType: RoleType) {
+    const { organization } = user;
+    const superiorRoles = this.userService.getSuperiorRoles(roleType);
+    return this.userService.getUsersForRoles(organization, superiorRoles);
   }
 }

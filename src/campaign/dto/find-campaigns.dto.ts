@@ -1,4 +1,4 @@
-import { IsNumber, IsJSON, IsString, Allow, IsOptional } from "class-validator";
+import { IsNumber, IsJSON, IsString, Allow, IsOptional, IsBoolean } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class FindCampaignsDto {

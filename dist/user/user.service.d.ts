@@ -14,7 +14,7 @@ import { FindAllDto } from "../lead/dto/find-all.dto";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { RoleType } from "../shared/role-type.enum";
-import { Organization } from "src/organization/interface/organization.interface";
+import { Organization } from "../organization/interface/organization.interface";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 export declare class UserService {
     private readonly userModel;
@@ -30,6 +30,7 @@ export declare class UserService {
     checkAndUpdateUserQuota(organizationId: string): Promise<void>;
     checkHierarchyPreconditions(createUserDto: CreateUserDto): Promise<boolean>;
     getSuperiorRoleTypes(email: string): Promise<RoleType[]>;
+    getSuperiorRoles(roleType: RoleType): RoleType[];
     createReseller(createResellerDto: CreateResellerDto): Promise<any>;
     verifyEmail(req: Request, verifyUuidDto: VerifyUuidDto): Promise<{
         fullName: string;
@@ -38,6 +39,7 @@ export declare class UserService {
         refreshToken: string;
     }>;
     login(req: Request, loginUserDto: LoginUserDto): Promise<{
+        _id: any;
         fullName: string;
         organization: any;
         email: string;
@@ -104,4 +106,5 @@ export declare class UserService {
     }>;
     sendPushNotification(): Promise<void>;
     getAllUsersForOrganization(organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    getUsersForRoles(organization: string, roles: RoleType[]): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
 }

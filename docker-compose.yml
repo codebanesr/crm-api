@@ -1,7 +1,7 @@
 # generating ssl certs
 # sudo openssl dhparam -out dhparam-2048.pem 2048
 # docker-compose up --force-recreate --no-deps certbot, after adding A records to point to the correct ip address
-version: '3.7'
+version: "3.7"
 
 services:
   main:
@@ -11,21 +11,21 @@ services:
       context: .
       dockerfile: Dockerfile.prod
       # target: production
-    user: "node"
+    user: "root"
     working_dir: /usr/src/app
     environment:
       - NODE_ENV=production
       - VERSION=1.0
     # volumes are only required for live reloading and binding local directories
-    # volumes:
-    #   - /usr/src/app
-    #   - /usr/app/node_modules
+    volumes:
+      - /usr/src/app
+      - /usr/app/node_modules
     ports:
       - "3000:3000"
     tty: true
     command: "yarn start"
     env_file:
-      - .env
+      - env/production.env
     networks:
       - webnet
     restart: always
@@ -54,15 +54,15 @@ services:
   #     - 'mongodb_data:/bitnami/mongodb'
   #   networks:
   #     - webnet
-  
+
   redis:
-    image: 'bitnami/redis:latest'
+    image: "bitnami/redis:latest"
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
       - REDIS_PASSWORD=password123
       - REDIS_USER=shanur
     command: /opt/bitnami/scripts/redis/run.sh --maxmemory 100mb
-    ports: 
+    ports:
       - "6379:6379"
     networks:
       - webnet
@@ -77,13 +77,13 @@ services:
     restart: unless-stopped
     image: staticfloat/nginx-certbot
     ports:
-        - 80:80/tcp
-        - 443:443/tcp
+      - 80:80/tcp
+      - 443:443/tcp
     environment:
-        CERTBOT_EMAIL: shanur.cse.nitap@gmail.com
-        # variable names are space-separated
-        ENVSUBST_VARS: FQDN
-        FQDN: moleculesystem.com
+      CERTBOT_EMAIL: shanur.cse.nitap@gmail.com
+      # variable names are space-separated
+      ENVSUBST_VARS: FQDN
+      FQDN: moleculesystem.com
     volumes:
       - ./conf.d:/etc/nginx/user.conf.d:ro
       - letsencrypt:/etc/letsencrypt
@@ -98,12 +98,12 @@ services:
         awslogs-region: "ap-south-1"
         awslogs-group: "Molecule"
         awslogs-stream: "webserver"
-  
+
   worker:
     image: "node:14.15.1-alpine3.12"
     container_name: worker
     build:
-      context: '../molecule_bull_microservice'
+      context: "../molecule_bull_microservice"
       dockerfile: Dockerfile.prod
       # target: production
     user: "node"
@@ -115,7 +115,7 @@ services:
     tty: true
     command: "yarn start:prod"
     env_file:
-      - '../molecule_bull_microservice/.env'
+      - "../molecule_bull_microservice/.env"
     networks:
       - webnet
     ports:
@@ -135,8 +135,4 @@ volumes:
   pgdata:
   mongodb_data:
     driver: local
-
-
-
-
 # I have worked on both frontend and backend technologies extensively, including both SQL and NoSQL databases. I wrote a complete mobile CRM solution from scratch using angular ionic, MongoDB, Redis and Bull Queue, and Nginx. I would be willing to show you that in case my profile is shortlisted.

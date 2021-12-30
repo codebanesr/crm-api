@@ -13,12 +13,18 @@ const organization_controller_1 = require("./organization.controller");
 const mongoose_1 = require("@nestjs/mongoose");
 const organization_schema_1 = require("./schema/organization.schema");
 const twilio_nestjs_1 = require("@lkaric/twilio-nestjs");
-const config_1 = require("../config");
+const config_1 = require("../config/config");
 const nestjs_redis_1 = require("nestjs-redis");
 const shared_module_1 = require("../shared/shared.module");
 const user_module_1 = require("../user/user.module");
 const reseller_organization_schema_1 = require("./schema/reseller-organization.schema");
 const transaction_schema_1 = require("./schema/transaction.schema");
+const campaign_form_schema_1 = require("../campaign/schema/campaign-form.schema");
+const campaign_schema_1 = require("../campaign/schema/campaign.schema");
+const disposition_schema_1 = require("../campaign/schema/disposition.schema");
+const campaign_config_schema_1 = require("../lead/schema/campaign-config.schema");
+const lead_schema_1 = require("../lead/schema/lead.schema");
+const admin_action_schema_1 = require("../user/schemas/admin-action.schema");
 let OrganizationModule = class OrganizationModule {
 };
 OrganizationModule = __decorate([
@@ -34,11 +40,17 @@ OrganizationModule = __decorate([
             mongoose_1.MongooseModule.forFeature([
                 { name: "Organization", schema: organization_schema_1.OrganizationSchema },
                 { name: "ResellerOrganization", schema: reseller_organization_schema_1.ResellerOrganizationSchema },
-                { name: "Transaction", schema: transaction_schema_1.TransactionSchema }
+                { name: "Transaction", schema: transaction_schema_1.TransactionSchema },
+                { name: "Campaign", schema: campaign_schema_1.CampaignSchema },
+                { name: "Lead", schema: lead_schema_1.LeadSchema },
+                { name: "CampaignConfig", schema: campaign_config_schema_1.CampaignConfigSchema },
+                { name: "Disposition", schema: disposition_schema_1.DispositionSchema },
+                { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },
+                { name: "CampaignForm", schema: campaign_form_schema_1.CampaignFormSchema },
             ]),
         ],
         providers: [organization_service_1.OrganizationService],
-        controllers: [organization_controller_1.OrganizationController]
+        controllers: [organization_controller_1.OrganizationController],
     })
 ], OrganizationModule);
 exports.OrganizationModule = OrganizationModule;

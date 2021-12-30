@@ -46,7 +46,7 @@ let CampaignService = class CampaignService {
             const limit = Number(perPage);
             const skip = Number((page - 1) * limit);
             const campaignAgg = this.campaignModel.aggregate();
-            campaignAgg.match({ organization, archived: { $ne: true } });
+            campaignAgg.match({ organization, archived: { $ne: filters.archived ? false : true } });
             const { campaigns = [], select = [] } = filters;
             if (!roles.includes(role_type_enum_1.RoleType.admin)) {
                 campaignAgg.match({
@@ -277,6 +277,7 @@ let CampaignService = class CampaignService {
             quickStatsAgg.match({
                 organization,
                 campaignId: { $in: campaignIds },
+                archived: { $ne: true }
             });
             quickStatsAgg.group({
                 _id: { campaign: "$campaign" },
@@ -352,11 +353,11 @@ let CampaignService = class CampaignService {
                         editableCols: deleteConfigDto.internalField,
                     },
                 });
-                session.commitTransaction();
+                yield session.commitTransaction();
                 status = true;
             }
             catch (e) {
-                session.abortTransaction();
+                yield session.abortTransaction();
                 status = false;
             }
             finally {
@@ -384,10 +385,10 @@ let CampaignService = class CampaignService {
                     return Object.assign(Object.assign({}, c), { campaignId: newCampaign._id });
                 });
                 yield this.campaignConfigModel.insertMany(campaignConfig);
-                session.commitTransaction();
+                yield session.commitTransaction();
             }
             catch (e) {
-                session.abortTransaction();
+                yield session.abortTransaction();
             }
             finally {
                 session.endSession();
@@ -398,30 +399,41 @@ let CampaignService = class CampaignService {
         return __awaiter(this, void 0, void 0, function* () {
             const session = yield this.campaignConfigModel.db.startSession();
             session.startTransaction();
-            let leads, campaign, campaignConfig;
+            let leads, campaign, campaignConfig, disposition;
             try {
                 leads = yield this.leadModel.deleteMany({ campaignId: dcAE.campaignId });
-                campaignConfig = yield this.campaignConfigModel.deleteMany({ campaignId: dcAE.campaignId });
+                campaignConfig = yield this.campaignConfigModel.deleteMany({
+                    campaignId: dcAE.campaignId,
+                });
                 campaign = yield this.campaignModel.findByIdAndDelete(dcAE.campaignId);
-                session.commitTransaction();
+                disposition = yield this.dispositionModel.findOneAndDelete({
+                    campaign: dcAE.campaignId,
+                });
+                yield session.commitTransaction();
             }
             catch (e) {
-                session.abortTransaction();
+                yield session.abortTransaction();
+                common_1.Logger.error(e);
+                session.endSession();
+                throw new common_1.PreconditionFailedException("An error occured inside transaction" + e.message);
             }
             finally {
                 session.endSession();
             }
-            return { leads, campaign, campaignConfig };
+            return { leads, campaign, campaignConfig, disposition };
         });
     }
     getCampaignsForOrganization(organization) {
-        return this.campaignModel.find({ organization }, {
+        return this.campaignModel
+            .find({ organization }, {
             campaignName: 1,
             createdBy: 1,
             startDate: 1,
             endDate: 1,
-            comment: 1
-        }).lean().exec();
+            comment: 1,
+        })
+            .lean()
+            .exec();
     }
 };
 CampaignService = __decorate([

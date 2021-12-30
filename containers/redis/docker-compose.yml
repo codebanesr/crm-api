@@ -1,0 +1,13 @@
+version: "3.7"
+services:
+  redis:
+    image: "bitnami/redis:latest"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PASSWORD=password123
+      - REDIS_USER=shanur
+    command: /opt/bitnami/scripts/redis/run.sh --maxmemory 100mb
+    ports:
+      - "6379:6379"
+    # networks:
+    #   - webnet

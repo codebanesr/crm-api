@@ -32,7 +32,7 @@ const bcrypt = require("bcryptjs");
 const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
 const path_1 = require("path");
-const config_1 = require("../config");
+const config_1 = require("../config/config");
 const nodemailer_1 = require("nodemailer");
 const forgot_password_template_1 = require("../utils/forgot-password-template");
 const crypto_utils_1 = require("../utils/crypto.utils");
@@ -111,19 +111,22 @@ let UserService = class UserService {
                 .findOne({ email }, { roleType: 1 })
                 .lean()
                 .exec();
-            if (roleType === role_type_enum_1.RoleType.admin) {
-                return [];
-            }
-            else if (roleType === role_type_enum_1.RoleType.seniorManager) {
-                return [role_type_enum_1.RoleType.admin];
-            }
-            else if (roleType === role_type_enum_1.RoleType.manager) {
-                return [role_type_enum_1.RoleType.seniorManager, role_type_enum_1.RoleType.admin];
-            }
-            else if (roleType === role_type_enum_1.RoleType.frontline) {
-                return [role_type_enum_1.RoleType.seniorManager, role_type_enum_1.RoleType.admin, role_type_enum_1.RoleType.manager];
-            }
+            return this.getSuperiorRoles(roleType);
         });
+    }
+    getSuperiorRoles(roleType) {
+        if (roleType === role_type_enum_1.RoleType.admin) {
+            return [];
+        }
+        else if (roleType === role_type_enum_1.RoleType.seniorManager) {
+            return [role_type_enum_1.RoleType.admin];
+        }
+        else if (roleType === role_type_enum_1.RoleType.manager) {
+            return [role_type_enum_1.RoleType.seniorManager, role_type_enum_1.RoleType.admin];
+        }
+        else if (roleType === role_type_enum_1.RoleType.frontline) {
+            return [role_type_enum_1.RoleType.seniorManager, role_type_enum_1.RoleType.admin, role_type_enum_1.RoleType.manager];
+        }
     }
     createReseller(createResellerDto) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -156,6 +159,7 @@ let UserService = class UserService {
             const singleLoginKey = this.setSingleLoginKey(user);
             yield this.passwordsAreMatch(user);
             return {
+                _id: user._id,
                 fullName: user.fullName,
                 organization: user.get("organization.name"),
                 email: user.email,
@@ -680,6 +684,12 @@ let UserService = class UserService {
                 .find({ organization }, { phoneNumber: 1, blockExpires: 1, email: 1, verified: 1, fullName: 1 })
                 .lean()
                 .exec();
+        });
+    }
+    getUsersForRoles(organization, roles) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const users = yield this.userModel.find({ organization, roleType: { $in: roles } }).lean().exec();
+            return users;
         });
     }
 };
