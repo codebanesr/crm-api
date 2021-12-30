@@ -35,10 +35,12 @@ const update_quota_dto_1 = require("./dto/update-quota.dto");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const nestjs_pino_1 = require("nestjs-pino");
 const role_type_enum_1 = require("../shared/role-type.enum");
+const shared_service_1 = require("src/shared/shared.service");
 let OrganizationController = class OrganizationController {
-    constructor(organizationService, logger) {
+    constructor(organizationService, logger, sharedService) {
         this.organizationService = organizationService;
         this.logger = logger;
+        this.sharedService = sharedService;
     }
     getAllOrganizations() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -49,7 +51,7 @@ let OrganizationController = class OrganizationController {
         return __awaiter(this, void 0, void 0, function* () {
             this.logger.debug(createOrganizationDto);
             const { _id, fullName } = user;
-            return this.organizationService.createOrganization(createOrganizationDto, _id, fullName);
+            return this.sharedService.createOrganization(createOrganizationDto, _id, fullName);
         });
     }
     getAllResellerOrganizations(user) {
@@ -200,7 +202,8 @@ OrganizationController = __decorate([
     swagger_1.ApiTags("organization"),
     common_1.UseGuards(roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [organization_service_1.OrganizationService,
-        nestjs_pino_1.Logger])
+        nestjs_pino_1.Logger,
+        shared_service_1.SharedService])
 ], OrganizationController);
 exports.OrganizationController = OrganizationController;
 //# sourceMappingURL=organization.controller.js.map

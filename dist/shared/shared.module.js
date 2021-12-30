@@ -8,11 +8,21 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SharedModule = void 0;
 const common_1 = require("@nestjs/common");
+const mongoose_1 = require("@nestjs/mongoose");
+const organization_1 = require("src/organization");
+const user_schema_1 = require("src/user/schemas/user.schema");
 const shared_service_1 = require("./shared.service");
 let SharedModule = class SharedModule {
 };
 SharedModule = __decorate([
     common_1.Module({
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: "User", schema: user_schema_1.UserSchema },
+                { name: "Organization", schema: organization_1.OrganizationSchema },
+                { name: "ResellerOrganization", schema: organization_1.ResellerOrganizationSchema },
+            ]),
+        ],
         providers: [shared_service_1.SharedService],
         exports: [shared_service_1.SharedService]
     })

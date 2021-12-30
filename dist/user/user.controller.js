@@ -42,14 +42,18 @@ const push_notification_dto_1 = require("./dto/push-notification.dto");
 const create_reseller_dto_1 = require("./dto/create-reseller.dto");
 const updateProfile_dto_1 = require("./dto/updateProfile.dto");
 const role_type_enum_1 = require("../shared/role-type.enum");
+const oauth_dto_1 = require("./dto/oauth.dto");
+const shared_service_1 = require("src/shared/shared.service");
 let UserController = class UserController {
-    constructor(userService) {
+    constructor(userService, sharedService) {
         this.userService = userService;
+        this.sharedService = sharedService;
     }
     register(createUserDto, user) {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization } = user;
-            return this.userService.create(createUserDto, organization);
+            const { registrationInfo } = yield this.sharedService.create(createUserDto, organization);
+            return registrationInfo;
         });
     }
     registerReseller(createResellerDto, user) {
@@ -93,6 +97,11 @@ let UserController = class UserController {
     login(req, loginUserDto) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.userService.login(req, loginUserDto);
+        });
+    }
+    oauthLogin(req, oauthLogin) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return this.userService.oauthLogin(oauthLogin, req);
         });
     }
     refreshAccessToken(refreshAccessTokenDto) {
@@ -249,6 +258,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, login_user_dto_1.LoginUserDto]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "login", null);
+__decorate([
+    common_1.Post("oauth/login"),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    swagger_1.ApiOperation({ summary: "Login User with oauth token" }),
+    __param(0, common_1.Request()), __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, oauth_dto_1.OAuthDto]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "oauthLogin", null);
 __decorate([
     common_1.Post("refresh-access-token"),
     common_1.HttpCode(common_1.HttpStatus.CREATED),
@@ -416,7 +434,7 @@ UserController = __decorate([
     swagger_1.ApiTags("User"),
     common_1.Controller("user"),
     common_1.UseGuards(roles_guard_1.RolesGuard),
-    __metadata("design:paramtypes", [user_service_1.UserService])
+    __metadata("design:paramtypes", [user_service_1.UserService, shared_service_1.SharedService])
 ], UserController);
 exports.UserController = UserController;
 //# sourceMappingURL=user.controller.js.map

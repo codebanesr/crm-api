@@ -7,8 +7,8 @@ import { ForgotPasswordSchema } from "./schemas/forgot-password.schema";
 import { AdminActionSchema } from "./schemas/admin-action.schema";
 import { MulterModule } from "@nestjs/platform-express";
 import { MongooseModule } from "@nestjs/mongoose";
-import { VisitTrackSchema } from "../agent/schemas/visit-track.schema";
 import { OrganizationSchema } from "../organization/schema/organization.schema";
+import { SharedModule } from "src/shared/shared.module";
 
 @Module({
   imports: [
@@ -17,12 +17,13 @@ import { OrganizationSchema } from "../organization/schema/organization.schema";
       { name: "Organization", schema: OrganizationSchema },
       { name: "ForgotPassword", schema: ForgotPasswordSchema },
       { name: "AdminAction", schema: AdminActionSchema },
-      { name: "VisitTrack", schema: VisitTrackSchema },
+      // { name: "VisitTrack", schema: VisitTrackSchema },
     ]),
     MulterModule.register({
       dest: "~/.upload/users",
     }),
     AuthModule,
+    SharedModule
   ],
   controllers: [UserController],
   providers: [UserService],

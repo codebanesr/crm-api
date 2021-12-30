@@ -1,17 +1,25 @@
 {
   "version": "0.2.0",
   "configurations": [
-    {
-      "name": "Docker: Attach to Node",
-      "type": "node",
-      "request": "attach",
-      "port": 9229,
-      "address": "localhost",
-      "localRoot": "${workspaceFolder}",
-      "remoteRoot": "/usr/src/app",
-      "protocol": "inspector",
-      "skipFiles": ["<node_internals>/**"],
-      "restart": true
-    }
+      {
+          "type": "node",
+          "request": "launch",
+          "name": "Debug Nest Framework",
+          "args": [
+              "${workspaceFolder}/src/main.ts"
+          ],
+          "runtimeArgs": [
+              "--nolazy",
+              "-r",
+              "ts-node/register",
+              "-r",
+              "tsconfig-paths/register"
+          ],
+          "sourceMaps": true,
+          "envFile": "${workspaceFolder}/.env",
+          "cwd": "${workspaceRoot}",
+          "console": "integratedTerminal",
+          "protocol": "inspector"
+      }
   ]
 }

@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
+import { OrganizationSchema, TransactionSchema } from "src/organization/schema";
 import { RazorpayModule } from "../razorpay/razorpay.module";
-import { OrganizationSchema, TransactionSchema } from "../organization";
 import { OrderController } from "./order.controller";
 
 @Module({

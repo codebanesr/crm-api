@@ -14,7 +14,7 @@ import {
   BadGatewayException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model, Types } from "mongoose";
+import { DocumentDefinition, Model, Types } from "mongoose";
 import { v4 } from "uuid";
 import { addHours } from "date-fns";
 import * as bcrypt from "bcryptjs";
@@ -43,6 +43,7 @@ import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import * as moment from "moment";
 import { OAuthDto } from './dto/oauth.dto';
 import { OAuth2Client } from 'google-auth-library';
+import { SharedService } from "../shared/shared.service";
 const oauth2Client = new OAuth2Client(config.oauth.google.clientId);
 
 @Injectable()
@@ -52,122 +53,58 @@ export class UserService {
   LOGIN_ATTEMPTS_TO_BLOCK = 5;
 
   constructor(
-    @InjectModel("User") private readonly userModel: Model<User>,
+    @InjectModel("User") 
+    private readonly userModel: Model<User>,
+
     @InjectModel("ForgotPassword")
     private readonly forgotPasswordModel: Model<ForgotPassword>,
+
     @InjectModel("AdminAction")
     private readonly adminActionModel: Model<AdminAction>,
 
     @InjectModel("Organization")
     private readonly organizationModel: Model<Organization>,
 
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+
+    private readonly sharedService: SharedService
   ) {}
-
-  // ┌─┐┬─┐┌─┐┌─┐┌┬┐┌─┐  ┬ ┬┌─┐┌─┐┬─┐
-  // │  ├┬┘├┤ ├─┤ │ ├┤   │ │└─┐├┤ ├┬┘
-  // └─┘┴└─└─┘┴ ┴ ┴ └─┘  └─┘└─┘└─┘┴└─
-  // to call from api use this
-  // if we have the organiztion then we call this function directly, to call from some other service
-  async create(
-    createUserDto: CreateUserDto,
-    organization: string,
-    isFirstUser: boolean = false
-  ) {
-    !isFirstUser && (await this.checkHierarchyPreconditions(createUserDto));
-
-    /** @Todo this should be handled inside a transaction */
-    await this.checkAndUpdateUserQuota(organization);
-    const user = new this.userModel({
-      ...createUserDto,
-      organization,
-      verified: true,
-    });
-
-    /** @Todo remove this duplicate variable and slowly remove this dependency */
-    user.roles = [createUserDto.roleType];
-
-    await this.isEmailUnique(user.email);
-    this.setRegistrationInfo(user);
-    await user.save();
-    return this.buildRegistrationInfo(user);
-  }
 
 
   async oauthLogin(userDto: OAuthDto, req) {
     switch (userDto.provider) {
-      case 'google': {
+      case 'GOOGLE': {
         const payload = await this.verifyGoogleOauth(userDto.idToken);
         if (!payload.email) {
           throw new BadGatewayException("user email was not provided from oauth, please contact admin");
         }
-        const user = await this.userModel.findOne({ email: payload.email }).lean().exec();
+
+        /** @Todo fix the part where he is part of multiple organizations */
+        const user = await this.userModel.findOne({ email: payload.email });
         if (user) {
-          return this.loginUtil(user, req);
+          return this.getLoginDetails(req, user, this.setSingleLoginKey(user));
+        } else if(!user) {
+          const password = uuidv4();
+          const { user: newUser, organization } = await this.sharedService.createOrganization({
+            email: payload.email,
+            endDate: moment().add(365, 'days').toDate(),
+            fullName: (payload.family_name||'') + (payload.given_name||'') + (payload.name || ''),
+            organizationImage: `${payload.family_name} || S corp}`,
+            size: 3,
+            name: uuidv4(),
+            type: 'free',
+            password,
+            phoneNumber: '00000',
+            phoneNumberPrefix: '+91',
+            startDate: moment().subtract(5, 'minute').toDate()
+          });
+          return this.loginUtil(newUser, req);
         }
-
-        // else create a new user
-        this.create({
-          email: payload.email,
-          fullName: (payload.name || '') + (payload.family_name || '') + (payload.given_name || ''),
-          password: uuidv4(),
-          phoneNumber: '0000',
-          roleType: RoleType.admin,
-        }, "", true);
-
-        return this.loginUtil(user, req);
       }
     }
   }
 
-  
-  async checkAndUpdateUserQuota(organizationId: string) {
-    const { currentSize, size } = await this.organizationModel
-      .findById(organizationId, {
-        size: 1,
-        currentSize: 1,
-      })
-      .lean()
-      .exec();
 
-    if (currentSize >= size) {
-      throw new BadRequestException("User quota size exceeded");
-    }
-
-    await this.organizationModel.findByIdAndUpdate(organizationId, {
-      $inc: { currentSize: 1 },
-    });
-  }
-
-  async checkHierarchyPreconditions(createUserDto: CreateUserDto) {
-    const { reportsTo, roleType: userRoleType } = createUserDto;
-    const manager = await this.userModel
-      .findOne({ email: reportsTo }, { roleType: 1 })
-      .lean()
-      .exec();
-
-    if (manager.roleType === RoleType.frontline) {
-      throw new PreconditionFailedException("Cannot report to a frontline");
-    } else if (userRoleType === RoleType.frontline) {
-      return true;
-    } else if (
-      userRoleType === RoleType.manager &&
-      manager.roleType === RoleType.manager
-    ) {
-      throw new PreconditionFailedException(
-        "manager cannot report to a manager"
-      );
-    } else if (
-      userRoleType === RoleType.seniorManager &&
-      [RoleType.manager, RoleType.seniorManager].includes(manager.roleType)
-    ) {
-      throw new PreconditionFailedException(
-        "Senior manager can only report to admin"
-      );
-    } else if (userRoleType === RoleType.admin && !!manager.roleType) {
-      throw new PreconditionFailedException("Admin cannot report to anyone");
-    }
-  }
 
   async getSuperiorRoleTypes(email: string) {
     const { roleType } = await this.userModel
@@ -196,10 +133,10 @@ export class UserService {
       roles: ["reseller"],
       roleType: "reseller",
     });
-    await this.isEmailUnique(user.email);
-    this.setRegistrationInfo(user);
+    await this.sharedService.isEmailUnique(user.email);
+    this.sharedService.setRegistrationInfo(user);
     await user.save();
-    return this.buildRegistrationInfo(user);
+    return this.sharedService.buildRegistrationInfo(user);
   }
 
   // ┬  ┬┌─┐┬─┐┬┌─┐┬ ┬  ┌─┐┌┬┐┌─┐┬┬
@@ -227,7 +164,13 @@ export class UserService {
     // save the user if passwords match
     await this.passwordsAreMatch(user);
 
-    return {
+    return this.getLoginDetails(req, user, singleLoginKey);
+  }
+
+
+
+  async getLoginDetails(req: Request, user: User, singleLoginKey: string) {
+    const result =  {
       _id: user._id,
       fullName: user.fullName,
       organization: user.get("organization.name"),
@@ -239,6 +182,9 @@ export class UserService {
       ),
       refreshToken: await this.authService.createRefreshToken(req, user._id),
     }
+
+    await user.save();
+    return result;
   }
 
   // ┬─┐┌─┐┌─┐┬─┐┌─┐┌─┐┬ ┬  ┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐  ┌┬┐┌─┐┬┌─┌─┐┌┐┌
@@ -432,27 +378,6 @@ export class UserService {
   // ╠═╝╠╦╝║╚╗╔╝╠═╣ ║ ║╣   ║║║║╣  ║ ╠═╣║ ║ ║║╚═╗
   // ╩  ╩╚═╩ ╚╝ ╩ ╩ ╩ ╚═╝  ╩ ╩╚═╝ ╩ ╩ ╩╚═╝═╩╝╚═╝
   // ********************************************
-
-  private async isEmailUnique(email: string) {
-    const user = await this.userModel.findOne({ email, verified: true });
-    if (user) {
-      throw new BadRequestException("Email most be unique.");
-    }
-  }
-
-  private setRegistrationInfo(user): any {
-    user.verification = v4();
-    user.verificationExpires = addHours(new Date(), this.HOURS_TO_VERIFY);
-  }
-
-  private buildRegistrationInfo(user): any {
-    const userRegistrationInfo = {
-      fullName: user.fullName,
-      email: user.email,
-      verified: user.verified,
-    };
-    return userRegistrationInfo;
-  }
 
   private async findByVerification(verification: string): Promise<User> {
     const user = await this.userModel.findOne({

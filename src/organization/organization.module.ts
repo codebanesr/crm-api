@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { OrganizationService } from "./organization.service";
 import { OrganizationController } from "./organization.controller";
 import { MongooseModule } from "@nestjs/mongoose";
@@ -7,7 +7,6 @@ import { TwilioModule } from "@lkaric/twilio-nestjs";
 import config from "../config/config";
 import { RedisModule } from "nestjs-redis";
 import { SharedModule } from "../shared/shared.module";
-import { UserModule } from "../user/user.module";
 import { ResellerOrganizationSchema } from "./schema/reseller-organization.schema";
 import { TransactionSchema } from "./schema/transaction.schema";
 import { CampaignFormSchema } from "../campaign/schema/campaign-form.schema";
@@ -19,8 +18,6 @@ import { AdminActionSchema } from "../user/schemas/admin-action.schema";
 
 @Module({
   imports: [
-    SharedModule,
-    UserModule,
     RedisModule.register(config.redisOpts),
     TwilioModule.register({
       accountSid: config.twilio.accountSid,
@@ -37,6 +34,7 @@ import { AdminActionSchema } from "../user/schemas/admin-action.schema";
       { name: "AdminAction", schema: AdminActionSchema },
       { name: "CampaignForm", schema: CampaignFormSchema },
     ]),
+    SharedModule,
   ],
   providers: [OrganizationService],
   controllers: [OrganizationController],

@@ -31,7 +31,7 @@ export declare class CampaignService {
         metadata: any;
         quickStatsAgg: import("lodash").Dictionary<any>;
     }>;
-    findOneByIdOrName(campaignId: any): Promise<Pick<Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "startDate" | "endDate" | "campaignName" | "archived" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo" | "autodialSettings">>;
+    findOneByIdOrName(campaignId: any): Promise<Pick<Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "startDate" | "endDate" | "campaignName" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "archived" | "assignTo" | "autodialSettings">>;
     patch(campaignId: any, requestBody: any): Promise<any>;
     deleteOne(campaignId: any): Promise<{
         ok?: number;
@@ -73,7 +73,7 @@ export declare class CampaignService {
     }): Promise<any>;
     archiveCampaign(organization: string, campaignId: string): Promise<Campaign>;
     getQuickStatsForCampaigns(campaignIds: string[], organization: string): Promise<import("lodash").Dictionary<any>>;
-    updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string): Promise<Pick<CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "campaignId" | "internalField" | "checked">>;
+    updateConfigs(config: UpdateConfigsDto, organization: string, campaignId: string, campaignName: string): Promise<Pick<CampaignConfig, "group" | "options" | "_id" | "name" | "type" | "organization" | "readableField" | "internalField" | "checked" | "campaignId">>;
     createCampaignConfigs(): void;
     deleteConfig(deleteConfigDto: DeleteCampaignConfigDto): Promise<{
         status: boolean;
@@ -85,5 +85,5 @@ export declare class CampaignService {
         campaignConfig: any;
         disposition: any;
     }>;
-    getCampaignsForOrganization(organization: string): Promise<Pick<Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "startDate" | "endDate" | "campaignName" | "archived" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "assignTo" | "autodialSettings">[]>;
+    getCampaignsForOrganization(organization: string): Promise<Pick<Campaign, "groups" | "_id" | "comment" | "type" | "organization" | "startDate" | "endDate" | "campaignName" | "workflow" | "createdBy" | "assignees" | "editableCols" | "browsableCols" | "uniqueCols" | "formModel" | "advancedSettings" | "archived" | "assignTo" | "autodialSettings">[]>;
 }

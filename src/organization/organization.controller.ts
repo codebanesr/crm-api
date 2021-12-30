@@ -23,13 +23,15 @@ import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Logger } from "nestjs-pino";
 import { RoleType } from "../shared/role-type.enum";
+import { SharedService } from "src/shared/shared.service";
 @Controller("organization")
 @ApiTags("organization")
 @UseGuards(RolesGuard)
 export class OrganizationController {
   constructor(
     private organizationService: OrganizationService,
-    private logger: Logger
+    private logger: Logger,
+    private sharedService: SharedService
   ) {}
 
   @Get()
@@ -58,7 +60,7 @@ export class OrganizationController {
   ) {
     this.logger.debug(createOrganizationDto);
     const { _id, fullName } = user;
-    return this.organizationService.createOrganization(
+    return this.sharedService.createOrganization(
       createOrganizationDto,
       _id,
       fullName

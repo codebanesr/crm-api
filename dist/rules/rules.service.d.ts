@@ -11,10 +11,10 @@ export declare class RulesService {
     constructor(logger: Logger);
     private readonly ruleModel;
     private readonly leadHistoryModel;
-    getRuleById(id: string): Promise<Pick<Rules, "_id" | "url" | "campaign" | "isActive" | "action" | "changeHandler" | "daysOverdue" | "disposition" | "fromDisposition" | "newDisposition" | "newHandler" | "numberOfAttempts" | "toDisposition" | "trigger">>;
-    getAllRules(campaignId: string, limit: number, offset: number): Promise<Pick<Rules, "_id" | "url" | "campaign" | "isActive" | "action" | "changeHandler" | "daysOverdue" | "disposition" | "fromDisposition" | "newDisposition" | "newHandler" | "numberOfAttempts" | "toDisposition" | "trigger">[]>;
+    getRuleById(id: string): Promise<Pick<Rules, "_id" | "url" | "trigger" | "campaign" | "isActive" | "action" | "changeHandler" | "daysOverdue" | "disposition" | "fromDisposition" | "newDisposition" | "newHandler" | "numberOfAttempts" | "toDisposition">>;
+    getAllRules(campaignId: string, limit: number, offset: number): Promise<Pick<Rules, "_id" | "url" | "trigger" | "campaign" | "isActive" | "action" | "changeHandler" | "daysOverdue" | "disposition" | "fromDisposition" | "newDisposition" | "newHandler" | "numberOfAttempts" | "toDisposition">[]>;
     addRule(rule: RuleDto): Promise<Rules>;
-    changeState(changeStateDto: ChangeStateDto): Promise<Pick<Rules, "_id" | "url" | "campaign" | "isActive" | "action" | "changeHandler" | "daysOverdue" | "disposition" | "fromDisposition" | "newDisposition" | "newHandler" | "numberOfAttempts" | "toDisposition" | "trigger">>;
+    changeState(changeStateDto: ChangeStateDto): Promise<Pick<Rules, "_id" | "url" | "trigger" | "campaign" | "isActive" | "action" | "changeHandler" | "daysOverdue" | "disposition" | "fromDisposition" | "newDisposition" | "newHandler" | "numberOfAttempts" | "toDisposition">>;
     applyRules(campaignId: string, lead: Omit<Lead, keyof Document> & {
         _id: string;
     }, leadDto: UpdateLeadDto, nextEntryInHistory: LeadHistory): Promise<{

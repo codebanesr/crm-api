@@ -39,69 +39,53 @@ const crypto_utils_1 = require("../utils/crypto.utils");
 const uuid_2 = require("uuid");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const moment = require("moment");
+const google_auth_library_1 = require("google-auth-library");
+const organization_1 = require("../../src/organization");
+const shared_service_1 = require("src/shared/shared.service");
+const oauth2Client = new google_auth_library_1.OAuth2Client(config_1.default.oauth.google.clientId);
 let UserService = class UserService {
-    constructor(userModel, forgotPasswordModel, adminActionModel, organizationModel, authService) {
+    constructor(userModel, forgotPasswordModel, adminActionModel, organizationModel, authService, organizationService, sharedService) {
         this.userModel = userModel;
         this.forgotPasswordModel = forgotPasswordModel;
         this.adminActionModel = adminActionModel;
         this.organizationModel = organizationModel;
         this.authService = authService;
+        this.organizationService = organizationService;
+        this.sharedService = sharedService;
         this.HOURS_TO_VERIFY = 4;
         this.HOURS_TO_BLOCK = 6;
         this.LOGIN_ATTEMPTS_TO_BLOCK = 5;
     }
-    create(createUserDto, organization, isFirstUser = false) {
+    oauthLogin(userDto, req) {
         return __awaiter(this, void 0, void 0, function* () {
-            !isFirstUser && (yield this.checkHierarchyPreconditions(createUserDto));
-            yield this.checkAndUpdateUserQuota(organization);
-            const user = new this.userModel(Object.assign(Object.assign({}, createUserDto), { organization, verified: true }));
-            user.roles = [createUserDto.roleType];
-            yield this.isEmailUnique(user.email);
-            this.setRegistrationInfo(user);
-            yield user.save();
-            return this.buildRegistrationInfo(user);
-        });
-    }
-    checkAndUpdateUserQuota(organizationId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { currentSize, size } = yield this.organizationModel
-                .findById(organizationId, {
-                size: 1,
-                currentSize: 1,
-            })
-                .lean()
-                .exec();
-            if (currentSize >= size) {
-                throw new common_1.BadRequestException("User quota size exceeded");
-            }
-            yield this.organizationModel.findByIdAndUpdate(organizationId, {
-                $inc: { currentSize: 1 },
-            });
-        });
-    }
-    checkHierarchyPreconditions(createUserDto) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { reportsTo, roleType: userRoleType } = createUserDto;
-            const manager = yield this.userModel
-                .findOne({ email: reportsTo }, { roleType: 1 })
-                .lean()
-                .exec();
-            if (manager.roleType === role_type_enum_1.RoleType.frontline) {
-                throw new common_1.PreconditionFailedException("Cannot report to a frontline");
-            }
-            else if (userRoleType === role_type_enum_1.RoleType.frontline) {
-                return true;
-            }
-            else if (userRoleType === role_type_enum_1.RoleType.manager &&
-                manager.roleType === role_type_enum_1.RoleType.manager) {
-                throw new common_1.PreconditionFailedException("manager cannot report to a manager");
-            }
-            else if (userRoleType === role_type_enum_1.RoleType.seniorManager &&
-                [role_type_enum_1.RoleType.manager, role_type_enum_1.RoleType.seniorManager].includes(manager.roleType)) {
-                throw new common_1.PreconditionFailedException("Senior manager can only report to admin");
-            }
-            else if (userRoleType === role_type_enum_1.RoleType.admin && !!manager.roleType) {
-                throw new common_1.PreconditionFailedException("Admin cannot report to anyone");
+            switch (userDto.provider) {
+                case 'GOOGLE': {
+                    const payload = yield this.verifyGoogleOauth(userDto.idToken);
+                    if (!payload.email) {
+                        throw new common_1.BadGatewayException("user email was not provided from oauth, please contact admin");
+                    }
+                    const user = yield this.userModel.findOne({ email: payload.email });
+                    if (user) {
+                        return this.getLoginDetails(req, user, this.setSingleLoginKey(user));
+                    }
+                    else if (!user) {
+                        const password = uuid_2.v4();
+                        const { user: newUser, organization } = yield this.sharedService.createOrganization({
+                            email: payload.email,
+                            endDate: moment().add(365, 'days').toDate(),
+                            fullName: (payload.family_name || '') + (payload.given_name || '') + (payload.name || ''),
+                            organizationImage: `${payload.family_name} || S corp}`,
+                            size: 3,
+                            name: uuid_2.v4(),
+                            type: 'free',
+                            password,
+                            phoneNumber: '00000',
+                            phoneNumberPrefix: '+91',
+                            startDate: moment().subtract(5, 'minute').toDate()
+                        });
+                        return this.loginUtil(newUser, req);
+                    }
+                }
             }
         });
     }
@@ -131,23 +115,17 @@ let UserService = class UserService {
     createReseller(createResellerDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = new this.userModel(Object.assign(Object.assign({}, createResellerDto), { verified: true, roles: ["reseller"], roleType: "reseller" }));
-            yield this.isEmailUnique(user.email);
-            this.setRegistrationInfo(user);
+            yield this.sharedService.isEmailUnique(user.email);
+            this.sharedService.setRegistrationInfo(user);
             yield user.save();
-            return this.buildRegistrationInfo(user);
+            return this.sharedService.buildRegistrationInfo(user);
         });
     }
     verifyEmail(req, verifyUuidDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.findByVerification(verifyUuidDto.verification);
-            const singleLoginKey = this.setSingleLoginKey(user);
             yield this.setUserAsVerified(user);
-            return {
-                fullName: user.fullName,
-                email: user.email,
-                accessToken: yield this.authService.createAccessToken(user._id, singleLoginKey),
-                refreshToken: yield this.authService.createRefreshToken(req, user._id),
-            };
+            return this.loginUtil(user, req);
         });
     }
     login(req, loginUserDto) {
@@ -156,9 +134,19 @@ let UserService = class UserService {
             yield this.isOrganizationActive(user.organization);
             this.isUserBlocked(user);
             yield this.checkPassword(loginUserDto.password, user);
+            return this.loginUtil(user, req);
+        });
+    }
+    loginUtil(user, req) {
+        return __awaiter(this, void 0, void 0, function* () {
             const singleLoginKey = this.setSingleLoginKey(user);
             yield this.passwordsAreMatch(user);
-            return {
+            return this.getLoginDetails(req, user, singleLoginKey);
+        });
+    }
+    getLoginDetails(req, user, singleLoginKey) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = {
                 _id: user._id,
                 fullName: user.fullName,
                 organization: user.get("organization.name"),
@@ -167,6 +155,8 @@ let UserService = class UserService {
                 accessToken: yield this.authService.createAccessToken(user._id, singleLoginKey),
                 refreshToken: yield this.authService.createRefreshToken(req, user._id),
             };
+            yield user.save();
+            return result;
         });
     }
     refreshAccessToken(refreshAccessTokenDto) {
@@ -296,26 +286,6 @@ let UserService = class UserService {
             const result = yield this.userModel.aggregate(fq);
             return [email, ...result[0].subordinates];
         });
-    }
-    isEmailUnique(email) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const user = yield this.userModel.findOne({ email, verified: true });
-            if (user) {
-                throw new common_1.BadRequestException("Email most be unique.");
-            }
-        });
-    }
-    setRegistrationInfo(user) {
-        user.verification = uuid_1.v4();
-        user.verificationExpires = date_fns_1.addHours(new Date(), this.HOURS_TO_VERIFY);
-    }
-    buildRegistrationInfo(user) {
-        const userRegistrationInfo = {
-            fullName: user.fullName,
-            email: user.email,
-            verified: user.verified,
-        };
-        return userRegistrationInfo;
     }
     findByVerification(verification) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -692,6 +662,17 @@ let UserService = class UserService {
             return users;
         });
     }
+    verifyGoogleOauth(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const ticket = yield oauth2Client.verifyIdToken({
+                idToken: token,
+                audience: [config_1.default.oauth.google.clientId],
+            });
+            const payload = ticket.getPayload();
+            const userid = payload['sub'];
+            return payload;
+        });
+    }
 };
 UserService = __decorate([
     common_1.Injectable(),
@@ -703,7 +684,9 @@ UserService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        auth_service_1.AuthService])
+        auth_service_1.AuthService,
+        organization_1.OrganizationService,
+        shared_service_1.SharedService])
 ], UserService);
 exports.UserService = UserService;
 //# sourceMappingURL=user.service.js.map

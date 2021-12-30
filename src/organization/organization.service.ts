@@ -8,18 +8,15 @@ import {
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { SharedService } from "../shared/shared.service";
-import { CreateOrganizationDto } from "./dto/create-organization.dto";
 import { GenerateTokenDto } from "./dto/generate-token.dto";
 import { Organization } from "./interface/organization.interface";
 import { RedisService } from "nestjs-redis";
 import config from "../config/config";
 import { ValidateNewOrganizationDto } from "./dto/validation.dto";
-import { UserService } from "../user/user.service";
 import { ResellerOrganization } from "../organization/interface/reseller-organization.interface";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import * as moment from "moment";
 import { Transaction } from "./interface/transaction.interface";
-import { RoleType } from "../shared/role-type.enum";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { CampaignForm } from "../campaign/interfaces/campaign-form.interface";
 import { Campaign } from "../campaign/interfaces/campaign.interface";
@@ -29,9 +26,6 @@ import { Lead } from "../lead/interfaces/lead.interface";
 
 @Injectable()
 export class OrganizationService {
-  async getCurrentOrganization(organization: string) {
-    return this.organizationalModel.findById(organization).lean().exec();
-  }
   constructor(
     @InjectModel("Organization")
     private readonly organizationalModel: Model<Organization>,
@@ -63,8 +57,11 @@ export class OrganizationService {
     private readonly twilioService: TwilioService,
     private readonly sharedService: SharedService,
     private readonly redisService: RedisService,
-    private userService: UserService
-  ) {}
+  ) { }
+
+  async getCurrentOrganization(organization: string) {
+    return this.organizationalModel.findById(organization).lean().exec();
+  }
 
   /** @Todo dump all information to s3 before deleting and this should be done in
    * worker code
@@ -93,52 +90,6 @@ export class OrganizationService {
       throw new PreconditionFailedException(
         "An error occured while in delete organization transaction"
       );
-    } finally {
-      session.endSession();
-    }
-  }
-
-  /** @Todo everything should happen in a transaction */
-  async createOrganization(
-    createOrganizationDto: CreateOrganizationDto,
-    resellerId: string,
-    resellerName: string
-  ) {
-    const { email, fullName, password, phoneNumber } = createOrganizationDto;
-    await this.isOrganizationalPayloadValid(createOrganizationDto);
-    // now save organization information in the user schema...
-
-    const session = await this.organizationalModel.db.startSession();
-
-    session.startTransaction();
-    try {
-      const organization = new this.organizationalModel(createOrganizationDto);
-      const result = await organization.save();
-
-      await this.resellerOrganizationModel.create({
-        credit: 300,
-        orgId: result._id,
-        orgName: result.name,
-        resellerId,
-        resellerName,
-      });
-
-      await this.userService.create(
-        {
-          email,
-          fullName,
-          password,
-          roleType: RoleType.admin,
-          phoneNumber,
-        },
-        result._id,
-        true
-      );
-
-      await session.commitTransaction();
-    } catch (e) {
-      Logger.error("Transaction aborted", e);
-      await session.abortTransaction();
     } finally {
       session.endSession();
     }
@@ -184,27 +135,6 @@ export class OrganizationService {
         `An organization with this ${label} ${value} already exists`
       );
     }
-  }
-
-  async isOrganizationalPayloadValid(
-    createOrganizationDto: CreateOrganizationDto
-  ) {
-    // const correctOTP = await this.getOTPForNumber(
-    //     createOrganizationDto.phoneNumber
-    // );
-    // const { email, phoneNumber, name } = createOrganizationDto;
-    // const count = await this.organizationalModel.count({
-    //   $or: [{ name }, { email }, { phoneNumber }],
-    // });
-    // Logger.debug({ count });
-    // if (createOrganizationDto.otp !== correctOTP) {
-    //   throw new HttpException("Incorrect otp", 421);
-    // }
-    // if (count !== 0) {
-    //   throw new ConflictException();
-    // }
-
-    return true;
   }
 
   async createOrUpdateUserQuota(obj: UpdateQuotaDto) {

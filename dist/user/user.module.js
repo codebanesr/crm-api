@@ -18,6 +18,8 @@ const platform_express_1 = require("@nestjs/platform-express");
 const mongoose_1 = require("@nestjs/mongoose");
 const visit_track_schema_1 = require("../agent/schemas/visit-track.schema");
 const organization_schema_1 = require("../organization/schema/organization.schema");
+const organization_1 = require("../../src/organization");
+const shared_module_1 = require("src/shared/shared.module");
 let UserModule = class UserModule {
 };
 UserModule = __decorate([
@@ -27,6 +29,7 @@ UserModule = __decorate([
                 { name: "User", schema: user_schema_1.UserSchema },
                 { name: "Organization", schema: organization_schema_1.OrganizationSchema },
                 { name: "ForgotPassword", schema: forgot_password_schema_1.ForgotPasswordSchema },
+                { name: "ResellerOrganization", schema: organization_1.ResellerOrganizationSchema },
                 { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },
                 { name: "VisitTrack", schema: visit_track_schema_1.VisitTrackSchema },
             ]),
@@ -34,9 +37,10 @@ UserModule = __decorate([
                 dest: "~/.upload/users",
             }),
             auth_module_1.AuthModule,
+            shared_module_1.SharedModule
         ],
         controllers: [user_controller_1.UserController],
-        providers: [user_service_1.UserService],
+        providers: [user_service_1.UserService, organization_1.OrganizationService],
         exports: [user_service_1.UserService],
     })
 ], UserModule);

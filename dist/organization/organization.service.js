@@ -29,11 +29,9 @@ const mongoose_2 = require("mongoose");
 const shared_service_1 = require("../shared/shared.service");
 const nestjs_redis_1 = require("nestjs-redis");
 const config_1 = require("../config/config");
-const user_service_1 = require("../user/user.service");
 const moment = require("moment");
-const role_type_enum_1 = require("../shared/role-type.enum");
 let OrganizationService = class OrganizationService {
-    constructor(organizationalModel, resellerOrganizationModel, transactionModel, campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel, leadModel, twilioService, sharedService, redisService, userService) {
+    constructor(organizationalModel, resellerOrganizationModel, transactionModel, campaignModel, campaignConfigModel, dispositionModel, adminActionModel, campaignFormModel, leadModel, twilioService, sharedService, redisService) {
         this.organizationalModel = organizationalModel;
         this.resellerOrganizationModel = resellerOrganizationModel;
         this.transactionModel = transactionModel;
@@ -46,7 +44,6 @@ let OrganizationService = class OrganizationService {
         this.twilioService = twilioService;
         this.sharedService = sharedService;
         this.redisService = redisService;
-        this.userService = userService;
     }
     getCurrentOrganization(organization) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -73,40 +70,6 @@ let OrganizationService = class OrganizationService {
                 common_1.Logger.error("An error occured while in delete organization transaction", e);
                 session.endSession();
                 throw new common_1.PreconditionFailedException("An error occured while in delete organization transaction");
-            }
-            finally {
-                session.endSession();
-            }
-        });
-    }
-    createOrganization(createOrganizationDto, resellerId, resellerName) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { email, fullName, password, phoneNumber } = createOrganizationDto;
-            yield this.isOrganizationalPayloadValid(createOrganizationDto);
-            const session = yield this.organizationalModel.db.startSession();
-            session.startTransaction();
-            try {
-                const organization = new this.organizationalModel(createOrganizationDto);
-                const result = yield organization.save();
-                yield this.resellerOrganizationModel.create({
-                    credit: 300,
-                    orgId: result._id,
-                    orgName: result.name,
-                    resellerId,
-                    resellerName,
-                });
-                yield this.userService.create({
-                    email,
-                    fullName,
-                    password,
-                    roleType: role_type_enum_1.RoleType.admin,
-                    phoneNumber,
-                }, result._id, true);
-                yield session.commitTransaction();
-            }
-            catch (e) {
-                common_1.Logger.error("Transaction aborted", e);
-                yield session.abortTransaction();
             }
             finally {
                 session.endSession();
@@ -151,11 +114,6 @@ let OrganizationService = class OrganizationService {
             if (count != 0) {
                 throw new common_1.ConflictException(`An organization with this ${label} ${value} already exists`);
             }
-        });
-    }
-    isOrganizationalPayloadValid(createOrganizationDto) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return true;
         });
     }
     createOrUpdateUserQuota(obj) {
@@ -212,8 +170,7 @@ OrganizationService = __decorate([
         mongoose_2.Model,
         twilio_nestjs_1.TwilioService,
         shared_service_1.SharedService,
-        nestjs_redis_1.RedisService,
-        user_service_1.UserService])
+        nestjs_redis_1.RedisService])
 ], OrganizationService);
 exports.OrganizationService = OrganizationService;
 //# sourceMappingURL=organization.service.js.map

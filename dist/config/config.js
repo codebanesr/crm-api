@@ -61,5 +61,10 @@ exports.default = {
         REDIS_URL: process.env.BULL_REDIS_URL,
         REDIS_PORT: process.env.BULL_REDIS_PORT,
     },
+    oauth: {
+        google: {
+            clientId: process.env.GOOGLE_OAUTH_CLIENTID
+        }
+    }
 };
 //# sourceMappingURL=config.js.map

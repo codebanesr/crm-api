@@ -46,12 +46,13 @@ import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import { RoleType } from "../shared/role-type.enum";
 import { OAuthDto } from './dto/oauth.dto';
+import { SharedService } from "../shared/shared.service";
 
 @ApiTags("User")
 @Controller("user")
 @UseGuards(RolesGuard)
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService, private sharedService: SharedService) {}
 
   // ╔═╗╦ ╦╔╦╗╦ ╦╔═╗╔╗╔╔╦╗╦╔═╗╔═╗╔╦╗╔═╗
   // ╠═╣║ ║ ║ ╠═╣║╣ ║║║ ║ ║║  ╠═╣ ║ ║╣
@@ -68,7 +69,9 @@ export class UserController {
   ) {
     // liu -> logged in user
     const { organization } = user;
-    return this.userService.create(createUserDto, organization);
+    const { registrationInfo } = await this.sharedService.create(createUserDto, organization);
+
+    return registrationInfo;
   }
 
 
@@ -151,8 +154,8 @@ export class UserController {
   @Post("oauth/login")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Login User with oauth token" })
-  async oauthLogin(@Body() loginUserDto: OAuthDto, @Request() req) {
-    return this.userService.oauthLogin(loginUserDto, req);
+  async oauthLogin( @Request() req: IRequest, @Body() oauthLogin: OAuthDto) {
+    return this.userService.oauthLogin(oauthLogin, req);
   }
 
   @Post("refresh-access-token")

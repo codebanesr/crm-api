@@ -16,7 +16,6 @@ const twilio_nestjs_1 = require("@lkaric/twilio-nestjs");
 const config_1 = require("../config/config");
 const nestjs_redis_1 = require("nestjs-redis");
 const shared_module_1 = require("../shared/shared.module");
-const user_module_1 = require("../user/user.module");
 const reseller_organization_schema_1 = require("./schema/reseller-organization.schema");
 const transaction_schema_1 = require("./schema/transaction.schema");
 const campaign_form_schema_1 = require("../campaign/schema/campaign-form.schema");
@@ -31,7 +30,6 @@ OrganizationModule = __decorate([
     common_1.Module({
         imports: [
             shared_module_1.SharedModule,
-            user_module_1.UserModule,
             nestjs_redis_1.RedisModule.register(config_1.default.redisOpts),
             twilio_nestjs_1.TwilioModule.register({
                 accountSid: config_1.default.twilio.accountSid,
