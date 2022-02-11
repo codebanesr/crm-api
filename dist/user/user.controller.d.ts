@@ -12,8 +12,7 @@ import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import { RoleType } from "../shared/role-type.enum";
-import { OAuthDto } from './dto/oauth.dto';
-import { SharedService } from "src/shared/shared.service";
+import { SharedService } from "../shared/shared.service";
 export declare class UserController {
     private readonly userService;
     private sharedService;
@@ -45,7 +44,7 @@ export declare class UserController {
         accessToken: string;
         refreshToken: string;
     }>;
-    oauthLogin(req: IRequest, oauthLogin: OAuthDto): Promise<{
+    oauthLogin(req: IRequest, oauthLogin: any): Promise<{
         _id: any;
         fullName: string;
         organization: any;

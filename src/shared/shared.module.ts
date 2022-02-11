@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { OrganizationSchema, ResellerOrganizationSchema } from 'src/organization/schema';
+import { OrganizationSchema, ResellerOrganizationSchema } from '../organization/schema';
 import { UserSchema } from '../user/schemas/user.schema';
 import { SharedService } from './shared.service';
 

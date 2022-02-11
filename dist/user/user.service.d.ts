@@ -17,20 +17,18 @@ import { RoleType } from "../shared/role-type.enum";
 import { Organization } from "../organization/interface/organization.interface";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import { OAuthDto } from './dto/oauth.dto';
-import { OrganizationService } from "../../src/organization";
-import { SharedService } from "src/shared/shared.service";
+import { SharedService } from "../shared/shared.service";
 export declare class UserService {
     private readonly userModel;
     private readonly forgotPasswordModel;
     private readonly adminActionModel;
     private readonly organizationModel;
     private readonly authService;
-    private readonly organizationService;
     private readonly sharedService;
     HOURS_TO_VERIFY: number;
     HOURS_TO_BLOCK: number;
     LOGIN_ATTEMPTS_TO_BLOCK: number;
-    constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, organizationModel: Model<Organization>, authService: AuthService, organizationService: OrganizationService, sharedService: SharedService);
+    constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, organizationModel: Model<Organization>, authService: AuthService, sharedService: SharedService);
     oauthLogin(userDto: OAuthDto, req: any): Promise<{
         _id: any;
         fullName: string;

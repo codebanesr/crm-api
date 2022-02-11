@@ -60,7 +60,7 @@ export declare class LeadService {
     }>;
     insertOne(body: any, activeUserEmail: string, organization: string): Promise<Lead>;
     findOneById(leadId: string, email: string, roleType: string): Promise<{
-        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "campaignId" | "archived" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "state" | "followUp" | "pincode" | "nextAction" | "contact" | "requestedInformation" | "documentLinks" | "isPristine" | "transactionCount" | "notes">;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "notes" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
         leadHistory: any[];
     }>;
     patch(productId: string, body: any[]): Promise<any>;
@@ -97,14 +97,14 @@ export declare class LeadService {
         };
     }>;
     findInjectableLeads(organization: string, email: string, campaignId: string, projection: any): Promise<Lead>;
-    static postProcessLead(lead: DocumentDefinition<Lead>): Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "campaignId" | "archived" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "state" | "followUp" | "pincode" | "nextAction" | "contact" | "requestedInformation" | "documentLinks" | "isPristine" | "transactionCount" | "notes">;
+    static postProcessLead(lead: DocumentDefinition<Lead>): Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "notes" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
     fetchNextLead({ campaignId, filters, email, organization, typeDict, roleType, nonKeyFilters, }: FetchNextLeadDto & {
         campaignId: string;
         email: string;
         organization: string;
         roleType: string;
     }): Promise<{
-        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "campaignId" | "archived" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "state" | "followUp" | "pincode" | "nextAction" | "contact" | "requestedInformation" | "documentLinks" | "isPristine" | "transactionCount" | "notes">;
+        lead: Pick<Lead, "address" | "source" | "_id" | "email" | "fullName" | "organization" | "leadStatus" | "companyName" | "externalId" | "campaign" | "firstName" | "lastName" | "amount" | "followUp" | "pincode" | "nextAction" | "documentLinks" | "notes" | "campaignId" | "contact" | "state" | "requestedInformation" | "isPristine" | "archived" | "transactionCount">;
         leadHistory: any[];
         isInjectableLead: boolean;
     }>;

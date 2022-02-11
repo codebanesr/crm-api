@@ -1,7 +1,8 @@
 import { Model } from "mongoose";
-import { CreateOrganizationDto, Organization, ResellerOrganization } from "src/organization";
-import { CreateUserDto } from "src/user/dto/create-user.dto";
-import { User } from "src/user/interfaces/user.interface";
+import { CreateUserDto } from "../user/dto/create-user.dto";
+import { User } from "../user/interfaces/user.interface";
+import { CreateOrganizationDto } from "../organization/dto";
+import { Organization, ResellerOrganization } from "../organization/interface";
 export declare class SharedService {
     private readonly organizationModel;
     private readonly resellerOrganizationModel;

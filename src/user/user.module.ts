@@ -8,7 +8,7 @@ import { AdminActionSchema } from "./schemas/admin-action.schema";
 import { MulterModule } from "@nestjs/platform-express";
 import { MongooseModule } from "@nestjs/mongoose";
 import { OrganizationSchema } from "../organization/schema/organization.schema";
-import { SharedModule } from "src/shared/shared.module";
+import { SharedModule } from "../shared/shared.module";
 
 @Module({
   imports: [

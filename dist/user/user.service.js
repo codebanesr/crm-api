@@ -40,17 +40,15 @@ const uuid_2 = require("uuid");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const moment = require("moment");
 const google_auth_library_1 = require("google-auth-library");
-const organization_1 = require("../../src/organization");
-const shared_service_1 = require("src/shared/shared.service");
+const shared_service_1 = require("../shared/shared.service");
 const oauth2Client = new google_auth_library_1.OAuth2Client(config_1.default.oauth.google.clientId);
 let UserService = class UserService {
-    constructor(userModel, forgotPasswordModel, adminActionModel, organizationModel, authService, organizationService, sharedService) {
+    constructor(userModel, forgotPasswordModel, adminActionModel, organizationModel, authService, sharedService) {
         this.userModel = userModel;
         this.forgotPasswordModel = forgotPasswordModel;
         this.adminActionModel = adminActionModel;
         this.organizationModel = organizationModel;
         this.authService = authService;
-        this.organizationService = organizationService;
         this.sharedService = sharedService;
         this.HOURS_TO_VERIFY = 4;
         this.HOURS_TO_BLOCK = 6;
@@ -79,7 +77,7 @@ let UserService = class UserService {
                             name: uuid_2.v4(),
                             type: 'free',
                             password,
-                            phoneNumber: '00000',
+                            phoneNumber: '00000000',
                             phoneNumberPrefix: '+91',
                             startDate: moment().subtract(5, 'minute').toDate()
                         });
@@ -685,7 +683,6 @@ UserService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         auth_service_1.AuthService,
-        organization_1.OrganizationService,
         shared_service_1.SharedService])
 ], UserService);
 exports.UserService = UserService;

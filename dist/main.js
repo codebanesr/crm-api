@@ -48,7 +48,7 @@ function bootstrap() {
         swagger_1.SwaggerModule.setup("api/swagger", app, document);
         const PORT = process.env.PORT || 3000;
         console.log({ PORT });
-        yield app.listen(PORT);
+        yield app.listen(PORT, "0.0.0.0");
         console_1.warn(`APP IS LISTENING TO PORT ${PORT}`);
     });
 }

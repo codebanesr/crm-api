@@ -9,8 +9,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const schema_1 = require("../organization/schema");
 const razorpay_module_1 = require("../razorpay/razorpay.module");
-const organization_1 = require("../organization");
 const order_controller_1 = require("./order.controller");
 let OrderModule = class OrderModule {
 };
@@ -19,8 +19,8 @@ OrderModule = __decorate([
         imports: [
             razorpay_module_1.RazorpayModule,
             mongoose_1.MongooseModule.forFeature([
-                { name: "Organization", schema: organization_1.OrganizationSchema },
-                { name: "Transaction", schema: organization_1.TransactionSchema },
+                { name: "Organization", schema: schema_1.OrganizationSchema },
+                { name: "Transaction", schema: schema_1.TransactionSchema },
             ]),
         ],
         controllers: [order_controller_1.OrderController],

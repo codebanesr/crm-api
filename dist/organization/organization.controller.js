@@ -35,7 +35,7 @@ const update_quota_dto_1 = require("./dto/update-quota.dto");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const nestjs_pino_1 = require("nestjs-pino");
 const role_type_enum_1 = require("../shared/role-type.enum");
-const shared_service_1 = require("src/shared/shared.service");
+const shared_service_1 = require("../shared/shared.service");
 let OrganizationController = class OrganizationController {
     constructor(organizationService, logger, sharedService) {
         this.organizationService = organizationService;

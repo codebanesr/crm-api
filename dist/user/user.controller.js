@@ -42,8 +42,7 @@ const push_notification_dto_1 = require("./dto/push-notification.dto");
 const create_reseller_dto_1 = require("./dto/create-reseller.dto");
 const updateProfile_dto_1 = require("./dto/updateProfile.dto");
 const role_type_enum_1 = require("../shared/role-type.enum");
-const oauth_dto_1 = require("./dto/oauth.dto");
-const shared_service_1 = require("src/shared/shared.service");
+const shared_service_1 = require("../shared/shared.service");
 let UserController = class UserController {
     constructor(userService, sharedService) {
         this.userService = userService;
@@ -264,7 +263,7 @@ __decorate([
     swagger_1.ApiOperation({ summary: "Login User with oauth token" }),
     __param(0, common_1.Request()), __param(1, common_1.Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, oauth_dto_1.OAuthDto]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "oauthLogin", null);
 __decorate([

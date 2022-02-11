@@ -27,8 +27,8 @@ export declare class OrganizationService {
     private readonly twilioService;
     private readonly sharedService;
     private readonly redisService;
-    getCurrentOrganization(organization: string): Promise<Pick<Organization, "_id" | "size" | "name" | "email" | "phoneNumber" | "phoneNumberPrefix" | "organizationImage" | "startDate" | "endDate" | "accountType" | "lastActive" | "currentSize">>;
     constructor(organizationalModel: Model<Organization>, resellerOrganizationModel: Model<ResellerOrganization>, transactionModel: Model<Transaction>, campaignModel: Model<Campaign>, campaignConfigModel: Model<CampaignConfig>, dispositionModel: Model<Disposition>, adminActionModel: Model<AdminAction>, campaignFormModel: Model<CampaignForm>, leadModel: Model<Lead>, twilioService: TwilioService, sharedService: SharedService, redisService: RedisService);
+    getCurrentOrganization(organization: string): Promise<Pick<Organization, "_id" | "size" | "name" | "email" | "phoneNumber" | "phoneNumberPrefix" | "organizationImage" | "startDate" | "endDate" | "accountType" | "lastActive" | "currentSize">>;
     deleteOrganization(organization: string): Promise<void>;
     getAllResellerOrganization(id: string): Promise<ResellerOrganization[]>;
     generateToken(generateTokenDto: GenerateTokenDto): Promise<import("twilio/lib/rest/api/v2010/account/message").MessageInstance>;

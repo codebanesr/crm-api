@@ -29,7 +29,6 @@ let OrganizationModule = class OrganizationModule {
 OrganizationModule = __decorate([
     common_1.Module({
         imports: [
-            shared_module_1.SharedModule,
             nestjs_redis_1.RedisModule.register(config_1.default.redisOpts),
             twilio_nestjs_1.TwilioModule.register({
                 accountSid: config_1.default.twilio.accountSid,
@@ -46,6 +45,7 @@ OrganizationModule = __decorate([
                 { name: "AdminAction", schema: admin_action_schema_1.AdminActionSchema },
                 { name: "CampaignForm", schema: campaign_form_schema_1.CampaignFormSchema },
             ]),
+            shared_module_1.SharedModule,
         ],
         providers: [organization_service_1.OrganizationService],
         controllers: [organization_controller_1.OrganizationController],

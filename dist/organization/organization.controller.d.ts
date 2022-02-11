@@ -5,7 +5,7 @@ import { ValidateNewOrganizationDto } from "./dto/validation.dto";
 import { OrganizationService } from "./organization.service";
 import { UpdateQuotaDto } from "./dto/update-quota.dto";
 import { Logger } from "nestjs-pino";
-import { SharedService } from "src/shared/shared.service";
+import { SharedService } from "../shared/shared.service";
 export declare class OrganizationController {
     private organizationService;
     private logger;

@@ -2,13 +2,13 @@ import { BadRequestException, Injectable, Logger, PreconditionFailedException } 
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { generate } from "otp-generator";
-import { CreateUserDto } from "src/user/dto/create-user.dto";
-import { User } from "src/user/interfaces/user.interface";
+import { CreateUserDto } from "../user/dto/create-user.dto";
+import { User } from "../user/interfaces/user.interface";
 import { RoleType } from "./role-type.enum";
 import { addHours } from "date-fns";
 import { v4 as uuidv4 } from 'uuid';
-import { CreateOrganizationDto } from "src/organization/dto";
-import { Organization, ResellerOrganization } from "src/organization/interface";
+import { CreateOrganizationDto } from "../organization/dto";
+import { Organization, ResellerOrganization } from "../organization/interface";
 
 
 @Injectable()

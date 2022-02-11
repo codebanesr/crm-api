@@ -154,7 +154,7 @@ export class UserController {
   @Post("oauth/login")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Login User with oauth token" })
-  async oauthLogin( @Request() req: IRequest, @Body() oauthLogin: OAuthDto) {
+  async oauthLogin( @Request() req: IRequest, @Body() oauthLogin: any) {
     return this.userService.oauthLogin(oauthLogin, req);
   }
 
