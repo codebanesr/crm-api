@@ -17,15 +17,15 @@ services:
       # - NODE_ENV=production
       - VERSION=1.0
     volumes:
-      - .:/usr/src/app
+      - /usr/src/app
       - /usr/app/node_modules
     ports:
       - "3000:3000"
       - "9229:9229"
     tty: true
-    command: "yarn start:debug"
+    command: "node dist/main.js"
     env_file:
-      - env/local.env
+      - env/production.env
     networks:
       - webnet
     restart: always
