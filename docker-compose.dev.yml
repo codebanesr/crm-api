@@ -9,7 +9,7 @@ services:
       - "redis"
     build:
       context: .
-      dockerfile: Dockerfile.slim
+      dockerfile: Dockerfile.prod
       target: development
     user: "node"
     working_dir: /usr/src/app
