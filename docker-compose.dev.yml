@@ -71,7 +71,7 @@ services:
     image: "node:14.15.1-alpine3.12"
     container_name: worker
     build:
-      context: ~/Documents/personal/molecule_bull_microservice
+      context: ../molecule_bull_microservice
       dockerfile: Dockerfile.slim
       target: development
     user: "node"
