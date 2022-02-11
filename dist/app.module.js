@@ -30,11 +30,16 @@ const order_module_1 = require("./order/order.module");
 const razorpay_module_1 = require("./razorpay/razorpay.module");
 const config_1 = require("./config/config");
 const nestjs_config_1 = require("nestjs-config");
+const serve_static_1 = require("@nestjs/serve-static");
+const path_1 = require("path");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     common_1.Module({
         imports: [
+            serve_static_1.ServeStaticModule.forRoot({
+                rootPath: path_1.join(__dirname, '..', 'client'),
+            }),
             nestjs_config_1.ConfigModule.load("./config/config"),
             nestjs_pino_1.LoggerModule.forRoot({
                 pinoHttp: {

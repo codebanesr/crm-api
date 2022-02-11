@@ -21,9 +21,14 @@ import { OrderModule } from "./order/order.module";
 import { RazorpayModule } from "./razorpay/razorpay.module";
 import config from "./config/config";
 import { ConfigModule, ConfigService } from "nestjs-config";
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
+    }),
     ConfigModule.load("./config/config"),
     LoggerModule.forRoot({
       pinoHttp: {
