@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: Dockerfile.prod
       # target: development
-    user: "node"
+    user: "root"
     working_dir: /usr/src/app
     environment:
       # - NODE_ENV=production
