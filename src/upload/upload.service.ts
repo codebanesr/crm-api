@@ -1,10 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { S3 } from "aws-sdk";
+import { ContentType } from "aws-sdk/clients/devicefarm";
+import { createReadStream } from "fs";
+import { PassThrough, Stream } from "stream";
 import AppConfig from "../config/config";
 
 @Injectable()
 export class UploadService {
-  bucket = new S3({
+  s3Manager = new S3({
     accessKeyId: AppConfig.s3.accessKeyId,
     secretAccessKey: AppConfig.s3.secretAccessKey,
     region: AppConfig.s3.region,
@@ -20,7 +23,7 @@ export class UploadService {
     };
 
     return new Promise((resolve, reject) => {
-      this.bucket.upload(params, (err, data) => {
+      this.s3Manager.upload(params, (err, data) => {
         if (err) {
           reject(err);
         }
@@ -32,11 +35,20 @@ export class UploadService {
 
   async uploadFileBuffer(key: string, fileBuffer: Buffer): Promise<any> {
     const params = {
-      Bucket: "molecule.static.files",
+      Bucket: "applesaucecrm",
       Key: key,
       Body: fileBuffer,
     };
 
-    return this.bucket.upload(params).promise();
+    return this.s3Manager.upload(params).promise();
+  }
+
+  public async uploadFileStream({filePath, contentType, key}): Promise<S3.ManagedUpload.SendData> { 
+    return this.s3Manager.upload({
+      Bucket : "applesaucecrm",
+      Key : key,
+      ContentType : contentType,
+      Body : createReadStream(filePath)
+    }).promise();
   }
 }

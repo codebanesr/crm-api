@@ -1,13 +1,11 @@
 import {
+  IsBoolean,
   IsDate,
   IsEnum,
   IsMongoId,
-  IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsPositive,
   IsString,
-  ValidateNested,
 } from "class-validator";
 import "reflect-metadata"
 import { Transform, Type } from "class-transformer";
@@ -17,11 +15,12 @@ export enum SortOrder {
   DESC = "DESC",
 }
 
-class Pagination {
+export class GetTransactionDto {
+  @Transform(val=> +val)
   @IsPositive()
   page: number = 1;
 
-  @IsPositive()
+  @Transform(val=> +val)
   perPage: number = 20;
 
   @IsString()
@@ -30,9 +29,7 @@ class Pagination {
   @IsOptional()
   @IsEnum(SortOrder)
   sortOrder?: SortOrder;
-}
 
-class TransactionFilter {
   @IsOptional()
   @Transform(val=> new Date(val))
   @IsDate()
@@ -49,6 +46,13 @@ class TransactionFilter {
 
   @IsOptional()
   @IsString()
+  @Transform(val=>{
+    if(val === "null") {
+      return null;
+    }
+
+    return val;
+  })
   prospectName: string;
 
   @Transform(val=>{
@@ -62,19 +66,23 @@ class TransactionFilter {
   @IsMongoId()
   campaign: string;
 
+  @Transform(value=>{
+    return value == "undefined" ? null: value
+      
+  })
   @IsOptional()
   @IsMongoId()
   leadId: string;
-}
 
-export class GetTransactionDto {
-  @IsNotEmpty()
-  @ValidateNested({ message: "this is a required field" })
-  pagination: Pagination;
 
-  @IsOptional()
-  @ValidateNested()
-  @Type(()=> TransactionFilter)
-  filters?: TransactionFilter;
+  @Transform(value=>{
+    if(value == "true" || value == true) {
+      return true;
+    }
+
+    return false;
+  })
+  @IsBoolean()
+  isStreamable: boolean;
 }
 

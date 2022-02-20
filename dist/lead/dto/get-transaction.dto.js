@@ -18,53 +18,58 @@ var SortOrder;
     SortOrder["ASC"] = "ASC";
     SortOrder["DESC"] = "DESC";
 })(SortOrder = exports.SortOrder || (exports.SortOrder = {}));
-class Pagination {
+class GetTransactionDto {
     constructor() {
         this.page = 1;
         this.perPage = 20;
     }
 }
 __decorate([
+    class_transformer_1.Transform(val => +val),
     class_validator_1.IsPositive(),
     __metadata("design:type", Number)
-], Pagination.prototype, "page", void 0);
+], GetTransactionDto.prototype, "page", void 0);
 __decorate([
-    class_validator_1.IsPositive(),
+    class_transformer_1.Transform(val => +val),
     __metadata("design:type", Number)
-], Pagination.prototype, "perPage", void 0);
+], GetTransactionDto.prototype, "perPage", void 0);
 __decorate([
     class_validator_1.IsString(),
     __metadata("design:type", String)
-], Pagination.prototype, "sortBy", void 0);
+], GetTransactionDto.prototype, "sortBy", void 0);
 __decorate([
     class_validator_1.IsOptional(),
     class_validator_1.IsEnum(SortOrder),
     __metadata("design:type", String)
-], Pagination.prototype, "sortOrder", void 0);
-class TransactionFilter {
-}
+], GetTransactionDto.prototype, "sortOrder", void 0);
 __decorate([
     class_validator_1.IsOptional(),
     class_transformer_1.Transform(val => new Date(val)),
     class_validator_1.IsDate(),
     __metadata("design:type", Date)
-], TransactionFilter.prototype, "startDate", void 0);
+], GetTransactionDto.prototype, "startDate", void 0);
 __decorate([
     class_validator_1.IsOptional(),
     class_transformer_1.Transform(val => new Date(val)),
     class_validator_1.IsDate(),
     __metadata("design:type", Date)
-], TransactionFilter.prototype, "endDate", void 0);
+], GetTransactionDto.prototype, "endDate", void 0);
 __decorate([
     class_validator_1.IsOptional(),
     class_validator_1.IsString({ each: true }),
     __metadata("design:type", Array)
-], TransactionFilter.prototype, "handler", void 0);
+], GetTransactionDto.prototype, "handler", void 0);
 __decorate([
     class_validator_1.IsOptional(),
     class_validator_1.IsString(),
+    class_transformer_1.Transform(val => {
+        if (val === "null") {
+            return null;
+        }
+        return val;
+    }),
     __metadata("design:type", String)
-], TransactionFilter.prototype, "prospectName", void 0);
+], GetTransactionDto.prototype, "prospectName", void 0);
 __decorate([
     class_transformer_1.Transform(val => {
         if (val === "null") {
@@ -75,24 +80,24 @@ __decorate([
     class_validator_1.IsOptional(),
     class_validator_1.IsMongoId(),
     __metadata("design:type", String)
-], TransactionFilter.prototype, "campaign", void 0);
+], GetTransactionDto.prototype, "campaign", void 0);
 __decorate([
+    class_transformer_1.Transform(value => {
+        return value == "undefined" ? null : value;
+    }),
     class_validator_1.IsOptional(),
     class_validator_1.IsMongoId(),
     __metadata("design:type", String)
-], TransactionFilter.prototype, "leadId", void 0);
-class GetTransactionDto {
-}
+], GetTransactionDto.prototype, "leadId", void 0);
 __decorate([
-    class_validator_1.IsNotEmpty(),
-    class_validator_1.ValidateNested({ message: "this is a required field" }),
-    __metadata("design:type", Pagination)
-], GetTransactionDto.prototype, "pagination", void 0);
-__decorate([
-    class_validator_1.IsOptional(),
-    class_validator_1.ValidateNested(),
-    class_transformer_1.Type(() => TransactionFilter),
-    __metadata("design:type", TransactionFilter)
-], GetTransactionDto.prototype, "filters", void 0);
+    class_transformer_1.Transform(value => {
+        if (value == "true" || value == true) {
+            return true;
+        }
+        return false;
+    }),
+    class_validator_1.IsBoolean(),
+    __metadata("design:type", Boolean)
+], GetTransactionDto.prototype, "isStreamable", void 0);
 exports.GetTransactionDto = GetTransactionDto;
 //# sourceMappingURL=get-transaction.dto.js.map

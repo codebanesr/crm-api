@@ -21,10 +21,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadService = void 0;
 const common_1 = require("@nestjs/common");
 const aws_sdk_1 = require("aws-sdk");
+const fs_1 = require("fs");
 const config_1 = require("../config/config");
 let UploadService = class UploadService {
     constructor() {
-        this.bucket = new aws_sdk_1.S3({
+        this.s3Manager = new aws_sdk_1.S3({
             accessKeyId: config_1.default.s3.accessKeyId,
             secretAccessKey: config_1.default.s3.secretAccessKey,
             region: config_1.default.s3.region,
@@ -38,7 +39,7 @@ let UploadService = class UploadService {
                 Body: file,
             };
             return new Promise((resolve, reject) => {
-                this.bucket.upload(params, (err, data) => {
+                this.s3Manager.upload(params, (err, data) => {
                     if (err) {
                         reject(err);
                     }
@@ -50,11 +51,22 @@ let UploadService = class UploadService {
     uploadFileBuffer(key, fileBuffer) {
         return __awaiter(this, void 0, void 0, function* () {
             const params = {
-                Bucket: "molecule.static.files",
+                Bucket: "applesaucecrm",
                 Key: key,
                 Body: fileBuffer,
             };
-            return this.bucket.upload(params).promise();
+            return this.s3Manager.upload(params).promise();
+        });
+    }
+    uploadFileStream({ filePath, contentType, key }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield this.s3Manager.upload({
+                Bucket: "applesaucecrm",
+                Key: key,
+                ContentType: contentType,
+                Body: fs_1.createReadStream(filePath)
+            }).promise();
+            return result;
         });
     }
 };

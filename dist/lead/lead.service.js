@@ -49,8 +49,9 @@ const fetch_next_lead_dto_1 = require("./dto/fetch-next-lead.dto");
 const moment = require("moment");
 const nestjs_pino_1 = require("nestjs-pino");
 const generic_enum_1 = require("./enum/generic.enum");
+const upload_service_1 = require("../upload/upload.service");
 let LeadService = LeadService_1 = class LeadService {
-    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, ruleService, userService, notificationService, logger) {
+    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, uploadService, ruleService, userService, notificationService, logger) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
         this.campaignConfigModel = campaignConfigModel;
@@ -60,6 +61,7 @@ let LeadService = LeadService_1 = class LeadService {
         this.geoLocationModel = geoLocationModel;
         this.alarmModel = alarmModel;
         this.leadUploadQueue = leadUploadQueue;
+        this.uploadService = uploadService;
         this.ruleService = ruleService;
         this.userService = userService;
         this.notificationService = notificationService;
@@ -443,6 +445,9 @@ let LeadService = LeadService_1 = class LeadService {
             return result;
         });
     }
+    uploadFileAndGetMetadata({ contentType, filePath, key }) {
+        return this.uploadService.uploadFileStream({ contentType, filePath, key });
+    }
     addGeolocation(activeUserId, lat, lng, organization) {
         return __awaiter(this, void 0, void 0, function* () {
             var geoObj = new this.geoLocationModel({
@@ -765,40 +770,40 @@ let LeadService = LeadService_1 = class LeadService {
         });
         return qb.exec();
     }
-    getTransactions(organization, email, roleType, payload, isStreamable) {
-        var _a, _b, _c, _d, _e, _f, _g;
+    getTransactions(organization, email, roleType, payload) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             let conditionalQueries = {};
-            if (((_b = (_a = payload.filters) === null || _a === void 0 ? void 0 : _a.handler) === null || _b === void 0 ? void 0 : _b.length) > 0) {
-                conditionalQueries["newUser"] = { $in: payload.filters.handler };
+            if (((_a = payload.handler) === null || _a === void 0 ? void 0 : _a.length) > 0) {
+                conditionalQueries["newUser"] = { $in: payload.handler };
             }
-            if ((_c = payload.filters) === null || _c === void 0 ? void 0 : _c.leadId) {
-                conditionalQueries["lead"] = payload.filters.leadId;
+            if (payload.leadId) {
+                conditionalQueries["lead"] = payload.leadId;
             }
-            if ((_d = payload.filters) === null || _d === void 0 ? void 0 : _d.prospectName) {
-                const expr = new RegExp(payload.filters.prospectName);
+            if (payload.prospectName) {
+                const expr = new RegExp(payload.prospectName);
                 conditionalQueries["prospectName"] = { $regex: expr, $options: "i" };
             }
-            if ((_e = payload.filters) === null || _e === void 0 ? void 0 : _e.campaign) {
-                conditionalQueries["campaign"] = payload.filters.campaign;
+            if (payload.campaign) {
+                conditionalQueries["campaign"] = payload.campaign;
             }
-            if ((_f = payload.filters) === null || _f === void 0 ? void 0 : _f.startDate) {
+            if (payload.startDate) {
                 conditionalQueries["createdAt"] = {};
-                conditionalQueries["createdAt"]["$gte"] = new Date(payload.filters.startDate);
+                conditionalQueries["createdAt"]["$gte"] = new Date(payload.startDate);
             }
-            if ((_g = payload.filters) === null || _g === void 0 ? void 0 : _g.endDate) {
-                conditionalQueries["createdAt"]["$lte"] = new Date(payload.filters.endDate);
+            if (payload.endDate) {
+                conditionalQueries["createdAt"]["$lte"] = new Date(payload.endDate);
             }
-            const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
+            const sortOrder = payload.sortOrder === "ASC" ? 1 : -1;
             const query = Object.assign({ organization }, conditionalQueries);
             const result = this.leadHistoryModel
                 .find(query)
-                .sort({ [payload.pagination.sortBy]: sortOrder });
+                .sort({ [payload.sortBy]: sortOrder });
             let count = 0;
-            if (!isStreamable) {
+            if (!payload.isStreamable) {
                 result
-                    .limit(payload.pagination.perPage)
-                    .skip((payload.pagination.page - 1) * payload.pagination.perPage);
+                    .limit(payload.perPage)
+                    .skip((payload.page - 1) * payload.perPage);
                 count = yield this.leadHistoryModel.countDocuments(query);
             }
             const response = yield result.lean().exec();
@@ -929,7 +934,8 @@ LeadService = LeadService_1 = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model, Object, rules_service_1.RulesService,
+        mongoose_2.Model, Object, upload_service_1.UploadService,
+        rules_service_1.RulesService,
         user_service_1.UserService,
         notification_service_1.NotificationService,
         nestjs_pino_1.Logger])

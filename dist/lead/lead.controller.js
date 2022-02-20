@@ -42,7 +42,6 @@ const update_contact_dto_1 = require("./dto/update-contact.dto");
 const create_lead_dto_1 = require("./dto/create-lead.dto");
 const get_transaction_dto_1 = require("./dto/get-transaction.dto");
 const xlsx_1 = require("xlsx");
-const fs_1 = require("fs");
 const bulk_reassign_dto_1 = require("./dto/bulk-reassign.dto");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const transfer_leads_dto_1 = require("./dto/transfer-leads.dto");
@@ -61,26 +60,24 @@ let LeadController = class LeadController {
         const { organization, email } = user;
         return this.leadService.createLead(body, email, organization, campaignId, campaignName);
     }
-    getTransactions(user, body, isStreamable, res) {
+    getTransactions(user, query, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { organization, email, roleType } = user;
-            const { response, total } = yield this.leadService.getTransactions(organization, email, roleType, body, isStreamable);
-            if (!isStreamable) {
+            const { response, total } = yield this.leadService.getTransactions(organization, email, roleType, query);
+            if (!query.isStreamable) {
                 return res.status(200).send({ response, total });
             }
-            if (isStreamable) {
-                res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-                res.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx");
+            if (query.isStreamable) {
                 const wb = xlsx_1.utils.book_new();
                 const ws = xlsx_1.utils.json_to_sheet(JSON.parse(JSON.stringify(response)));
                 xlsx_1.utils.book_append_sheet(wb, ws, 'transactions');
-                const filename = path_1.join(__dirname, "transactions.xlsx");
+                const filePath = path_1.join(__dirname, "transactions.xlsx");
                 const wb_opts = { bookType: 'xlsx', type: 'binary' };
-                xlsx_1.writeFile(wb, filename, wb_opts);
-                const stream = fs_1.createReadStream(filename);
-                stream.pipe(res);
-                stream.on("close", () => {
-                    return res.end();
+                xlsx_1.writeFile(wb, filePath, wb_opts);
+                return this.leadService.uploadFileAndGetMetadata({
+                    contentType: "application/vnd.openxmlformats",
+                    filePath: filePath,
+                    key: `${email.substring(0, 5)}_${new Date().toLocaleString()}transactions.xlsx`
                 });
             }
         });
@@ -245,14 +242,17 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "insertOne", null);
 __decorate([
-    common_1.Post("transactions"),
+    common_1.Get("transactions"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     __param(0, current_user_decorator_1.CurrentUser()),
-    __param(1, common_1.Body()),
-    __param(2, common_1.Query('isStreamable')),
-    __param(3, common_1.Res()),
+    __param(1, common_1.Query(new common_1.ValidationPipe({
+        transform: true,
+        transformOptions: { enableImplicitConversion: true },
+        forbidNonWhitelisted: true
+    }))),
+    __param(2, common_1.Res()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, get_transaction_dto_1.GetTransactionDto, Boolean, Object]),
+    __metadata("design:paramtypes", [Object, get_transaction_dto_1.GetTransactionDto, Object]),
     __metadata("design:returntype", Promise)
 ], LeadController.prototype, "getTransactions", null);
 __decorate([

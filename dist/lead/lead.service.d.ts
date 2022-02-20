@@ -21,6 +21,7 @@ import { FetchNextLeadDto } from "./dto/fetch-next-lead.dto";
 import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { Logger } from "nestjs-pino";
+import { UploadService } from "../upload/upload.service";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -31,11 +32,12 @@ export declare class LeadService {
     private readonly geoLocationModel;
     private readonly alarmModel;
     private leadUploadQueue;
+    private uploadService;
     private readonly ruleService;
     private userService;
     private notificationService;
     private readonly logger;
-    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, leadUploadQueue: Queue, ruleService: RulesService, userService: UserService, notificationService: NotificationService, logger: Logger);
+    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, leadUploadQueue: Queue, uploadService: UploadService, ruleService: RulesService, userService: UserService, notificationService: NotificationService, logger: Logger);
     saveEmailAttachments(files: any): any;
     reassignBulkLead(user: User, newUserEmail: string, leadIds: string[]): Promise<any>;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<{
@@ -76,6 +78,11 @@ export declare class LeadService {
     }>;
     suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit?: number): Promise<any>;
     uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string, pushtoken: any, campaignId: string): Promise<import("bull").Job<any>>;
+    uploadFileAndGetMetadata({ contentType, filePath, key }: {
+        contentType: any;
+        filePath: any;
+        key: any;
+    }): Promise<import("aws-sdk/clients/s3").ManagedUpload.SendData>;
     addGeolocation(activeUserId: string, lat: number, lng: number, organization: string): Promise<GeoLocation>;
     getPerformance(): Promise<void>;
     updateLead({ organization, leadId, lead, geoLocation, handlerEmail, handlerName, emailForm, requestedInformation, campaignId, callRecord, reassignToUser, }: UpdateLeadDto & {
@@ -110,7 +117,7 @@ export declare class LeadService {
     }>;
     preassignLead(lead: Lead, roleType: string, email: string): Promise<void>;
     getSaleAmountByLeadStatus(campaignName?: string): any;
-    getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto, isStreamable: boolean): Promise<{
+    getTransactions(organization: string, email: string, roleType: string, payload: GetTransactionDto): Promise<{
         response: Partial<LeadHistory>[];
         total: number;
     }>;

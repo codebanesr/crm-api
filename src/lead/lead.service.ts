@@ -35,6 +35,8 @@ import { LeadHistory } from "./interfaces/lead-history.interface";
 import moment = require("moment");
 import { Logger } from "nestjs-pino";
 import { AssignmentEnum } from "./enum/generic.enum";
+import { Stream } from "stream";
+import { UploadService } from "../upload/upload.service";
 @Injectable()
 export class LeadService {
   constructor(
@@ -64,6 +66,9 @@ export class LeadService {
 
     @InjectQueue("leadQ")
     private leadUploadQueue: Queue,
+
+
+    private uploadService: UploadService,
 
     private readonly ruleService: RulesService,
 
@@ -614,6 +619,10 @@ export class LeadService {
     return result;
   }
 
+  uploadFileAndGetMetadata({contentType, filePath, key}) {
+    return this.uploadService.uploadFileStream({contentType, filePath, key});
+  }
+
   async addGeolocation(
     activeUserId: string,
     lat: number,
@@ -1103,45 +1112,44 @@ export class LeadService {
     email: string,
     roleType: string,
     payload: GetTransactionDto,
-    isStreamable: boolean
   ): Promise<{ response: Partial<LeadHistory>[]; total: number }> {
     // get email ids of users after him
     let conditionalQueries = {};
 
     // if the user only wants to see results for some subordinates this will filter it out
-    if (payload.filters?.handler?.length > 0) {
-      // subordinateEmails = intersection(payload.filters?.handler, subordinateEmails)
-      conditionalQueries["newUser"] = { $in: payload.filters.handler };
+    if (payload.handler?.length > 0) {
+      // subordinateEmails = intersection(payload.handler, subordinateEmails)
+      conditionalQueries["newUser"] = { $in: payload.handler };
     }
 
-    if (payload.filters?.leadId) {
-      conditionalQueries["lead"] = payload.filters.leadId;
+    if (payload.leadId) {
+      conditionalQueries["lead"] = payload.leadId;
     }
 
-    if (payload.filters?.prospectName) {
+    if (payload.prospectName) {
       /** @Todo to be filled later, we have firstname, lastname, fullName, these should be combined in a text index for search */
-      const expr = new RegExp(payload.filters.prospectName);
+      const expr = new RegExp(payload.prospectName);
       conditionalQueries["prospectName"] = { $regex: expr, $options: "i" };
     }
 
-    if (payload.filters?.campaign) {
-      conditionalQueries["campaign"] = payload.filters.campaign;
+    if (payload.campaign) {
+      conditionalQueries["campaign"] = payload.campaign;
     }
 
-    if (payload.filters?.startDate) {
+    if (payload.startDate) {
       conditionalQueries["createdAt"] = {};
       conditionalQueries["createdAt"]["$gte"] = new Date(
-        payload.filters.startDate
+        payload.startDate
       );
     }
 
-    if (payload.filters?.endDate) {
+    if (payload.endDate) {
       conditionalQueries["createdAt"]["$lte"] = new Date(
-        payload.filters.endDate
+        payload.endDate
       );
     }
 
-    const sortOrder = payload.pagination.sortOrder === "ASC" ? 1 : -1;
+    const sortOrder = payload.sortOrder === "ASC" ? 1 : -1;
 
     const query = {
       organization,
@@ -1150,13 +1158,13 @@ export class LeadService {
     };
     const result = this.leadHistoryModel
       .find(query)
-      .sort({ [payload.pagination.sortBy]: sortOrder });
+      .sort({ [payload.sortBy]: sortOrder });
 
     let count = 0;
-    if (!isStreamable) {
+    if (!payload.isStreamable) {
       result
-        .limit(payload.pagination.perPage)
-        .skip((payload.pagination.page - 1) * payload.pagination.perPage);
+        .limit(payload.perPage)
+        .skip((payload.page - 1) * payload.perPage);
       count = await this.leadHistoryModel.countDocuments(query);
     }
 

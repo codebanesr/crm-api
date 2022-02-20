@@ -16,6 +16,7 @@ import {
   Res,
   Logger,
   Delete,
+  ValidationPipe,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { LeadService } from "./lead.service";
@@ -42,7 +43,7 @@ import { CreateLeadDto } from "./dto/create-lead.dto";
 import { GetTransactionDto } from "./dto/get-transaction.dto";
 import { utils, writeFile, WritingOptions } from "xlsx";
 import { createReadStream } from "fs";
-import { Response } from "express";
+import { query, Response } from "express";
 import { BulkReassignDto } from "./dto/bulk-reassign.dto";
 import { RoleType } from "../shared/role-type.enum";
 import { TransferLeadsDto } from "./dto/transfer-leads.dto";
@@ -103,36 +104,37 @@ export class LeadController {
   @UseGuards(AuthGuard("jwt"))
   async getTransactions(
       @CurrentUser() user: User, 
-      @Body() body: GetTransactionDto, 
-      @Query('isStreamable') isStreamable: boolean,
+      @Body() query: GetTransactionDto, 
       @Res() res: Response
     ) {
     const { organization, email, roleType } = user;
 
-    const {response, total} = await this.leadService.getTransactions(organization, email, roleType, body, isStreamable);
-    if(!isStreamable) {
+    const {response, total} = await this.leadService.getTransactions(organization, email, roleType, query);
+    if(!query.isStreamable) {
       return res.status(200).send({response, total});
     }
 
     // convert to excel sheet and pipe the response to the frontend
-    if(isStreamable) {
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats');
-      res.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx");
+    if(query.isStreamable) {
+      // res.setHeader('Content-Type', 'application/vnd.openxmlformats');
+      // res.setHeader("Content-Disposition", "attachment; filename=" + "Report.xlsx");
 
       const wb = utils.book_new();                     // create workbook
       /** @Todo too computationally intensive, to be replaced by mongoose */
       const ws = utils.json_to_sheet(JSON.parse(JSON.stringify(response)));
       utils.book_append_sheet(wb, ws, 'transactions');  // add sheet to workbook
 
-      const filename = join(__dirname, "transactions.xlsx");
+      const filePath = join(__dirname, "transactions.xlsx");
       const wb_opts: WritingOptions = {bookType: 'xlsx', type: 'binary'};   // workbook options
-      writeFile(wb, filename, wb_opts);                // write workbook file
+      writeFile(wb, filePath, wb_opts);                // write workbook file
 
-      const stream = createReadStream(filename);         // create read stream
-      stream.pipe(res);     
-      stream.on("close", () => {
-        return res.end();
+      const uploadResult = await this.leadService.uploadFileAndGetMetadata({
+        contentType: "application/vnd.openxmlformats", 
+        filePath: filePath,
+        key: `${email.substring(0,5)}_${new Date().toLocaleString()}transactions.xlsx`
       });
+      console.log({uploadResult})
+      return res.status(200).send(uploadResult);
     }
   }
 

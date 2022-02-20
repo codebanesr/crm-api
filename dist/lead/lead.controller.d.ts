@@ -25,7 +25,7 @@ export declare class LeadController {
         paths: import("./interfaces/campaign-config.interface").CampaignConfig[];
     }>;
     insertOne(body: CreateLeadDto, user: User, campaignId: string, campaignName: string): Promise<void | import("./interfaces/lead.interface").Lead>;
-    getTransactions(user: User, body: GetTransactionDto, isStreamable: boolean, res: Response): Promise<Response<any>>;
+    getTransactions(user: User, query: GetTransactionDto, res: Response): Promise<Response<any> | import("aws-sdk/clients/s3").ManagedUpload.SendData>;
     findAll(body: FindAllDto, user: any): Promise<{
         total: any;
         page: any;
