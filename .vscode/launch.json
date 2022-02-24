@@ -11,7 +11,7 @@
           "runtimeArgs": [
               "--nolazy",
               "-r",
-              "ts-node-dev/register",
+              "ts-node/register",
               "-r",
               "tsconfig-paths/register"
           ],

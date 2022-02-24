@@ -220,7 +220,7 @@ export class Lead {
       type: Number,
       default: "-",
     })
-    @IsNumber()
+    @IsString()
     @IsOptional()
     pincode: number;
   
