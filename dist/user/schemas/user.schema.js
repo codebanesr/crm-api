@@ -84,7 +84,10 @@ exports.UserSchema = new mongoose_1.Schema({
             auth: String,
         },
     },
-    batLvl: Number
+    batLvl: Number,
+    firebaseToken: {
+        type: String
+    },
 }, {
     versionKey: false,
     timestamps: true,

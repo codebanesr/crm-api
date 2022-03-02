@@ -78,7 +78,10 @@ export const UserSchema = new Schema(
         auth: String,
       },
     },
-    batLvl: Number
+    batLvl: Number,    
+    firebaseToken: {
+      type: String
+    },
   },
   {
     versionKey: false,

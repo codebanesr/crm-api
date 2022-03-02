@@ -20,12 +20,12 @@ export declare class UserController {
     register(createUserDto: CreateUserDto, user: User): Promise<any>;
     registerReseller(createResellerDto: CreateResellerDto, user: User): Promise<any>;
     getAllUsersHack(user: User): Promise<any>;
-    getUsersForOrganization(organizationId: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
-    getUserProfile(user: User): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
+    getUsersForOrganization(organizationId: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "firebaseToken" | "pushtoken">[]>;
+    getUserProfile(user: User): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "firebaseToken" | "pushtoken">>;
     updateUserProfile(user: User, updateProfileDto: UpdateProfileDto): Promise<{
         status: string;
     }>;
-    getUserById(user: User, userid: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
+    getUserById(user: User, userid: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "firebaseToken" | "pushtoken">>;
     verifyEmail(req: IRequest, verifyUuidDto: VerifyUuidDto): Promise<{
         _id: any;
         fullName: string;
@@ -70,7 +70,7 @@ export declare class UserController {
         message: string;
     }>;
     findAll(user: User, assigned: string, findAllDto: FindAllDto): Promise<any>;
-    getAllManagers(user: User, userEmail: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    getAllManagers(user: User, userEmail: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "firebaseToken" | "pushtoken">[]>;
     managersForReassignment(user: User, assigned: string): Promise<string[]>;
     add(req: any, assigned: string, file: any, user: User): Promise<import("../agent/interface/admin-actions.interface").AdminAction>;
     updateUser(userid: string, user: CreateUserDto): Promise<any>;
@@ -78,5 +78,8 @@ export declare class UserController {
         message: string;
     }>;
     sendPushNotification(req: IRequest, body: VerifyUuidDto): Promise<void>;
-    getManagersForRoleType(user: User, roleType: RoleType): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    getManagersForRoleType(user: User, roleType: RoleType): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "firebaseToken" | "pushtoken">[]>;
+    saveFirebaseTokenForUser(user: User, body: {
+        firebaseToken: string;
+    }): Promise<boolean>;
 }

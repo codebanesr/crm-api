@@ -60,13 +60,12 @@ let UploadService = class UploadService {
     }
     uploadFileStream({ filePath, contentType, key }) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield this.s3Manager.upload({
+            return this.s3Manager.upload({
                 Bucket: "applesaucecrm",
                 Key: key,
                 ContentType: contentType,
                 Body: fs_1.createReadStream(filePath)
             }).promise();
-            return result;
         });
     }
 };

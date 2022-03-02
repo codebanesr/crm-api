@@ -160,6 +160,9 @@ let UserController = class UserController {
         const superiorRoles = this.userService.getSuperiorRoles(roleType);
         return this.userService.getUsersForRoles(organization, superiorRoles);
     }
+    saveFirebaseTokenForUser(user, body) {
+        return this.userService.saveFirebaseToken(user._id, body.firebaseToken);
+    }
 };
 __decorate([
     common_1.Post(),
@@ -429,6 +432,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "getManagersForRoleType", null);
+__decorate([
+    common_1.Post("firebaseToken"),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    __param(0, current_user_decorator_1.CurrentUser()), __param(1, common_1.Body()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], UserController.prototype, "saveFirebaseTokenForUser", null);
 UserController = __decorate([
     swagger_1.ApiTags("User"),
     common_1.Controller("user"),

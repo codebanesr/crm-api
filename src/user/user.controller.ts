@@ -321,4 +321,11 @@ export class UserController {
     const superiorRoles = this.userService.getSuperiorRoles(roleType);
     return this.userService.getUsersForRoles(organization, superiorRoles);
   }
+
+  @Post("firebaseToken")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard("jwt"))
+  saveFirebaseTokenForUser(@CurrentUser() user: User, @Body() body: { firebaseToken: string}) {
+    return this.userService.saveFirebaseToken(user._id, body.firebaseToken);
+  }
 }

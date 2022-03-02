@@ -22,6 +22,7 @@ export interface User extends Document {
   history: string[];
   hierarchyWeight: number;
   organization: string;
+  firebaseToken: string;
   pushtoken: {
     endpoint: string;
     expirationTime: any;

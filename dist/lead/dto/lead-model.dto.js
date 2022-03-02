@@ -246,7 +246,7 @@ __decorate([
         type: Number,
         default: "-",
     }),
-    class_validator_1.IsNumber(),
+    class_validator_1.IsString(),
     class_validator_1.IsOptional(),
     __metadata("design:type", Number)
 ], Lead.prototype, "pincode", void 0);

@@ -671,6 +671,12 @@ let UserService = class UserService {
             return payload;
         });
     }
+    saveFirebaseToken(userId, firebaseToken) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.userModel.findByIdAndUpdate(userId, { firebaseToken });
+            return true;
+        });
+    }
 };
 UserService = __decorate([
     common_1.Injectable(),

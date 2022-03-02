@@ -74,11 +74,13 @@ let LeadController = class LeadController {
                 const filePath = path_1.join(__dirname, "transactions.xlsx");
                 const wb_opts = { bookType: 'xlsx', type: 'binary' };
                 xlsx_1.writeFile(wb, filePath, wb_opts);
-                return this.leadService.uploadFileAndGetMetadata({
+                const uploadResult = yield this.leadService.uploadFileAndGetMetadata({
                     contentType: "application/vnd.openxmlformats",
                     filePath: filePath,
                     key: `${email.substring(0, 5)}_${new Date().toLocaleString()}transactions.xlsx`
                 });
+                console.log({ uploadResult });
+                return res.status(200).send(uploadResult);
             }
         });
     }
@@ -242,14 +244,10 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "insertOne", null);
 __decorate([
-    common_1.Get("transactions"),
+    common_1.Post("transactions"),
     common_1.UseGuards(passport_1.AuthGuard("jwt")),
     __param(0, current_user_decorator_1.CurrentUser()),
-    __param(1, common_1.Query(new common_1.ValidationPipe({
-        transform: true,
-        transformOptions: { enableImplicitConversion: true },
-        forbidNonWhitelisted: true
-    }))),
+    __param(1, common_1.Body()),
     __param(2, common_1.Res()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, get_transaction_dto_1.GetTransactionDto, Object]),

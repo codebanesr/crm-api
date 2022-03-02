@@ -812,4 +812,10 @@ export class UserService {
 
     return payload;
   }
+
+
+  async saveFirebaseToken(userId: string, firebaseToken: string) {
+    await this.userModel.findByIdAndUpdate(userId, { firebaseToken });
+    return true;
+  }
 }
