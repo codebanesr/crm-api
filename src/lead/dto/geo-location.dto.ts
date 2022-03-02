@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import { IsNumber } from "class-validator";
 
 export class GeoLocationDto {
@@ -8,6 +9,7 @@ export class GeoLocationDto {
         format: 'number',
         default: null
     })
+    @Transform(v => +v)
     @IsNumber()
     readonly lat: number;
 
@@ -18,6 +20,7 @@ export class GeoLocationDto {
         format: 'number',
         default: null
     })
+    @Transform(v => +v)
     @IsNumber()
     readonly lng: number;
 }
