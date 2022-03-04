@@ -108,6 +108,10 @@ let LeadController = class LeadController {
         const { userEmail: newUserEmail, leadIds } = bulkReassignDto;
         return this.leadService.reassignBulkLead(user, newUserEmail, leadIds);
     }
+    syncPhoneCalls(callLogs, user) {
+        const { organization, _id: agentId } = user;
+        return this.leadService.syncPhoneCalls(callLogs, organization, agentId);
+    }
     getLeadHistoryById(user, externalId) {
         const { organization } = user;
         return this.leadService.getLeadHistoryById(externalId, organization);
@@ -137,9 +141,9 @@ let LeadController = class LeadController {
         return this.leadService.sendBulkEmails(emails, subject, text, attachments, organization);
     }
     uploadMultipleLeadFiles(user, body) {
-        const { email, organization, _id, pushtoken } = user;
+        const { email, organization, _id, pushtoken, firebaseToken } = user;
         const { campaignName, files, campaignId } = body;
-        return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization, _id, pushtoken, campaignId);
+        return this.leadService.uploadMultipleLeadFiles(files, campaignName, email, organization, _id, pushtoken, campaignId, firebaseToken);
     }
     saveEmailAttachments(files) {
         return this.leadService.saveEmailAttachments(files);
@@ -317,6 +321,17 @@ __decorate([
     __metadata("design:paramtypes", [Object, bulk_reassign_dto_1.BulkReassignDto]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "reassignBulkLead", null);
+__decorate([
+    common_1.Post("syncPhoneCalls"),
+    common_1.UseGuards(passport_1.AuthGuard("jwt")),
+    swagger_1.ApiOperation({ summary: "Sync phone calls from device to database" }),
+    common_1.HttpCode(common_1.HttpStatus.OK),
+    __param(0, common_1.Body()),
+    __param(1, current_user_decorator_1.CurrentUser()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Array, Object]),
+    __metadata("design:returntype", void 0)
+], LeadController.prototype, "syncPhoneCalls", null);
 __decorate([
     common_1.Get("getLeadHistoryById/:externalId"),
     swagger_1.ApiOperation({

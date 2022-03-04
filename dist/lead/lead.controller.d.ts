@@ -4,6 +4,7 @@ import { FindAllDto } from "./dto/find-all.dto";
 import { UpdateLeadDto } from "./dto/update-lead.dto";
 import { GeoLocationDto } from "./dto/geo-location.dto";
 import { ReassignLeadDto } from "./dto/reassign-lead.dto";
+import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 import { CreateEmailTemplateDto, BulkEmailDto } from "./dto/create-email-template.dto";
 import { UploadMultipleFilesDto } from "./dto/generic.dto";
 import { User } from "../user/interfaces/user.interface";
@@ -39,6 +40,7 @@ export declare class LeadController {
         leadHistory: import("./interfaces/lead-history.interface").LeadHistory;
     }>;
     reassignBulkLead(user: User, bulkReassignDto: BulkReassignDto): Promise<any>;
+    syncPhoneCalls(callLogs: SyncCallLogsDto[], user: User): Promise<import("./interfaces/call-log.interface").CallLog[]>;
     getLeadHistoryById(user: User, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
     getUsersPerformance(req: any): Promise<void>;
     getLeadSuggestions(user: User, externalId: string, page?: number, perPage?: number): Promise<any>;

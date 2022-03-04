@@ -51,7 +51,7 @@ const nestjs_pino_1 = require("nestjs-pino");
 const generic_enum_1 = require("./enum/generic.enum");
 const upload_service_1 = require("../upload/upload.service");
 let LeadService = LeadService_1 = class LeadService {
-    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, leadUploadQueue, uploadService, ruleService, userService, notificationService, logger) {
+    constructor(leadModel, adminActionModel, campaignConfigModel, campaignModel, emailTemplateModel, leadHistoryModel, geoLocationModel, alarmModel, callLog, leadUploadQueue, uploadService, ruleService, userService, notificationService, logger) {
         this.leadModel = leadModel;
         this.adminActionModel = adminActionModel;
         this.campaignConfigModel = campaignConfigModel;
@@ -60,6 +60,7 @@ let LeadService = LeadService_1 = class LeadService {
         this.leadHistoryModel = leadHistoryModel;
         this.geoLocationModel = geoLocationModel;
         this.alarmModel = alarmModel;
+        this.callLog = callLog;
         this.leadUploadQueue = leadUploadQueue;
         this.uploadService = uploadService;
         this.ruleService = ruleService;
@@ -429,7 +430,7 @@ let LeadService = LeadService_1 = class LeadService {
             return result;
         });
     }
-    uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken, campaignId) {
+    uploadMultipleLeadFiles(files, campaignName, uploader, organization, userId, pushtoken, campaignId, firebaseToken) {
         return __awaiter(this, void 0, void 0, function* () {
             this.logger.log("Sending file to worker for processing");
             const result = yield this.leadUploadQueue.add({
@@ -440,6 +441,7 @@ let LeadService = LeadService_1 = class LeadService {
                 userId,
                 pushtoken,
                 campaignId,
+                firebaseToken
             });
             this.logger.log({ completed: result.isCompleted, failed: result.isFailed, log: result.log });
             return result;
@@ -915,6 +917,12 @@ let LeadService = LeadService_1 = class LeadService {
             return this.leadModel.updateMany({ _id: { $in: leadIds } }, { $set: { nextAction: "__open__" } });
         });
     }
+    syncPhoneCalls(callLogs, organization, user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const logs = callLogs.map(log => (Object.assign(Object.assign({}, log), { user, organization })));
+            return this.callLog.insertMany(logs);
+        });
+    }
 };
 LeadService = LeadService_1 = __decorate([
     common_1.Injectable(),
@@ -926,8 +934,10 @@ LeadService = LeadService_1 = __decorate([
     __param(5, mongoose_1.InjectModel("LeadHistory")),
     __param(6, mongoose_1.InjectModel("GeoLocation")),
     __param(7, mongoose_1.InjectModel("Alarm")),
-    __param(8, bull_1.InjectQueue("leadQ")),
+    __param(8, mongoose_1.InjectModel("CallLog")),
+    __param(9, bull_1.InjectQueue("leadQ")),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,

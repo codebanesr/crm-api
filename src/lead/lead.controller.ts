@@ -234,18 +234,17 @@ export class LeadController {
     return this.leadService.reassignBulkLead(user, newUserEmail, leadIds);
   }
 
-  // @Post("syncPhoneCalls/:leadId")
-  // @UseGuards(AuthGuard("jwt"))
-  // @ApiOperation({ summary: "Sync phone calls from device to database" })
-  // @HttpCode(HttpStatus.OK)
-  // syncPhoneCalls(
-  //   @Param('leadId') leadId: string,
-  //   @Body() callLogs: SyncCallLogsDto,
-  //   @CurrentUser() user: User
-  // ) {
-  //   const { organization, _id: agentId } = user;
-  //   return this.leadService.syncPhoneCalls(callLogs, organization, agentId, leadId);
-  // }
+  @Post("syncPhoneCalls")
+  @UseGuards(AuthGuard("jwt"))
+  @ApiOperation({ summary: "Sync phone calls from device to database" })
+  @HttpCode(HttpStatus.OK)
+  syncPhoneCalls(
+    @Body() callLogs: {callLogs: SyncCallLogsDto[]},
+    @CurrentUser() user: User
+  ) {
+    const { organization, _id: agentId } = user;
+    return this.leadService.syncPhoneCalls(callLogs.callLogs, organization, agentId);
+  }
 
   @Get("getLeadHistoryById/:externalId")
   @ApiOperation({
@@ -366,7 +365,7 @@ export class LeadController {
     @Body() body: UploadMultipleFilesDto
   ) {
     /** @Todo add organization to lead file uploads also */
-    const { email, organization, _id, pushtoken } = user;
+    const { email, organization, _id, pushtoken, firebaseToken } = user;
     const { campaignName, files, campaignId } = body;
     return this.leadService.uploadMultipleLeadFiles(
       files,
@@ -375,7 +374,8 @@ export class LeadController {
       organization,
       _id,
       pushtoken,
-      campaignId
+      campaignId,
+      firebaseToken
     );
   }
 

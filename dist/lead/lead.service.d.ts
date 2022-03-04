@@ -22,6 +22,8 @@ import { AdminAction } from "../agent/interface/admin-actions.interface";
 import { LeadHistory } from "./interfaces/lead-history.interface";
 import { Logger } from "nestjs-pino";
 import { UploadService } from "../upload/upload.service";
+import { CallLog } from "./interfaces/call-log.interface";
+import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 export declare class LeadService {
     private readonly leadModel;
     private readonly adminActionModel;
@@ -31,13 +33,14 @@ export declare class LeadService {
     private readonly leadHistoryModel;
     private readonly geoLocationModel;
     private readonly alarmModel;
+    private readonly callLog;
     private leadUploadQueue;
     private uploadService;
     private readonly ruleService;
     private userService;
     private notificationService;
     private readonly logger;
-    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, leadUploadQueue: Queue, uploadService: UploadService, ruleService: RulesService, userService: UserService, notificationService: NotificationService, logger: Logger);
+    constructor(leadModel: Model<Lead>, adminActionModel: Model<AdminAction>, campaignConfigModel: Model<CampaignConfig>, campaignModel: Model<Campaign>, emailTemplateModel: Model<EmailTemplate>, leadHistoryModel: Model<LeadHistory>, geoLocationModel: Model<GeoLocation>, alarmModel: Model<Alarm>, callLog: Model<CallLog>, leadUploadQueue: Queue, uploadService: UploadService, ruleService: RulesService, userService: UserService, notificationService: NotificationService, logger: Logger);
     saveEmailAttachments(files: any): any;
     reassignBulkLead(user: User, newUserEmail: string, leadIds: string[]): Promise<any>;
     reassignLead(activeUserEmail: string, oldUserEmail: string, newUserEmail: string, lead: Partial<Lead>): Promise<{
@@ -77,7 +80,7 @@ export declare class LeadService {
         success?: undefined;
     }>;
     suggestLeads(activeUserEmail: string, leadId: string, organization: string, limit?: number): Promise<any>;
-    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string, pushtoken: any, campaignId: string): Promise<import("bull").Job<any>>;
+    uploadMultipleLeadFiles(files: S3UploadedFiles[], campaignName: string, uploader: string, organization: string, userId: string, pushtoken: any, campaignId: string, firebaseToken: string): Promise<import("bull").Job<any>>;
     uploadFileAndGetMetadata({ contentType, filePath, key }: {
         contentType: any;
         filePath: any;
@@ -140,4 +143,5 @@ export declare class LeadService {
     unarchiveLeads(leadIds: string[]): Promise<any>;
     transferLeads(leadIds: string[], toCampaignId: string): Promise<Pick<any, string | number | symbol> | Pick<any, string | number | symbol>[]>;
     openClosedLeads(leadIds: string[]): Promise<any>;
+    syncPhoneCalls(callLogs: SyncCallLogsDto[], organization: any, user: string): Promise<CallLog[]>;
 }

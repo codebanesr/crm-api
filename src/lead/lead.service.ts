@@ -37,6 +37,9 @@ import { Logger } from "nestjs-pino";
 import { AssignmentEnum } from "./enum/generic.enum";
 import { Stream } from "stream";
 import { UploadService } from "../upload/upload.service";
+import { CallLog } from "./interfaces/call-log.interface";
+import { log } from "console";
+import { SyncCallLogsDto } from "./dto/sync-call-logs.dto";
 @Injectable()
 export class LeadService {
   constructor(
@@ -64,6 +67,9 @@ export class LeadService {
     @InjectModel("Alarm")
     private readonly alarmModel: Model<Alarm>,
 
+    @InjectModel("CallLog")
+    private readonly callLog: Model<CallLog>,
+
     @InjectQueue("leadQ")
     private leadUploadQueue: Queue,
 
@@ -77,7 +83,7 @@ export class LeadService {
     private notificationService: NotificationService,
 
     private readonly logger: Logger
-  ) {}
+  ) { }
   saveEmailAttachments(files) {
     return files;
   }
@@ -338,12 +344,12 @@ export class LeadService {
       // });
 
       /** @Todo this should be changed to use userid and not email */
-      if(roleType!==RoleType.admin) {
+      if (roleType !== RoleType.admin) {
         leadAgg.match({ email: { $in: [...subordinateEmails, activeUserEmail] } });
-      }else {
-        leadAgg.match({email: {$exists: true}});
+      } else {
+        leadAgg.match({ email: { $exists: true } });
       }
-    } else if(assigned === AssignmentEnum.unassigned) {
+    } else if (assigned === AssignmentEnum.unassigned) {
       leadAgg.match({ email: { $exists: false } })
     } else {
       // dont apply this filter, we need all leads whether or not assigned
@@ -602,7 +608,8 @@ export class LeadService {
     organization: string,
     userId: string,
     pushtoken: any,
-    campaignId: string
+    campaignId: string,
+    firebaseToken: string
   ) {
     this.logger.log("Sending file to worker for processing");
     const result = await this.leadUploadQueue.add({
@@ -613,14 +620,15 @@ export class LeadService {
       userId,
       pushtoken,
       campaignId,
+      firebaseToken
     });
-    this.logger.log({completed: result.isCompleted, failed: result.isFailed, log: result.log});
+    this.logger.log({ completed: result.isCompleted, failed: result.isFailed, log: result.log });
 
     return result;
   }
 
-  uploadFileAndGetMetadata({contentType, filePath, key}) {
-    return this.uploadService.uploadFileStream({contentType, filePath, key});
+  uploadFileAndGetMetadata({ contentType, filePath, key }) {
+    return this.uploadService.uploadFileStream({ contentType, filePath, key });
   }
 
   async addGeolocation(
@@ -642,7 +650,7 @@ export class LeadService {
     return result;
   }
 
-  async getPerformance() {}
+  async getPerformance() { }
 
   /** @Todo trim all string fields otherwise they will give trouble with equality later on */
   async updateLead({
@@ -856,7 +864,7 @@ export class LeadService {
     email: string,
     campaignId: string,
     projection
-  ):Promise<Lead> {
+  ): Promise<Lead> {
     const fifteenMinsAgo = moment().subtract(15, "minutes").toDate();
     const now = moment().toDate();
 
@@ -950,7 +958,7 @@ export class LeadService {
       if (!injectableLead.email) {
         this.preassignLead(injectableLead, roleType, email);
       }
-      
+
       this.logger.debug("Injectable lead found, returning it");
       const leadHistory = await this.leadHistoryModel
         .find({ lead: injectableLead._id })
@@ -965,7 +973,7 @@ export class LeadService {
     }
 
     const singleLeadAgg = this.leadModel.aggregate();
-    singleLeadAgg.match({ campaignId: campaign._id, nextAction: {$ne: "__closed__"} });
+    singleLeadAgg.match({ campaignId: campaign._id, nextAction: { $ne: "__closed__" } });
 
     /** @Todo Try to cache this call */
     const subordinateEmails = await this.userService.getSubordinates(
@@ -1201,7 +1209,7 @@ export class LeadService {
       };
     }
 
-    if(roleType !== RoleType.admin && roleType!==RoleType.superAdmin) {
+    if (roleType !== RoleType.admin && roleType !== RoleType.superAdmin) {
       matchQ["email"] = email;
     }
 
@@ -1315,5 +1323,11 @@ export class LeadService {
       { _id: { $in: leadIds } },
       { $set: { nextAction: "__open__" } }
     );
+  }
+
+
+  async syncPhoneCalls(callLogs: SyncCallLogsDto[], organization, user: string) {
+    const logs = callLogs.map(log => ({ ...log, user, organization }));
+    return this.callLog.insertMany(logs);
   }
 }
