@@ -9,6 +9,7 @@ import { addHours } from "date-fns";
 import { v4 as uuidv4 } from 'uuid';
 import { CreateOrganizationDto } from "../organization/dto";
 import { Organization, ResellerOrganization } from "../organization/interface";
+import { NotificationService } from "src/utils/notification.service";
 
 
 @Injectable()
@@ -25,7 +26,9 @@ export class SharedService {
         @InjectModel("ResellerOrganization")
         private readonly resellerOrganizationModel: Model<ResellerOrganization>,
     
-        @InjectModel("User") private readonly userModel: Model<User>
+        @InjectModel("User") private readonly userModel: Model<User>,
+
+        private readonly notificationService: NotificationService    
     ) {}
 
     generateOtp() {
@@ -156,7 +159,32 @@ export class SharedService {
         await user.save();
         const registrationInfo = this.buildRegistrationInfo(user);
 
+        await this.notificationService.sendMail({
+            from: 'onboarding@applesauce.co.in',
+            to: 'shanur.cse.nitap@gmail.com',
+            subject: `Welcome to applesauce! 🎉 ${user.fullName || ''}!`,
+            html: `
+                Hey ${user.fullName}, </br>
 
+                Thank you for signing up for <span style="font-weight: 600;">AppleSauceCRM</span> and we welcome to the community!</br>
+                
+                We’re stoked to see what you’re able to onboard with our app. </br>
+                
+                To get started, we recommend checking out our quickstart guide that’ll walk you through the basics of the crm step-by-step. We also have a two-minute intro <a href="https://youtu.be/r-R1z2DKAhg">video</a> if you’re more of a movie buff.</br>
+                
+                And if you’re ready to start {action (creating, exploring, etc)}, you can log in below!
+                
+                <a href="http://applesauce.co.in">Login</a> </br>
+                
+                Cheers! </br>
+                
+                Shanur </br>
+                cto@applesauce.co.in
+            `,
+            cc: 'rahman.shanur7@gmail.com'
+        }).catch(error => {
+            console.log({error, message: "An error occured while sending email to user"});
+        })
         return { user, registrationInfo };
     }
 

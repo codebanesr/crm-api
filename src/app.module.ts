@@ -76,7 +76,7 @@ import { join } from 'path';
       useClass: CacheInterceptor,
     },
     UploadService,
-    PushNotificationService,
+    PushNotificationService
   ],
 })
 export class AppModule {}

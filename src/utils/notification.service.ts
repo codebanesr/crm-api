@@ -1,33 +1,39 @@
 import { createTransport, SendMailOptions } from "nodemailer";
 import { Injectable } from "@nestjs/common";
+import config from "src/config/config";
 
 @Injectable()
 export class NotificationService {
+  transporter = createTransport({
+    // pool: true,
+    host: config.ses.region,
+    port: 587,
+    secure: false, // use TLS
+    auth: {
+      user: config.ses.username,
+      pass: config.ses.password
+    }
+  });
+
+
   sendMail(options: SendMailOptions) {
-    const transporter = createTransport({
-      // pool: true,
-      host: "email-smtp.ap-south-1.amazonaws.com",
-      port: 587,
-      secure: false, // use TLS
-      auth: {
-        user: "AKIARGBOXP35JVPETBOW",
-        pass: "BDABocMfTh7ONWhD9Xh9tHSvAtsOC9vT4eL/YF5TI1/g"
-      }
-    });
     const mailOptions: SendMailOptions = {
       to: options.to,
-      from: options.from || 'mail.moleculesystem.com',
+      from: options.from || config.ses.supportEmail,
       subject: options.subject,
       text: options.text,
       attachments: options.attachments,
+      html: options.html
     };
-    transporter.sendMail(mailOptions, (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log("email sent to ", options.to);
-      }
-    });
-    return true;
+    
+    return new Promise((resolve, reject) => {
+      this.transporter.sendMail(mailOptions, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(true);
+        }
+      });
+    })
   }
 }

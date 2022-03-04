@@ -31,7 +31,6 @@ import { FindAllDto } from "../lead/dto/find-all.dto";
 import { writeFile, utils } from "xlsx";
 import { join } from "path";
 import { default as config } from "../config/config";
-import { createTransport } from "nodemailer";
 import { getForgotPasswordTemplate } from "../utils/forgot-password-template";
 import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
@@ -44,6 +43,7 @@ import * as moment from "moment";
 import { OAuthDto } from './dto/oauth.dto';
 import { OAuth2Client } from 'google-auth-library';
 import { SharedService } from "../shared/shared.service";
+import { NotificationService } from "../utils/notification.service";
 const oauth2Client = new OAuth2Client(config.oauth.google.clientId);
 
 @Injectable()
@@ -67,7 +67,9 @@ export class UserService {
 
     private readonly authService: AuthService,
 
-    private readonly sharedService: SharedService
+    private readonly sharedService: SharedService,
+
+    private readonly notificationService: NotificationService
   ) {}
 
 
@@ -659,16 +661,8 @@ export class UserService {
       throw new HttpException("LOGIN.USER_NOT_FOUND", HttpStatus.NOT_FOUND);
 
     if (token) {
-      let transporter = createTransport({
-        service: "Mailgun",
-        auth: {
-          user: config.mail.user,
-          pass: config.mail.pass,
-        },
-      });
-
       let mailOptions = {
-        from: '"Company" <' + config.mail.user + ">",
+        from: config.ses.supportEmail,
         to: [email],
         subject: "Frogotten Password",
         text: "Forgot Password",
@@ -678,19 +672,11 @@ export class UserService {
           resetToken: token,
         }),
       };
-
-      var sended = await new Promise<boolean>(async function (resolve, reject) {
-        return await transporter.sendMail(mailOptions, async (error, info) => {
-          if (error) {
-            console.log("Message sent: %s", error);
-            return reject(false);
-          }
-          console.log("Message sent: %s", info.messageId);
-          resolve(true);
-        });
+      await this.notificationService.sendMail(mailOptions).catch(error => {
+        console.log({ message: "An error occured while sending email", error });
       });
+      return true;
 
-      return sended;
     } else {
       throw new HttpException(
         "REGISTER.USER_NOT_REGISTERED",

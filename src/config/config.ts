@@ -68,5 +68,12 @@ export default {
     google: {
       clientId: process.env.GOOGLE_OAUTH_CLIENTID
     }
+  },
+  ses: {
+    "region": "email-smtp.ap-south-1.amazonaws.com",
+    "username": "AKIASJF5UAUY55LYUDGC",
+    "password": "BN7HKD4ukXuOYFjhj6cHtRYKmFJma2a5M+KxZn8lCRT7",
+    "supportEmail": "support@applesauce.co.in",
+    "onboarding": "onboarding@applesauce.co.in"
   }
 };
