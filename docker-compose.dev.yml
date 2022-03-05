@@ -7,21 +7,14 @@ services:
     ports:
       - 80:80/tcp
       - 443:443/tcp
-    environment:
-      CERTBOT_EMAIL: shanur.cse.nitap@gmail.com
-      # variable names are space-separated
-      ENVSUBST_VARS: FQDN
-      FQDN: moleculesystem.com
     volumes:
       - ./conf.d/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/my_server_block.conf:ro
-      # - letsencrypt:/etc/letsencrypt
-      # - /home/ec2-user/leon:/usr/share/nginx/html
     depends_on:
       - main
     networks:
       - webnet
   main:
-    image: "node:14-slim"
+    image: "shanurcsenitap/crm"
     container_name: main
     depends_on:
       # - "mongodb"
@@ -67,14 +60,6 @@ services:
   #     MB_DB_PASS: 8zLQ1t3VdTluHgfzsLmtu4Aq5K0vgYvK
   #     MB_DB_HOST: john.db.elephantsql.com
 
-  # portainerservice:
-  #   image: portainer/portainer
-  #   volumes:
-  #     - portainer_data:/data
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   ports:
-  #     - "9000:9000"
-
   # mongodb:
   #   container_name: mongoback # take snapshot:: `docker exec mongoback sh -c 'mongodump --archive' > db.dump`
   #   image: "docker.io/bitnami/mongodb:4.4-debian-10"
@@ -87,13 +72,13 @@ services:
 
   # this will run on a separate instance in production later
   worker:
-    image: "node:14.15.1-alpine3.12"
+    image: "shanurcsenitap/worker"
     container_name: worker
     build:
-      context: .
+      context: "../molecule_bull_microservice"
       dockerfile: Dockerfile.prod
       # target: production
-    user: "node"
+    user: "root"
     working_dir: /usr/src/app
     environment:
       - NODE_ENV=production
@@ -105,7 +90,7 @@ services:
     # ports:
     #   - "3000:3000"
     tty: true
-    command: "yarn start:prod"
+    command: "node dist/main.js"
     env_file:
       - ../molecule_bull_microservice/.env
     networks:
@@ -124,26 +109,10 @@ services:
     networks:
       - webnet
 
-  minio:
-    image: docker.io/bitnami/minio:2022
-    container_name: minio
-    ports:
-      # - "9009:9000"
-      - "9001:9001"
-    volumes:
-      - 'minio_data:/data'
-    environment:
-      - MINIO_ACCESS_KEY=AKIARGBOXP35BONONB4J
-      - MINIO_SECRET_KEY=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
-    networks:
-      - webnet
-
 networks:
   webnet:
-volumes:
-  portainer_data:
-  pgdata:
-  mongodb_data:
-    driver: local
-  minio_data:
-    driver: local
+# volumes:
+#   portainer_data:
+#   pgdata:
+#   mongodb_data:
+#     driver: local

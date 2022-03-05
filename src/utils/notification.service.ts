@@ -1,6 +1,7 @@
 import { createTransport, SendMailOptions } from "nodemailer";
 import { Injectable } from "@nestjs/common";
 import config from "src/config/config";
+import { SNSClient, AddPermissionCommand } from "@aws-sdk/client-sns";
 
 @Injectable()
 export class NotificationService {
@@ -15,7 +16,7 @@ export class NotificationService {
     }
   });
 
-
+  snsClient = new SNSClient({ region: config.ses.region });
   sendMail(options: SendMailOptions) {
     const mailOptions: SendMailOptions = {
       to: options.to,
@@ -35,5 +36,18 @@ export class NotificationService {
         }
       });
     })
+  }
+
+
+  async sendSms() {
+    const params = {
+      /** input parameters */
+    } as any;
+    const command = new AddPermissionCommand(params);
+    const data = await this.snsClient.send(command).catch(error => {
+      console.log({message: "An error occured while sending message", error});
+    });
+
+    return data;
   }
 }
