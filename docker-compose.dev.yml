@@ -3,12 +3,15 @@ version: "3.7"
 services:
   reverse_proxy:
     restart: unless-stopped
-    image: bitnami/nginx:latest
+    image: valian/docker-nginx-auto-ssl
     ports:
       - 80:80/tcp
       - 443:443/tcp
     volumes:
-      - ./conf.d/nginx.conf:/opt/bitnami/nginx/conf/server_blocks/my_server_block.conf:ro
+      - ssl_data:/etc/resty-auto-ssl
+    environment:
+      ALLOWED_DOMAINS: 'applesauce.co.in'
+      SITES: 'applesauce.co.in=main:3000'
     depends_on:
       - main
     networks:
@@ -111,8 +114,9 @@ services:
 
 networks:
   webnet:
-# volumes:
-#   portainer_data:
-#   pgdata:
-#   mongodb_data:
-#     driver: local
+volumes:
+  ssl_data:
+  # portainer_data:
+  # pgdata:
+  # mongodb_data:
+  #   driver: local
