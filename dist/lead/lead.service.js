@@ -560,13 +560,13 @@ let LeadService = LeadService_1 = class LeadService {
     sendEmailToLead({ content, subject, attachments, email }) {
         return __awaiter(this, void 0, void 0, function* () {
             this.notificationService.sendMail({
-                from: '"Company" <' + config_1.default.mail.user + ">",
-                to: ["shanur.cse.nitap@gmail.com"],
+                from: config_1.default.ses.notificationEmail,
+                to: [email],
                 subject: subject,
                 text: content,
                 replyTo: {
-                    name: "shanur",
-                    address: "mnsh0203@gmail.com",
+                    name: "Shanur",
+                    address: config_1.default.ses.customerReplyEmail,
                 },
                 attachments: attachments === null || attachments === void 0 ? void 0 : attachments.map((a) => {
                     return {

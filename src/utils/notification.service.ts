@@ -30,6 +30,7 @@ export class NotificationService {
     return new Promise((resolve, reject) => {
       this.transporter.sendMail(mailOptions, (error) => {
         if (error) {
+          console.error({message: "Error occured while sending email", error})
           reject(error);
         } else {
           resolve(true);

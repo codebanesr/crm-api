@@ -813,13 +813,13 @@ export class LeadService {
 
   async sendEmailToLead({ content, subject, attachments, email }) {
     this.notificationService.sendMail({
-      from: '"Company" <' + config.mail.user + ">",
-      to: ["shanur.cse.nitap@gmail.com"],
+      from: config.ses.notificationEmail,
+      to: [email],
       subject: subject,
       text: content,
       replyTo: {
-        name: "shanur",
-        address: "mnsh0203@gmail.com",
+        name: "Shanur",
+        address: config.ses.customerReplyEmail,
       },
       attachments: attachments?.map((a) => {
         return {

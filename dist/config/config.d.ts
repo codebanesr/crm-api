@@ -62,7 +62,9 @@ declare const _default: {
         username: string;
         password: string;
         supportEmail: string;
+        notificationEmail: string;
         onboarding: string;
+        customerReplyEmail: string;
     };
 };
 export default _default;

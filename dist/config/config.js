@@ -70,7 +70,9 @@ exports.default = {
         "username": "AKIASJF5UAUY55LYUDGC",
         "password": "BN7HKD4ukXuOYFjhj6cHtRYKmFJma2a5M+KxZn8lCRT7",
         "supportEmail": "support@applesauce.co.in",
-        "onboarding": "onboarding@applesauce.co.in"
+        "notificationEmail": "notification@applesauce.co.in",
+        "onboarding": "onboarding@applesauce.co.in",
+        "customerReplyEmail": "shanur.cse.nitap@gmail.com"
     }
 };
 //# sourceMappingURL=config.js.map
