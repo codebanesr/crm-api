@@ -19,8 +19,7 @@ declare const _default: {
     };
     MONGODB_URI: string;
     host: {
-        url: string;
-        port: string;
+        address: string;
     };
     jwt: {
         secretOrKey: string;
@@ -57,6 +56,13 @@ declare const _default: {
         google: {
             clientId: string;
         };
+    };
+    ses: {
+        region: string;
+        username: string;
+        password: string;
+        supportEmail: string;
+        onboarding: string;
     };
 };
 export default _default;

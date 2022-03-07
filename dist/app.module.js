@@ -84,7 +84,7 @@ AppModule = __decorate([
                 useClass: common_1.CacheInterceptor,
             },
             upload_service_1.UploadService,
-            push_notification_service_1.PushNotificationService,
+            push_notification_service_1.PushNotificationService
         ],
     })
 ], AppModule);

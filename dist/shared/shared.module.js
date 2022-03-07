@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SharedModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const notification_service_1 = require("../utils/notification.service");
 const schema_1 = require("../organization/schema");
 const user_schema_1 = require("../user/schemas/user.schema");
 const shared_service_1 = require("./shared.service");
@@ -23,8 +24,8 @@ SharedModule = __decorate([
                 { name: "ResellerOrganization", schema: schema_1.ResellerOrganizationSchema },
             ]),
         ],
-        providers: [shared_service_1.SharedService],
-        exports: [shared_service_1.SharedService]
+        providers: [shared_service_1.SharedService, notification_service_1.NotificationService],
+        exports: [shared_service_1.SharedService, notification_service_1.NotificationService]
     })
 ], SharedModule);
 exports.SharedModule = SharedModule;

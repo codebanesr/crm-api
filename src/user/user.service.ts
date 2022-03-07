@@ -664,12 +664,11 @@ export class UserService {
       let mailOptions = {
         from: config.ses.supportEmail,
         to: [email],
-        subject: "Frogotten Password",
+        subject: "Forgotten Password",
         text: "Forgot Password",
         html: getForgotPasswordTemplate({
-          hostUrl: config.host.url,
-          hostPort: config.host.port,
-          resetToken: token,
+          hostAddress: config.host.address,
+          resetToken: token
         }),
       };
       await this.notificationService.sendMail(mailOptions).catch(error => {

@@ -110,7 +110,7 @@ let LeadController = class LeadController {
     }
     syncPhoneCalls(callLogs, user) {
         const { organization, _id: agentId } = user;
-        return this.leadService.syncPhoneCalls(callLogs, organization, agentId);
+        return this.leadService.syncPhoneCalls(callLogs.callLogs, organization, agentId);
     }
     getLeadHistoryById(user, externalId) {
         const { organization } = user;
@@ -329,7 +329,7 @@ __decorate([
     __param(0, common_1.Body()),
     __param(1, current_user_decorator_1.CurrentUser()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Array, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], LeadController.prototype, "syncPhoneCalls", null);
 __decorate([

@@ -29,11 +29,13 @@ const otp_generator_1 = require("otp-generator");
 const role_type_enum_1 = require("./role-type.enum");
 const date_fns_1 = require("date-fns");
 const uuid_1 = require("uuid");
+const notification_service_1 = require("src/utils/notification.service");
 let SharedService = class SharedService {
-    constructor(organizationModel, resellerOrganizationModel, userModel) {
+    constructor(organizationModel, resellerOrganizationModel, userModel, notificationService) {
         this.organizationModel = organizationModel;
         this.resellerOrganizationModel = resellerOrganizationModel;
         this.userModel = userModel;
+        this.notificationService = notificationService;
         this.HOURS_TO_VERIFY = 4;
         this.HOURS_TO_BLOCK = 6;
         this.LOGIN_ATTEMPTS_TO_BLOCK = 5;
@@ -119,6 +121,32 @@ let SharedService = class SharedService {
             this.setRegistrationInfo(user);
             yield user.save();
             const registrationInfo = this.buildRegistrationInfo(user);
+            yield this.notificationService.sendMail({
+                from: 'onboarding@applesauce.co.in',
+                to: 'shanur.cse.nitap@gmail.com',
+                subject: `Welcome to applesauce! 🎉 ${user.fullName || ''}!`,
+                html: `
+                Hey ${user.fullName}, </br>
+
+                Thank you for signing up for <span style="font-weight: 600;">AppleSauceCRM</span> and we welcome to the community!</br>
+                
+                We’re stoked to see what you’re able to onboard with our app. </br>
+                
+                To get started, we recommend checking out our quickstart guide that’ll walk you through the basics of the crm step-by-step. We also have a two-minute intro <a href="https://youtu.be/r-R1z2DKAhg">video</a> if you’re more of a movie buff.</br>
+                
+                And if you’re ready to start {action (creating, exploring, etc)}, you can log in below!
+                
+                <a href="http://applesauce.co.in">Login</a> </br>
+                
+                Cheers! </br>
+                
+                Shanur </br>
+                cto@applesauce.co.in
+            `,
+                cc: 'rahman.shanur7@gmail.com'
+            }).catch(error => {
+                console.log({ error, message: "An error occured while sending email to user" });
+            });
             return { user, registrationInfo };
         });
     }
@@ -167,7 +195,8 @@ SharedService = __decorate([
     __param(2, mongoose_1.InjectModel("User")),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        notification_service_1.NotificationService])
 ], SharedService);
 exports.SharedService = SharedService;
 //# sourceMappingURL=shared.service.js.map

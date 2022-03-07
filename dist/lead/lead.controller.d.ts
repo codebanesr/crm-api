@@ -40,7 +40,9 @@ export declare class LeadController {
         leadHistory: import("./interfaces/lead-history.interface").LeadHistory;
     }>;
     reassignBulkLead(user: User, bulkReassignDto: BulkReassignDto): Promise<any>;
-    syncPhoneCalls(callLogs: SyncCallLogsDto[], user: User): Promise<import("./interfaces/call-log.interface").CallLog[]>;
+    syncPhoneCalls(callLogs: {
+        callLogs: SyncCallLogsDto[];
+    }, user: User): Promise<import("./interfaces/call-log.interface").CallLog[]>;
     getLeadHistoryById(user: User, externalId: string): Promise<import("./interfaces/lead.interface").Lead>;
     getUsersPerformance(req: any): Promise<void>;
     getLeadSuggestions(user: User, externalId: string, page?: number, perPage?: number): Promise<any>;

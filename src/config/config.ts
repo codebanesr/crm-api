@@ -1,5 +1,5 @@
 import * as path from "path";
-import { config as loadEnvConfig } from "dotenv";
+import { config, config as loadEnvConfig } from "dotenv";
 
 if (!process.env.NODE_ENV) {
   const p = path.resolve(__dirname, "../..", "env", "local.env");
@@ -27,8 +27,7 @@ export default {
   },
   MONGODB_URI: process.env.MONGODB_URI,
   host: {
-    url: "localhost",
-    port: "3000",
+    address: process.env.CRM_ADDRESS
   },
   jwt: {
     secretOrKey: "secret",

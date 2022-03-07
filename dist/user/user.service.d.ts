@@ -18,6 +18,7 @@ import { Organization } from "../organization/interface/organization.interface";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import { OAuthDto } from './dto/oauth.dto';
 import { SharedService } from "../shared/shared.service";
+import { NotificationService } from "../utils/notification.service";
 export declare class UserService {
     private readonly userModel;
     private readonly forgotPasswordModel;
@@ -25,10 +26,11 @@ export declare class UserService {
     private readonly organizationModel;
     private readonly authService;
     private readonly sharedService;
+    private readonly notificationService;
     HOURS_TO_VERIFY: number;
     HOURS_TO_BLOCK: number;
     LOGIN_ATTEMPTS_TO_BLOCK: number;
-    constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, organizationModel: Model<Organization>, authService: AuthService, sharedService: SharedService);
+    constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, organizationModel: Model<Organization>, authService: AuthService, sharedService: SharedService, notificationService: NotificationService);
     oauthLogin(userDto: OAuthDto, req: any): Promise<{
         _id: any;
         fullName: string;

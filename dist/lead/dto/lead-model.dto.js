@@ -246,6 +246,7 @@ __decorate([
         type: Number,
         default: "-",
     }),
+    class_transformer_1.Transform(v => v + ""),
     class_validator_1.IsString(),
     class_validator_1.IsOptional(),
     __metadata("design:type", Number)

@@ -33,7 +33,6 @@ const parseExcel_1 = require("../utils/parseExcel");
 const xlsx_1 = require("xlsx");
 const path_1 = require("path");
 const config_1 = require("../config/config");
-const nodemailer_1 = require("nodemailer");
 const forgot_password_template_1 = require("../utils/forgot-password-template");
 const crypto_utils_1 = require("../utils/crypto.utils");
 const uuid_2 = require("uuid");
@@ -41,15 +40,17 @@ const role_type_enum_1 = require("../shared/role-type.enum");
 const moment = require("moment");
 const google_auth_library_1 = require("google-auth-library");
 const shared_service_1 = require("../shared/shared.service");
+const notification_service_1 = require("../utils/notification.service");
 const oauth2Client = new google_auth_library_1.OAuth2Client(config_1.default.oauth.google.clientId);
 let UserService = class UserService {
-    constructor(userModel, forgotPasswordModel, adminActionModel, organizationModel, authService, sharedService) {
+    constructor(userModel, forgotPasswordModel, adminActionModel, organizationModel, authService, sharedService, notificationService) {
         this.userModel = userModel;
         this.forgotPasswordModel = forgotPasswordModel;
         this.adminActionModel = adminActionModel;
         this.organizationModel = organizationModel;
         this.authService = authService;
         this.sharedService = sharedService;
+        this.notificationService = notificationService;
         this.HOURS_TO_VERIFY = 4;
         this.HOURS_TO_BLOCK = 6;
         this.LOGIN_ATTEMPTS_TO_BLOCK = 5;
@@ -540,37 +541,20 @@ let UserService = class UserService {
             if (!userFromDb)
                 throw new common_1.HttpException("LOGIN.USER_NOT_FOUND", common_1.HttpStatus.NOT_FOUND);
             if (token) {
-                let transporter = nodemailer_1.createTransport({
-                    service: "Mailgun",
-                    auth: {
-                        user: config_1.default.mail.user,
-                        pass: config_1.default.mail.pass,
-                    },
-                });
                 let mailOptions = {
-                    from: '"Company" <' + config_1.default.mail.user + ">",
+                    from: config_1.default.ses.supportEmail,
                     to: [email],
-                    subject: "Frogotten Password",
+                    subject: "Forgotten Password",
                     text: "Forgot Password",
                     html: forgot_password_template_1.getForgotPasswordTemplate({
-                        hostUrl: config_1.default.host.url,
-                        hostPort: config_1.default.host.port,
-                        resetToken: token,
+                        hostAddress: config_1.default.host.address,
+                        resetToken: token
                     }),
                 };
-                var sended = yield new Promise(function (resolve, reject) {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        return yield transporter.sendMail(mailOptions, (error, info) => __awaiter(this, void 0, void 0, function* () {
-                            if (error) {
-                                console.log("Message sent: %s", error);
-                                return reject(false);
-                            }
-                            console.log("Message sent: %s", info.messageId);
-                            resolve(true);
-                        }));
-                    });
+                yield this.notificationService.sendMail(mailOptions).catch(error => {
+                    console.log({ message: "An error occured while sending email", error });
                 });
-                return sended;
+                return true;
             }
             else {
                 throw new common_1.HttpException("REGISTER.USER_NOT_REGISTERED", common_1.HttpStatus.FORBIDDEN);
@@ -689,7 +673,8 @@ UserService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         auth_service_1.AuthService,
-        shared_service_1.SharedService])
+        shared_service_1.SharedService,
+        notification_service_1.NotificationService])
 ], UserService);
 exports.UserService = UserService;
 //# sourceMappingURL=user.service.js.map

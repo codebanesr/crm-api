@@ -27,8 +27,7 @@ exports.default = {
     },
     MONGODB_URI: process.env.MONGODB_URI,
     host: {
-        url: "localhost",
-        port: "3000",
+        address: process.env.CRM_ADDRESS
     },
     jwt: {
         secretOrKey: "secret",
@@ -65,6 +64,13 @@ exports.default = {
         google: {
             clientId: process.env.GOOGLE_OAUTH_CLIENTID
         }
+    },
+    ses: {
+        "region": "email-smtp.ap-south-1.amazonaws.com",
+        "username": "AKIASJF5UAUY55LYUDGC",
+        "password": "BN7HKD4ukXuOYFjhj6cHtRYKmFJma2a5M+KxZn8lCRT7",
+        "supportEmail": "support@applesauce.co.in",
+        "onboarding": "onboarding@applesauce.co.in"
     }
 };
 //# sourceMappingURL=config.js.map

@@ -1,9 +1,8 @@
 export const getForgotPasswordTemplate = ({
-  hostUrl,
-  hostPort,
-  resetToken,
+  hostAddress,
+  resetToken
 }) => {
-  const resetVerifyUrl = `http://${hostUrl}:${hostPort}/user/forgot-password-verify/${resetToken}`;
+  const resetVerifyUrl = `${hostAddress}/#/forgot-password/${resetToken}`;
   return `
     <!DOCTYPE html>
     <html>
