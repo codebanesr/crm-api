@@ -9,7 +9,7 @@ import { addHours } from "date-fns";
 import { v4 as uuidv4 } from 'uuid';
 import { CreateOrganizationDto } from "../organization/dto";
 import { Organization, ResellerOrganization } from "../organization/interface";
-import { NotificationService } from "src/utils/notification.service";
+import { NotificationService } from "../utils/notification.service";
 
 
 @Injectable()

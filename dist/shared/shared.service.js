@@ -29,7 +29,7 @@ const otp_generator_1 = require("otp-generator");
 const role_type_enum_1 = require("./role-type.enum");
 const date_fns_1 = require("date-fns");
 const uuid_1 = require("uuid");
-const notification_service_1 = require("src/utils/notification.service");
+const notification_service_1 = require("../utils/notification.service");
 let SharedService = class SharedService {
     constructor(organizationModel, resellerOrganizationModel, userModel, notificationService) {
         this.organizationModel = organizationModel;

@@ -3,7 +3,7 @@ import { CreateUserDto } from "../user/dto/create-user.dto";
 import { User } from "../user/interfaces/user.interface";
 import { CreateOrganizationDto } from "../organization/dto";
 import { Organization, ResellerOrganization } from "../organization/interface";
-import { NotificationService } from "src/utils/notification.service";
+import { NotificationService } from "../utils/notification.service";
 export declare class SharedService {
     private readonly organizationModel;
     private readonly resellerOrganizationModel;
