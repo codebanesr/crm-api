@@ -18,7 +18,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
 const nodemailer_1 = require("nodemailer");
 const common_1 = require("@nestjs/common");
-const config_1 = require("src/config/config");
+const config_1 = require("../config/config");
 const client_sns_1 = require("@aws-sdk/client-sns");
 let NotificationService = class NotificationService {
     constructor() {
