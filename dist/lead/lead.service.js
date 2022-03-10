@@ -514,7 +514,7 @@ let LeadService = LeadService_1 = class LeadService {
             if (requestedInformation && Object.keys(requestedInformation).length > 0) {
                 nextEntryInHistory["requestedInformation"] = requestedInformation.filter((ri) => Object.keys(ri).length > 0);
             }
-            nextEntryInHistory.prospectName = `${lead.firstName} ${lead.lastName}`;
+            nextEntryInHistory.prospectName = `${(lead.firstName + " " + lead.lastName) || lead.fullName}`;
             nextEntryInHistory.leadStatus = lead.leadStatus;
             nextEntryInHistory.followUp = (_b = lead.followUp) === null || _b === void 0 ? void 0 : _b.toString();
             nextEntryInHistory.organization = organization;

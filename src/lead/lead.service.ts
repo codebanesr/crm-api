@@ -742,7 +742,7 @@ export class LeadService {
       );
     }
     /** @Todo add dialed phone number */
-    nextEntryInHistory.prospectName = `${lead.firstName} ${lead.lastName}`;
+    nextEntryInHistory.prospectName = `${(lead.firstName + " " + lead.lastName) || lead.fullName}`;
     nextEntryInHistory.leadStatus = lead.leadStatus;
     nextEntryInHistory.followUp = lead.followUp?.toString();
     nextEntryInHistory.organization = organization;
