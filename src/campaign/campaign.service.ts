@@ -383,7 +383,7 @@ export class CampaignService {
       archived: {$ne: true}
     });
     quickStatsAgg.group({
-      _id: { campaign: "$campaign" },
+      _id: { campaign: "$campaignId" },
       followUp: {
         $sum: {
           $cond: [
