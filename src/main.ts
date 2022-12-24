@@ -34,7 +34,7 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, options, {
     include: [
-      UserModule,
+      // UserModule,
       ArticleModule,
       LeadModule,
       CampaignModule,

@@ -1,6 +1,6 @@
+dist
 node_modules
 node_modules/*
 containers/openfire/databases*
 logs/*
 *.env
-dist

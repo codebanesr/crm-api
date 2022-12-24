@@ -47,7 +47,7 @@ export class CreateEmailTemplateDto {
   campaignId: string;
 
   @ApiProperty({
-    examples: [
+    example: [
       {
         filename: "somefilename",
         path: "somefilepath",
