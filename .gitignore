@@ -3,3 +3,4 @@ node_modules/*
 containers/openfire/databases*
 logs/*
 *.env
+dist/*
