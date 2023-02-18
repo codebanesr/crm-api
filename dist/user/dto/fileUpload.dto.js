@@ -14,7 +14,7 @@ const swagger_1 = require("@nestjs/swagger");
 class FileUploadDto {
 }
 __decorate([
-    swagger_1.ApiProperty({ type: 'string', format: 'binary' }),
+    swagger_1.ApiProperty({ type: String, format: 'binary' }),
     __metadata("design:type", Object)
 ], FileUploadDto.prototype, "file", void 0);
 exports.FileUploadDto = FileUploadDto;

@@ -59,7 +59,7 @@ __decorate([
 ], CreateEmailTemplateDto.prototype, "campaignId", void 0);
 __decorate([
     swagger_1.ApiProperty({
-        examples: [
+        example: [
             {
                 filename: "somefilename",
                 path: "somefilepath",

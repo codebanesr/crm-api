@@ -53,5 +53,10 @@ declare const _default: {
         REDIS_URL: string;
         REDIS_PORT: string;
     };
+    oauth: {
+        google: {
+            clientId: string;
+        };
+    };
 };
 export default _default;

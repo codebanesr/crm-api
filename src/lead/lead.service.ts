@@ -1156,7 +1156,7 @@ export class LeadService {
     if (!isStreamable) {
       result
         .limit(payload.pagination.perPage)
-        .skip((payload.pagination.page - 1) * payload.pagination.perPage);
+        .skip((payload.pagination.page) * payload.pagination.perPage);
       count = await this.leadHistoryModel.countDocuments(query);
     }
 

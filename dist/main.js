@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const user_module_1 = require("./user/user.module");
 const article_module_1 = require("./article/article.module");
 require("dotenv/config");
 const core_1 = require("@nestjs/core");
@@ -37,7 +36,6 @@ function bootstrap() {
             .build();
         const document = swagger_1.SwaggerModule.createDocument(app, options, {
             include: [
-                user_module_1.UserModule,
                 article_module_1.ArticleModule,
                 lead_module_1.LeadModule,
                 campaign_module_1.CampaignModule,

@@ -1,98 +1,63 @@
-<div align="center">
-  <img width="250" src="https://camo.githubusercontent.com/18fe3feea5e3593c593e12e552494a3995eceacf/687474703a2f2f6b616d696c6d79736c69776965632e636f6d2f7075626c69632f6e6573742d6c6f676f2e706e672331" alt="Awesome">
-  <br>
-  <h3>real-world-example-nestjs-mongoose-jwt-auth-roles-and-permission</h3>
-  <hr>
-</div>
+# Getting Started
 
+To get started with your project, follow the steps below:
+1. Install Redis and MongoDB
 
-# Write scripts to create few folders during startup if not exists
-crm_response
+Redis and MongoDB are both required to run your project. You can use Docker to easily install both of them. Here's how:
 
-# Getting started
-
-## Installation
-
-Clone the repository
-
-    git clone https://github.com/pejmanhadavi/real-world-example-nestjs-mongoose-jwt-auth.git
-
-Switch to the repo folder
-
-    cd real-world-example-nestjs-mongoose-jwt-auth
-    
-Install dependencies
-    
-    npm install
-
-Create a .env file and write it as follows
-
-    MONGO_URI='mongodb://localhost/YOURMONGODBNAME'
-    JWT_SECRET='YOURJWTSECRETCHANGEIT'
-    ENCRYPT_JWT_SECRET='YOURJWTENCRIPTINGPASSCHANGEIT'
-    JWT_EXPIRATION=30m
- 
-----------
-
-## Database
-
-The example codebase uses [Mongoose](https://mongoosejs.com/).
-
-----------
-
-## NPM scripts
-- `npm run start:watch` - Start application in watch mode
-
-----------
-# Authentication
- 
-This applications uses JSON Web Token (JWT) to handle authentication.
-This app uses <strong>refresh-Token</strong> mechanism to refresh jsonwebtoken after 30 minutes.
-
-----------
- 
-# Swagger API docs
-
-Visit http://127.0.0.1:3000/api in your browser
-
-This example repo uses the NestJS swagger module for API documentation. [NestJS Swagger](https://github.com/nestjs/swagger) - [www.swagger.io](https://swagger.io/)
-
-## Authors
-
-### Aggregating results based on month, year and leadStatus
-```json
-db.getCollection('leadhistories').aggregate([
-    {
-        $project: { "year":{"$year":"$createdAt"}, "month":{"$month":"$createdAt"}, leadStatus: "$leadStatus"}
-    },
-    { $match: {"year": 2021} },
-    {
-         $group : { 
-             _id : { 
-                 month : "$month", 
-                 year : "$year",
-                 leadStatus: "$leadStatus"
-             },
-             total : {"$sum" : 1},
-         }
-     },
-     {
-         $addFields: {
-             month: {
-                 $let: {
-                     vars: {
-                         monthsInString: [, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'July', 'August', 'September', 'October', 'November', 'December']
-                     },
-                     in: {
-                         $arrayElemAt: ['$$monthsInString', '$_id.month']
-                     }
-                 }
-             }
-         }
-     }
- ])
+```sh
+docker-compose -f docker-compose.dev.yml up -d --no-deps redis mongodb worker
 ```
 
+
+This command will start Redis and MongoDB containers using the docker-compose.dev.yml configuration file.
+
+2. Use dummy data
+to restore working set data, use the following command
+```sh
+docker exec -i mongoback sh -c 'mongorestore --archive' < db.dump
+```
+
+This command will export the data from the MongoDB container into a db.dump file.
+
+3. Start the development server
+
+Finally, to start the development server, run the following command:
+
+```bash
+npm run start:dev
+```
+
+This command will start the development server for your project.
+
+Congratulations! You have now successfully installed Redis and MongoDB, loaded dummy data, and started the development server for your project. You can now start working on your project and building out its features.
+
+---
+## File processing service
+[Microservice for file processing](https://github.com/shanurrahman/molecule_bull_microservice)
+Bulk user uploads are handled by a worker process linked above.
+
+```sh
+docker-compose -f docker-compose.dev.yml up -d --no-deps worker
+```
+
+## Frontend application
+1. switch to cdk-drag-drop branch
+2. `npm start` for development or `npm run build` for production deployment
+
+use credentials - 
+```
+username: shanur.cse.nitap@gmail.com
+password: password123
+```
+to login into the app
+
+
+
+
+
+
+---
 `docker system prune` -> Delete prev images
 `docker-compose up -d --build --no-deps main` -> build and restart main server
 `docker-compose up -d --build --no-deps worker` -> Build and restart worker

@@ -16,6 +16,7 @@ import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { RoleType } from "../shared/role-type.enum";
 import { Organization } from "../organization/interface/organization.interface";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
+import { OAuthDto } from './dto/oauth.dto';
 export declare class UserService {
     private readonly userModel;
     private readonly forgotPasswordModel;
@@ -27,23 +28,44 @@ export declare class UserService {
     LOGIN_ATTEMPTS_TO_BLOCK: number;
     constructor(userModel: Model<User>, forgotPasswordModel: Model<ForgotPassword>, adminActionModel: Model<AdminAction>, organizationModel: Model<Organization>, authService: AuthService);
     create(createUserDto: CreateUserDto, organization: string, isFirstUser?: boolean): Promise<any>;
+    oauthLogin(userDto: OAuthDto, req: any): Promise<{
+        _id: any;
+        fullName: any;
+        organization: any;
+        email: any;
+        roleType: any;
+        accessToken: string;
+        refreshToken: string;
+    }>;
     checkAndUpdateUserQuota(organizationId: string): Promise<void>;
     checkHierarchyPreconditions(createUserDto: CreateUserDto): Promise<boolean>;
     getSuperiorRoleTypes(email: string): Promise<RoleType[]>;
     getSuperiorRoles(roleType: RoleType): RoleType[];
     createReseller(createResellerDto: CreateResellerDto): Promise<any>;
     verifyEmail(req: Request, verifyUuidDto: VerifyUuidDto): Promise<{
-        fullName: string;
-        email: string;
+        _id: any;
+        fullName: any;
+        organization: any;
+        email: any;
+        roleType: any;
         accessToken: string;
         refreshToken: string;
     }>;
     login(req: Request, loginUserDto: LoginUserDto): Promise<{
         _id: any;
-        fullName: string;
+        fullName: any;
         organization: any;
-        email: string;
-        roleType: RoleType;
+        email: any;
+        roleType: any;
+        accessToken: string;
+        refreshToken: string;
+    }>;
+    loginUtil(user: any, req: any): Promise<{
+        _id: any;
+        fullName: any;
+        organization: any;
+        email: any;
+        roleType: any;
         accessToken: string;
         refreshToken: string;
     }>;
@@ -107,4 +129,5 @@ export declare class UserService {
     sendPushNotification(): Promise<void>;
     getAllUsersForOrganization(organization: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
     getUsersForRoles(organization: string, roles: RoleType[]): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">[]>;
+    verifyGoogleOauth(token: string): Promise<import("google-auth-library").TokenPayload>;
 }

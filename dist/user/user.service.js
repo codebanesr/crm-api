@@ -39,6 +39,8 @@ const crypto_utils_1 = require("../utils/crypto.utils");
 const uuid_2 = require("uuid");
 const role_type_enum_1 = require("../shared/role-type.enum");
 const moment = require("moment");
+const google_auth_library_1 = require("google-auth-library");
+const oauth2Client = new google_auth_library_1.OAuth2Client(config_1.default.oauth.google.clientId);
 let UserService = class UserService {
     constructor(userModel, forgotPasswordModel, adminActionModel, organizationModel, authService) {
         this.userModel = userModel;
@@ -60,6 +62,30 @@ let UserService = class UserService {
             this.setRegistrationInfo(user);
             yield user.save();
             return this.buildRegistrationInfo(user);
+        });
+    }
+    oauthLogin(userDto, req) {
+        return __awaiter(this, void 0, void 0, function* () {
+            switch (userDto.provider) {
+                case 'google': {
+                    const payload = yield this.verifyGoogleOauth(userDto.idToken);
+                    if (!payload.email) {
+                        throw new common_1.BadGatewayException("user email was not provided from oauth, please contact admin");
+                    }
+                    const user = yield this.userModel.findOne({ email: payload.email }).lean().exec();
+                    if (user) {
+                        return this.loginUtil(user, req);
+                    }
+                    this.create({
+                        email: payload.email,
+                        fullName: (payload.name || '') + (payload.family_name || '') + (payload.given_name || ''),
+                        password: uuid_2.v4(),
+                        phoneNumber: '0000',
+                        roleType: role_type_enum_1.RoleType.admin,
+                    }, "", true);
+                    return this.loginUtil(user, req);
+                }
+            }
         });
     }
     checkAndUpdateUserQuota(organizationId) {
@@ -140,14 +166,8 @@ let UserService = class UserService {
     verifyEmail(req, verifyUuidDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield this.findByVerification(verifyUuidDto.verification);
-            const singleLoginKey = this.setSingleLoginKey(user);
             yield this.setUserAsVerified(user);
-            return {
-                fullName: user.fullName,
-                email: user.email,
-                accessToken: yield this.authService.createAccessToken(user._id, singleLoginKey),
-                refreshToken: yield this.authService.createRefreshToken(req, user._id),
-            };
+            return this.loginUtil(user, req);
         });
     }
     login(req, loginUserDto) {
@@ -156,6 +176,11 @@ let UserService = class UserService {
             yield this.isOrganizationActive(user.organization);
             this.isUserBlocked(user);
             yield this.checkPassword(loginUserDto.password, user);
+            return this.loginUtil(user, req);
+        });
+    }
+    loginUtil(user, req) {
+        return __awaiter(this, void 0, void 0, function* () {
             const singleLoginKey = this.setSingleLoginKey(user);
             yield this.passwordsAreMatch(user);
             return {
@@ -690,6 +715,17 @@ let UserService = class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             const users = yield this.userModel.find({ organization, roleType: { $in: roles } }).lean().exec();
             return users;
+        });
+    }
+    verifyGoogleOauth(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const ticket = yield oauth2Client.verifyIdToken({
+                idToken: token,
+                audience: [config_1.default.oauth.google.clientId],
+            });
+            const payload = ticket.getPayload();
+            const userid = payload['sub'];
+            return payload;
         });
     }
 };

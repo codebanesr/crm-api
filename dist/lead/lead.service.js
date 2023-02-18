@@ -798,7 +798,7 @@ let LeadService = LeadService_1 = class LeadService {
             if (!isStreamable) {
                 result
                     .limit(payload.pagination.perPage)
-                    .skip((payload.pagination.page - 1) * payload.pagination.perPage);
+                    .skip((payload.pagination.page) * payload.pagination.perPage);
                 count = yield this.leadHistoryModel.countDocuments(query);
             }
             const response = yield result.lean().exec();

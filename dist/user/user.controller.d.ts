@@ -12,6 +12,7 @@ import { PushNotificationDto } from "./dto/push-notification.dto";
 import { CreateResellerDto } from "./dto/create-reseller.dto";
 import { UpdateProfileDto } from "./dto/updateProfile.dto";
 import { RoleType } from "../shared/role-type.enum";
+import { OAuthDto } from './dto/oauth.dto';
 export declare class UserController {
     private readonly userService;
     constructor(userService: UserService);
@@ -25,17 +26,29 @@ export declare class UserController {
     }>;
     getUserById(user: User, userid: string): Promise<Pick<User, "password" | "_id" | "roles" | "email" | "fullName" | "roleType" | "reportsTo" | "phoneNumber" | "verification" | "verified" | "verificationExpires" | "loginAttempts" | "blockExpires" | "bankAccountNumber" | "bankAccountName" | "batLvl" | "singleLoginKey" | "history" | "hierarchyWeight" | "organization" | "pushtoken">>;
     verifyEmail(req: IRequest, verifyUuidDto: VerifyUuidDto): Promise<{
-        fullName: string;
-        email: string;
+        _id: any;
+        fullName: any;
+        organization: any;
+        email: any;
+        roleType: any;
         accessToken: string;
         refreshToken: string;
     }>;
     login(req: IRequest, loginUserDto: LoginUserDto): Promise<{
         _id: any;
-        fullName: string;
+        fullName: any;
         organization: any;
-        email: string;
-        roleType: RoleType;
+        email: any;
+        roleType: any;
+        accessToken: string;
+        refreshToken: string;
+    }>;
+    oauthLogin(loginUserDto: OAuthDto, req: any): Promise<{
+        _id: any;
+        fullName: any;
+        organization: any;
+        email: any;
+        roleType: any;
         accessToken: string;
         refreshToken: string;
     }>;
