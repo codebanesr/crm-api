@@ -33,6 +33,13 @@ This command will start the development server for your project.
 Congratulations! You have now successfully installed Redis and MongoDB, loaded dummy data, and started the development server for your project. You can now start working on your project and building out its features.
 
 ---
+## Project structure
+```sh
+[~/Documents/GitHub/crm]$ ls
+crm-api                    crm-ui                       molecule_bull_microservice
+
+[~/Documents/GitHub/crm]$ cd crm-api
+```
 ## File processing service
 [Microservice for file processing](https://github.com/shanurrahman/molecule_bull_microservice)
 Bulk user uploads are handled by a worker process linked above.
@@ -42,7 +49,8 @@ docker-compose -f docker-compose.dev.yml up -d --no-deps worker
 ```
 
 ## Frontend application
-1. switch to cdk-drag-drop branch
+[Frontend app written using ionic and angular](https://github.com/shanurrahman/crm-ui/tree/cdk-drag-drop)
+1. switch to `cdk-drag-drop` branch
 2. `npm start` for development or `npm run build` for production deployment
 
 use credentials - 
@@ -51,9 +59,6 @@ username: shanur.cse.nitap@gmail.com
 password: password123
 ```
 to login into the app
-
-
-
 
 
 
